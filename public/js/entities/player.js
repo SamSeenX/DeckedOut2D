@@ -1,10 +1,16 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS } from '../utils/constants.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST } from '../utils/constants.js';
+
 import { keys } from '../core/input.js';
+import { triggerShake } from '../core/camera.js';
 import { map } from '../world/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { gameState } from '../core/state.js';
-import { updateUI } from '../core/ui.js';
+import { updateUI, showToast, showVictory } from '../core/ui.js';
+
+import { spawnEmber, queueRegrowth } from '../core/game.js';
+
+
 
 const sprite = new Image();
 sprite.src = 'assets/sprits/player.webp';
@@ -27,12 +33,28 @@ export const player = {
     z: 0,
     jumpOffset: 0,
     isJumping: false,
+    isBumping: false, // Visual cue
+    bumpVelocity: 0,
+    bumpCount: 0, // Track failed attempts
 
     takeDamage(amount) {
         this.hp -= amount;
         this.lastDamageTime = Date.now();
+        triggerShake(0.2); // Shake intensity
         // Trigger UI update if needed, currently done in game loop or events
         updateUI(gameState, player);
+    },
+
+    triggerBump() {
+        if (this.isJumping || this.isBumping) return;
+        this.isBumping = true;
+        this.bumpVelocity = 2; // Small hop
+
+        this.bumpCount++;
+        if (this.bumpCount >= 10) {
+            showToast("Press SPACE to Jump!", 3000);
+            this.bumpCount = 0; // Reset after reminding
+        }
     },
 
     draw(ctx, camX, camY, tileSize) {
@@ -88,8 +110,10 @@ export const player = {
 
             let dy = ((this.y - camY) * tileSize) - renderHeight + feetOffset - visualZ;
 
-            // Damage Tint
-            if (Date.now() - this.lastDamageTime < 200) {
+            // Damage Tint (Fix: Capture condition once to avoid race condition)
+            const isDamaged = (Date.now() - this.lastDamageTime < 200);
+
+            if (isDamaged) {
                 ctx.save();
                 // Red tint filter
                 ctx.filter = 'sepia(1) saturate(5) hue-rotate(-50deg)';
@@ -101,7 +125,7 @@ export const player = {
                 dx, dy, renderWidth, renderHeight
             );
 
-            if (Date.now() - this.lastDamageTime < 200) {
+            if (isDamaged) {
                 ctx.restore();
             }
 
@@ -146,12 +170,15 @@ export function updatePlayer() {
     let isSneaking = keys['shift'];
     let isJumping = keys[' ']; // Space check
 
-    if (isRunning) {
-        speedLimit *= RUN_MULT;
-        accel *= 1.5; // Immediate burst of speed when running
-    } else if (isSneaking) {
+    // Bunny Hop (Run)
+    if (isJumping) {
+        speedLimit *= BUNNY_HOP_BOOST;
+    }
+
+    // Sneak (Priority over run if both held? usually sneak overrides)
+    if (isSneaking) {
         speedLimit *= SNEAK_MULT;
-        accel *= 0.5; // Slower, more controlled movement when sneaking
+        accel *= 0.5;
     }
 
     // Acceleration
@@ -194,7 +221,10 @@ export function updatePlayer() {
         if (targetZ_X > currentZ) {
             // Trying to go UP
             if (targetZ_X - currentZ > 1) canMoveX = false; // Too high
-            else if (!player.isJumping && !isJumping) canMoveX = false; // Needs jump
+            else if (!player.isJumping && !isJumping) {
+                canMoveX = false; // Needs jump
+                player.triggerBump();
+            }
         }
     }
 
@@ -209,7 +239,10 @@ export function updatePlayer() {
         if (targetZ_Y > currentZ) {
             // Trying to go UP
             if (targetZ_Y - currentZ > 1) canMoveY = false;
-            else if (!player.isJumping && !isJumping) canMoveY = false;
+            else if (!player.isJumping && !isJumping) {
+                canMoveY = false;
+                player.triggerBump();
+            }
         }
     }
 
@@ -228,7 +261,9 @@ export function updatePlayer() {
     // Jump Animation Logic
     if (isJumping && !player.isFalling && !player.isJumping) { // Start jump
         player.isJumping = true;
+        player.isBumping = false; // Override bump
         player.jumpVelocity = 4; // Start upward
+        player.bumpCount = 0; // Success! Reset counter
     }
 
     if (player.isJumping) {
@@ -239,13 +274,24 @@ export function updatePlayer() {
             player.jumpOffset = 0;
             player.isJumping = false;
         }
+    } else if (player.isBumping) {
+        // Tiny Hop Logic
+        player.jumpOffset += player.bumpVelocity;
+        player.bumpVelocity -= 0.5; // Faster gravity for small hop
+        if (player.jumpOffset <= 0) {
+            player.jumpOffset = 0;
+            player.isBumping = false;
+        }
     }
 
     checkTileEvents(Math.floor(player.x), Math.floor(player.y));
 }
 
 function checkTileEvents(tileX, tileY) {
-    let id = map[tileY][tileX];
+    if (tileY < 0 || tileY >= map.length || tileX < 0 || tileX >= map[0].length) return;
+
+    let cell = map[tileY][tileX];
+    let id = (typeof cell === 'object') ? (cell.id || 0) : cell;
     let block = BLOCK_DEFS[id];
     if (!block) return;
 
@@ -261,14 +307,86 @@ function checkTileEvents(tileX, tileY) {
         }
     }
 
-    // Hazards/Heals
+    // Hazards
     if (block.damage && Math.random() < 0.05) {
         player.takeDamage(block.damage);
     }
-    if (block.heal && player.hp < 10) {
-        player.hp += block.heal;
+
+    // Berry Bushes (Harvest)
+    if (block.heal) {
+        // Add to inventory instead of auto-eat
+        let amount = Math.floor(Math.random() * 3) + 1; // 1-3 berries
+        gameState.inventory.food += amount;
+        showToast(`Found ${amount} Berries`, 2000);
+
         // Consume the berry block (change to 7: Bush)
-        map[tileY][tileX] = 7;
+        if (typeof map[tileY][tileX] === 'object') {
+            map[tileY][tileX].id = 7;
+        } else {
+            map[tileY][tileX] = 7;
+        }
+
+        queueRegrowth(tileX, tileY);
+
         updateUI(gameState, player);
+    }
+
+
+
+    // Input: Eat Food ('F')
+    if (keys['f']) {
+        if (!player.lastEatTime || Date.now() - player.lastEatTime > 500) {
+            if (gameState.inventory.food > 0 && player.hp < 10) {
+                gameState.inventory.food--;
+                player.hp = Math.min(10, player.hp + 2);
+                player.lastEatTime = Date.now();
+                updateUI(gameState, player);
+                showToast("Ate a Berry", 1000);
+            } else if (gameState.inventory.food <= 0) {
+                // showToast("No Food!", 1000); 
+            } else if (player.hp >= 10) {
+                // Full HP
+            }
+        }
+    }
+
+    // Input: Check Location / Artifact ('E')
+    if (keys['e']) {
+        if (!player.lastCheckTime || Date.now() - player.lastCheckTime > 1000) {
+            player.lastCheckTime = Date.now();
+
+            // 1. Check for Artifact
+            if (gameState.targetArtifactLoc &&
+                gameState.targetArtifactLoc.x === tileX &&
+                gameState.targetArtifactLoc.y === tileY &&
+                !gameState.hasArtifact) {
+
+                gameState.hasArtifact = true;
+                showToast("ARTIFACT FOUND! Run to the Exit!", 5000);
+                gameState.clank += 20; // Loud noise!
+                updateUI(gameState, player);
+                return;
+            } else if (!gameState.hasArtifact) {
+                // Wrong location feedback
+                // Calculate distance/direction text?
+                showToast("Nothing here...", 1000);
+            }
+
+        }
+    }
+
+    // Auto-trigger: Check for Exit (Win)
+    let isExit = (typeof cell === 'object' && cell.isExit);
+    if (isExit) {
+        if (gameState.hasArtifact) {
+            if (!gameState.gameWon) { // Prevent double trigger
+                gameState.gameWon = true;
+                showVictory(gameState.targetArtifactItem, gameState.embersCollected);
+            }
+        } else {
+            // Optionally prompt user? 'Exit Locked'
+            // showToast("You need the Artifact!", 1000); 
+            // (Too spammy if auto-trigger, better to leave silent until they try 'E' or just visual)
+        }
     }
 }

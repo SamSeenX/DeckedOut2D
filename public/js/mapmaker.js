@@ -17,13 +17,18 @@ let mapData = [];
 let selectedTileId = 0;
 let referenceImage = null;
 let isPainting = false;
+let currentTool = 'paint'; // 'paint', 'fill', 'erase'
 let imageShiftX = 0;
 let imageShiftY = 0;
+let activeAttribute = null; // null means painting tiles
+let historyStack = []; // Undo history
+
 
 // ===== DOM Elements =====
 const uploadBtn = document.getElementById('upload-btn');
 const imageUpload = document.getElementById('image-upload');
 const clearImageBtn = document.getElementById('clear-image-btn');
+const undoBtn = document.getElementById('undo-btn'); // New
 const gridWidthInput = document.getElementById('grid-width');
 const gridHeightInput = document.getElementById('grid-height');
 const resizeBtn = document.getElementById('resize-btn');
@@ -31,6 +36,7 @@ const opacitySlider = document.getElementById('opacity-slider');
 const opacityValue = document.getElementById('opacity-value');
 const gridToggle = document.getElementById('grid-toggle');
 const clearBtn = document.getElementById('clear-btn');
+const fillBtn = document.getElementById('fill-btn');
 const saveBtn = document.getElementById('save-btn');
 const loadBtn = document.getElementById('load-btn');
 const loadInput = document.getElementById('load-input');
@@ -71,6 +77,7 @@ function initMap() {
         }
     }
     updateMapSizeDisplay();
+    // historyStack = []; // Clear history on init? Optional.
 }
 
 function resizeCanvas() {
@@ -82,32 +89,59 @@ function resizeCanvas() {
 function generateTilePalette() {
     tileList.innerHTML = '';
 
-    // Add Eraser tool first (special -1 id for transparency)
-    const eraserItem = document.createElement('div');
-    eraserItem.className = 'tile-item';
-    eraserItem.dataset.id = -1;
-    eraserItem.innerHTML = `
-        <div class="tile-preview eraser-preview">✕</div>
-        <span class="tile-name">Eraser</span>
-        <span class="tile-id">-</span>
-    `;
-    eraserItem.addEventListener('click', () => selectTile(-1));
-    tileList.appendChild(eraserItem);
+
 
     // Sort tile IDs numerically from BLOCK_DEFS
     const tileIds = Object.keys(BLOCK_DEFS).map(Number).sort((a, b) => a - b);
 
+    // Generate palette with canvas previews
     tileIds.forEach(id => {
         const block = BLOCK_DEFS[id];
         const item = document.createElement('div');
         item.className = 'tile-item' + (id === selectedTileId ? ' selected' : '');
         item.dataset.id = id;
 
-        item.innerHTML = `
-            <div class="tile-preview" style="background-color: ${block.color}"></div>
+        // Texture Preview (Canvas)
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'tile-preview-container';
+
+        const previewCanvas = document.createElement('canvas');
+        previewCanvas.className = 'tile-preview-canvas';
+        previewCanvas.width = 32;
+        previewCanvas.height = 32;
+
+        // Draw texture to canvas
+        const ctx = previewCanvas.getContext('2d');
+        const texture = getBlockTexture(id, 1);
+        if (texture) {
+            ctx.drawImage(texture.image, texture.sx, texture.sy, texture.sw, texture.sh, 0, 0, 32, 32);
+        } else {
+            ctx.fillStyle = block.color;
+            ctx.fillRect(0, 0, 32, 32);
+        }
+
+        previewContainer.appendChild(previewCanvas);
+
+        // Solid Indicator
+        if (block.solid) {
+            const ind = document.createElement('div');
+            ind.className = 'solid-indicator';
+            ind.title = "Solid Block";
+            previewContainer.appendChild(ind);
+        }
+
+        // Info
+        const infoDiv = document.createElement('div');
+        infoDiv.innerHTML = `
             <span class="tile-name">${block.name}</span>
-            <span class="tile-id">#${id}</span>
+            <div style="display:flex; justify-content:space-between; width:100%">
+                 <span class="tile-id">#${id}</span>
+            </div>
         `;
+        infoDiv.style.flex = "1";
+
+        item.appendChild(previewContainer);
+        item.appendChild(infoDiv);
 
         item.addEventListener('click', () => selectTile(id));
         tileList.appendChild(item);
@@ -116,12 +150,56 @@ function generateTilePalette() {
 
 function selectTile(id) {
     selectedTileId = id;
+    selectedTileId = id;
+    activeAttribute = null; // Disable attribute mode when selecting a tile
+    // isFillMode = false; // Optional: disable fill mode on new tile select? Let's keep it active if user wants to change fill color.
+    document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+
     selectedTileName.textContent = id === -1 ? 'Eraser' : (BLOCK_DEFS[id]?.name || 'Unknown');
 
     // Update visual selection
     document.querySelectorAll('.tile-item').forEach(item => {
         item.classList.toggle('selected', parseInt(item.dataset.id) === id);
     });
+
+    updateTileDetails(id);
+}
+
+function updateTileDetails(id) {
+    const panel = document.getElementById('tile-details-panel');
+    if (!panel) return;
+
+    panel.innerHTML = '';
+
+    if (id === -1) {
+        panel.innerHTML = '<div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">Eraser</span></div>';
+        return;
+    }
+
+    const block = BLOCK_DEFS[id];
+    if (!block) return;
+
+    // Helper for rows
+    const addRow = (label, value) => {
+        const row = document.createElement('div');
+        row.className = 'detail-row';
+        row.innerHTML = `<span class="detail-label">${label}</span><span class="detail-value">${value}</span>`;
+        panel.appendChild(row);
+    };
+
+    addRow('Name', block.name);
+    addRow('Slide', block.slideFactor || 0.8);
+    if (block.z) addRow('Elevation', `+${block.z}`);
+    if (block.damage) addRow('Damage', block.damage);
+    if (block.heal) addRow('Heal', block.heal);
+
+    // Tags
+    if (block.solid) panel.innerHTML += '<span class="detail-tag tag-solid">SOLID</span>';
+    else panel.innerHTML += '<span class="detail-tag tag-passable">PASSABLE</span>';
+
+    if (block.enemyBlocked) panel.innerHTML += ' <span class="detail-tag tag-solid">BLOCKS ENEMY</span>';
+    if (block.damage) panel.innerHTML += ' <span class="detail-tag tag-hazard">HAZARD</span>';
+    if (block.heal) panel.innerHTML += ' <span class="detail-tag tag-heal">HEAL</span>';
 }
 
 // ===== Drawing =====
@@ -177,6 +255,69 @@ function draw() {
     }
     ctx.globalAlpha = 1;
 
+    // Draw Attribute Overlays
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+            const tile = mapData[y]?.[x];
+            if (!tile) continue;
+
+            const px = x * TILE_SIZE;
+            const py = y * TILE_SIZE;
+
+            if (tile.isArtifactSpot) {
+                ctx.strokeStyle = '#ff0000'; // Red
+                ctx.lineWidth = 3;
+                ctx.strokeRect(px + 1.5, py + 1.5, TILE_SIZE - 3, TILE_SIZE - 3);
+
+                // Small dot in corner
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.arc(px + TILE_SIZE - 6, py + 6, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (tile.isTreasure) {
+                ctx.strokeStyle = '#ffd700'; // Gold
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 3]);
+                ctx.strokeRect(px + 1.5, py + 1.5, TILE_SIZE - 3, TILE_SIZE - 3);
+                ctx.setLineDash([]);
+            }
+
+            if (tile.isExit) {
+                ctx.strokeStyle = '#00ff00'; // Green
+                ctx.lineWidth = 3;
+                ctx.strokeRect(px + 1.5, py + 1.5, TILE_SIZE - 3, TILE_SIZE - 3);
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🚪', px + TILE_SIZE / 2, py + TILE_SIZE / 1.3);
+            }
+
+            // Draw Spawn Points
+            if (tile.spawn) {
+                ctx.lineWidth = 2;
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+
+                if (tile.spawn === 'player') {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    ctx.fillText('🟢', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);
+                } else if (tile.spawn === 'ravager') {
+                    ctx.strokeStyle = '#ff00ff';
+                    ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    ctx.fillText('👿', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);
+                } else if (tile.spawn === 'ghast') {
+                    ctx.strokeStyle = '#aaaaaa';
+                    ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    ctx.fillText('👻', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);
+                }
+            }
+        }
+    }
+
+
     // Draw grid overlay
     if (showGrid) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
@@ -217,11 +358,59 @@ function getTileCoords(e) {
 
 function placeTile(x, y, tileId) {
     if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
-        // Get default variant (first available or 1)
+
+        // ATTRIBUTE PAINTING MODE
+        if (activeAttribute) {
+            let tile = mapData[y][x];
+
+            // Clearing Mode
+            if (activeAttribute === 'clear') {
+                delete tile.isArtifactSpot;
+                delete tile.isTreasure;
+                delete tile.isExit;
+                delete tile.spawn;
+                draw();
+                return;
+            }
+
+            // Check if it's a SPAWN attribute (spawn:player)
+            if (activeAttribute.startsWith('spawn:')) {
+                const type = activeAttribute.split(':')[1];
+
+                // Toggle: If inputting same spawn, remove it. Else, set it.
+                if (tile.spawn === type) {
+                    delete tile.spawn;
+                } else {
+                    tile.spawn = type;
+                }
+                draw();
+                return;
+            }
+
+            // Boolean Attributes
+            if (tile[activeAttribute]) {
+                delete tile[activeAttribute];
+            } else {
+                tile[activeAttribute] = true;
+            }
+
+            draw();
+            return;
+        }
+
+        // TILE PAINTING MODE
         const variants = getBlockVariants(tileId);
-        const variant = variants.length > 0 ? variants[0] : 1;
+        // Randomize variant for painting (organic feel)
+        const variant = variants.length > 0 ? variants[Math.floor(Math.random() * variants.length)] : 1;
 
         let newTile = { id: tileId, variant: variant };
+
+        // Keep existing attributes when replacing tile
+        let oldTile = mapData[y][x];
+        if (oldTile.isArtifactSpot) newTile.isArtifactSpot = true;
+        if (oldTile.isTreasure) newTile.isTreasure = true;
+        if (oldTile.isExit) newTile.isExit = true;
+        if (oldTile.spawn) newTile.spawn = oldTile.spawn;
 
         // Auto-apply Z level from definition
         const def = BLOCK_DEFS[tileId];
@@ -241,10 +430,91 @@ function cycleVariant(x, y) {
 
         const nextVariant = getNextVariant(tile.id, tile.variant);
         if (nextVariant !== tile.variant) {
+            saveHistory(); // Save before changing
             mapData[y][x] = { id: tile.id, variant: nextVariant };
             draw();
         }
     }
+}
+
+// ===== Undo System =====
+function saveHistory() {
+    // Deep copy the mapData
+    const snapshot = mapData.map(row => row.map(tile => ({ ...tile })));
+    historyStack.push({
+        map: snapshot,
+        width: gridWidth,
+        height: gridHeight
+    });
+
+    if (historyStack.length > 30) {
+        historyStack.shift(); // Keep last 30 states
+    }
+    // console.log("History saved. Stack size:", historyStack.length);
+}
+
+function undo() {
+    if (historyStack.length === 0) return;
+
+    const lastState = historyStack.pop();
+
+    // Restore Dimensions
+    if (gridWidth !== lastState.width || gridHeight !== lastState.height) {
+        gridWidth = lastState.width;
+        gridHeight = lastState.height;
+        gridWidthInput.value = gridWidth;
+        gridHeightInput.value = gridHeight;
+        resizeCanvas();
+    }
+
+    // Restore Map Data (Deep copy back to avoid ref issues if we redo later)
+    mapData = lastState.map.map(row => row.map(tile => ({ ...tile })));
+
+    draw();
+    updateMapSizeDisplay();
+}
+
+// ===== Flood Fill =====
+function performFloodFill(startX, startY, replacementId) {
+    if (startX < 0 || startX >= gridWidth || startY < 0 || startY >= gridHeight) return;
+
+    const targetId = mapData[startY][startX].id;
+    if (targetId === replacementId) return; // Nothing to do
+
+    saveHistory(); // Save before fill
+
+    // Stack-based recursive fill
+    const stack = [{ x: startX, y: startY }];
+
+    // Safety break
+    let iterations = 0;
+    const maxIterations = gridWidth * gridHeight * 2;
+
+    while (stack.length > 0 && iterations < maxIterations) {
+        iterations++;
+        const { x, y } = stack.pop();
+
+        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) continue;
+
+        const currentTile = mapData[y][x];
+        if (currentTile.id !== targetId) continue;
+
+        // Replace Tile
+        // Use random variant if available for organic look
+        const variants = getBlockVariants(replacementId);
+        const variant = variants.length > 0 ? variants[Math.floor(Math.random() * variants.length)] : 1;
+
+        mapData[y][x] = { ...currentTile, id: replacementId, variant: variant }; // Preserve other props? Or wipe them? 
+        // Logic check: "placeTile" usually wipes ID but keeps attrs. Let's keep attrs.
+
+        // Add neighbors
+        stack.push({ x: x + 1, y: y });
+        stack.push({ x: x - 1, y: y });
+        stack.push({ x: x, y: y + 1 });
+        stack.push({ x: x, y: y - 1 });
+    }
+
+    draw();
 }
 
 // ===== Event Listeners =====
@@ -259,9 +529,27 @@ function setupEventListeners() {
             return;
         }
 
+        // Flood Fill
+        if (currentTool === 'fill' && !e.ctrlKey && activeAttribute === null) {
+            const tileId = (e.button === 2) ? -1 : selectedTileId;
+            performFloodFill(x, y, tileId);
+            return;
+        }
+
+        // Painting (Save History only once per stroke)
+        if (!activeAttribute && !isPainting) { // Only save if not already painting
+            saveHistory();
+        }
+
         isPainting = true;
-        // Right click or Ctrl+click to erase
-        const tileId = (e.button === 2 || e.ctrlKey) ? -1 : selectedTileId;
+        // Right click or Ctrl+click to erase (or if tool is erase)
+        let tileId;
+        if (currentTool === 'erase' || e.button === 2 || e.ctrlKey) {
+            tileId = -1;
+        } else {
+            tileId = selectedTileId;
+        }
+
         placeTile(x, y, tileId);
     });
 
@@ -270,7 +558,14 @@ function setupEventListeners() {
         cursorPos.textContent = `Tile: (${x}, ${y})`;
 
         if (isPainting && !e.shiftKey) {
-            const tileId = e.ctrlKey ? -1 : selectedTileId;
+            let tileId;
+            if (currentTool === 'erase' || e.ctrlKey) {
+                tileId = -1;
+            } else if (currentTool === 'paint') {
+                tileId = selectedTileId;
+            } else {
+                return; // Don't drag-paint in fill mode
+            }
             placeTile(x, y, tileId);
         }
     });
@@ -336,6 +631,23 @@ function setupEventListeners() {
         draw();
     });
 
+    // Undo
+    undoBtn.addEventListener('click', undo);
+
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            undo();
+        }
+        // Tool Shortcuts
+        if (!e.ctrlKey && !e.metaKey) {
+            if (e.key.toLowerCase() === 'p') document.getElementById('tool-paint').click();
+            if (e.key.toLowerCase() === 'f') document.getElementById('tool-fill').click();
+            if (e.key.toLowerCase() === 'e') document.getElementById('tool-erase').click();
+        }
+    });
+
     // Resize grid
     resizeBtn.addEventListener('click', handleResize);
 
@@ -346,6 +658,20 @@ function setupEventListeners() {
 
     clearBtn.addEventListener('click', () => {
         confirmModal.classList.remove('hidden');
+    });
+
+    // Tool Buttons
+    const tools = ['paint', 'fill', 'erase'];
+    tools.forEach(t => {
+        document.getElementById(`tool-${t}`).addEventListener('click', () => {
+            currentTool = t;
+            // Update UI
+            tools.forEach(ut => document.getElementById(`tool-${ut}`).classList.toggle('active', ut === t));
+
+            // Disable Attributes if selecting tool
+            activeAttribute = null;
+            document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+        });
     });
 
     confirmYes.addEventListener('click', () => {
@@ -363,6 +689,39 @@ function setupEventListeners() {
     document.getElementById('export-js-btn').addEventListener('click', saveMapAsJS);
     loadBtn.addEventListener('click', () => loadInput.click());
     loadInput.addEventListener('change', handleLoadMap);
+
+    // Attribute Buttons
+    const attrButtons = document.querySelectorAll('.attr-btn');
+    attrButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const attr = btn.dataset.attr;
+
+            // If clearing, just set mode
+            if (btn.id === 'clear-attr-btn') {
+                activeAttribute = (activeAttribute === 'clear') ? null : 'clear';
+            } else {
+                // Toggle this attribute mode
+                activeAttribute = (activeAttribute === attr) ? null : attr;
+            }
+
+            // If attribute mode is on, clear tool selection visually (but maybe default back to paint internally?)
+            if (activeAttribute) {
+                // Deselect all tools
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            }
+
+            // Update UI
+            attrButtons.forEach(b => b.classList.remove('active'));
+            if (activeAttribute) {
+                btn.classList.add('active');
+                // Deselect tile to avoid confusion
+                document.querySelectorAll('.tile-item').forEach(i => i.classList.remove('selected'));
+            } else {
+                // Reselect current tile
+                selectTile(selectedTileId);
+            }
+        });
+    });
 }
 
 // ===== Image Upload =====
@@ -414,6 +773,8 @@ function handleResize() {
     // Clamp values
     gridWidthInput.value = Math.max(5, Math.min(200, newWidth));
     gridHeightInput.value = Math.max(5, Math.min(200, newHeight));
+
+    saveHistory(); // Save before resizing
 
     const oldData = mapData;
     gridWidth = parseInt(gridWidthInput.value);
@@ -472,11 +833,15 @@ function saveMapAsJS() {
             // ONLY export Z if it differs from the block's default definition
             let hasZOverride = (tile.z !== undefined && tile.z !== defaultZ);
             let hasSpawn = (tile.spawn !== undefined);
+            let hasAttr = tile.isArtifactSpot || tile.isTreasure || tile.isExit;
 
-            if (hasZOverride || hasSpawn) {
+            if (hasZOverride || hasSpawn || hasAttr) {
                 let out = { id: tile.id };
                 if (hasZOverride) out.z = tile.z;
                 if (hasSpawn) out.spawn = tile.spawn;
+                if (tile.isArtifactSpot) out.isArtifactSpot = true;
+                if (tile.isTreasure) out.isTreasure = true;
+                if (tile.isExit) out.isExit = true;
                 return out;
             }
 
@@ -484,10 +849,16 @@ function saveMapAsJS() {
         })
     );
 
+    // Compact Formatting: One row per line
+    const mapString = '[\n' + simpleMap.map(row => {
+        const rowString = row.map(cell => JSON.stringify(cell)).join(', ');
+        return `    [${rowString}]`;
+    }).join(',\n') + '\n]';
+
     const jsContent = `// js/world/map.js - Game Map Data
 // Generated by Map Maker on ${new Date().toISOString()}
 
-export const map = ${JSON.stringify(simpleMap, null, 4)};
+export const map = ${mapString};
 `;
 
     const blob = new Blob([jsContent], { type: 'application/javascript' });

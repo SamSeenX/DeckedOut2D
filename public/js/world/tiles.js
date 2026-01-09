@@ -9,8 +9,14 @@ export const BLOCK_DEFS = {
         "solid": false,
         "slideFactor": 0.8,
         "sheetIndex": [
-            0,
-            0
+            [
+                0,
+                0
+            ],
+            [
+                1,
+                1
+            ]
         ]
     },
     "1": {
@@ -72,22 +78,6 @@ export const BLOCK_DEFS = {
             [
                 1,
                 0
-            ],
-            [
-                0,
-                2
-            ],
-            [
-                0,
-                3
-            ],
-            [
-                1,
-                3
-            ],
-            [
-                1,
-                2
             ]
         ]
     },
@@ -167,8 +157,22 @@ export const BLOCK_DEFS = {
         "damage": 1,
         "slideFactor": 0.8,
         "sheetIndex": [
-            4,
-            4
+            [
+                4,
+                4
+            ],
+            [
+                5,
+                4
+            ],
+            [
+                5,
+                5
+            ],
+            [
+                4,
+                5
+            ]
         ]
     },
     "11": {

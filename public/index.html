@@ -22,10 +22,49 @@
             <div class="start-subtext">Click to Retry</div>
         </div>
 
+        <div id="victory-overlay" class="hidden">
+            <div class="start-text">VICTORY!</div>
+            <div id="victory-card">
+                <div id="victory-artifact-icon">👑</div>
+                <h2 id="victory-artifact-name">Crown of Souls</h2>
+                <p id="victory-artifact-desc">A jagged iron crown...</p>
+                <div class="victory-stats">
+                    <span>🔥 Embers Collected: <strong id="victory-embers">0</strong></span>
+                </div>
+            </div>
+            <div class="start-subtext">Click to Escaping</div>
+        </div>
+
         <div id="ui-layer">
-            <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
-            <div class="hud-item">HP: <span id="hp-display">10</span></div>
-            <a href="mapmaker.html" class="hud-link">🗺️ Map Maker</a>
+            <div id="top-bar">
+                <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
+                <div class="hud-item hud-hp">HP: <span id="hp-display">10</span></div>
+                <a href="mapmaker.html" class="hud-link">🗺️ Map Maker</a>
+            </div>
+
+            <div id="bottom-bar">
+                <div class="hud-group">
+                    <div id="compass-container" title="Points to Artifact or Exit">
+                        <div id="compass-needle">➤</div>
+                    </div>
+                </div>
+
+                <div class="hud-group">
+                    <div class="hud-icon">🔥</div>
+                    <span id="ember-display">0</span>
+                </div>
+
+                <div class="hud-group">
+                    <div class="hud-icon">🍒</div>
+                    <span id="food-display">0</span>
+                    <small>F to Eat</small>
+                </div>
+
+                <div class="hud-group" id="artifact-slot">
+                    <div class="hud-label">Artifact</div>
+                    <div id="artifact-icon" class="empty">?</div>
+                </div>
+            </div>
         </div>
 
         <canvas id="gameCanvas" width="800" height="600"></canvas>
