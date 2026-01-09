@@ -8,6 +8,7 @@
 Decked Out 2D is a 2D recreation of the original Decked Out 2 by TangoTek from Hermetcraft SMP. It is an action-adventure game where players navigate through procedurally generated dungeons, avoiding enemies and collecting artifacts while managing their resources.
 
 ## 📁 Folder Structure
+```
 root
 ├── public/             # Game distribution folder
 │   ├── assets/         # Sprites and tilesets
@@ -22,7 +23,7 @@ root
 │   ├── index.html      # Game entry point
 │   └── mapmaker.html   # Map Editor tool
 └── temp/               # Master assets and work-in-progress
-
+```
 
 
 ## 📅 Progress Tracker

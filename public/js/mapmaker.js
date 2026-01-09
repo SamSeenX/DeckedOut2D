@@ -162,8 +162,12 @@ function draw() {
             const texture = getBlockTexture(tileId, variant);
 
             if (texture) {
-                // Draw texture
-                ctx.drawImage(texture, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                // Draw texture from sprite sheet
+                ctx.drawImage(
+                    texture.image,
+                    texture.sx, texture.sy, texture.sw, texture.sh,
+                    x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE
+                );
             } else {
                 // Fall back to color
                 ctx.fillStyle = block.color;

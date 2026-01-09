@@ -68,24 +68,25 @@ export const player = {
 
             // 1. Calculate the Size on Screen
             // Let's make the sprite 1.5x larger than a tile to have that nice overflow
-            let size = tileSize * 1.5;
+            // 1. Calculate the Size on Screen
+            // Maintain aspect ratio (e.g., 64x92)
+            // Use existing size logic for Width, then scale Height
+            let renderWidth = tileSize * 1.5;
+            let ratio = frameH / frameW;
+            let renderHeight = renderWidth * ratio;
 
             // 2. Center Horizontally
-            // dx is the top-left corner of the image
-            // (player.x - camX) * tileSize Is the pixel coordinate of the CENTER of the tile on screen
-            // We subtract size/2 to shift the image left so its center aligns with the tile center
-            let dx = ((this.x - camX) * tileSize) - (size / 2);
+            // dx is the top-left corner. (x-camX)*tileSize is the center of the tile.
+            let dx = ((this.x - camX) * tileSize) - (renderWidth / 2);
 
-            // 3. Align Vertically (Feet at Pivot) + Elevation + Jump
-            // (player.y - camY) * tileSize is the Vertical Center
-            // We want the bottom of the image (feet) to be slightly below the center (at the 'ground' plane)
-            // Let's put the feet at roughly +10px from center (lower half of total tile)
+            // 3. Align Vertically (Feet at Pivot)
+            // We want the bottom of the image (feet) to be at (tileY + feetOffset)
             let feetOffset = tileSize * 0.25;
 
             // Elevation Visual (Each Z level is 10px up) + Jump Offset
             let visualZ = (this.z * 10) + this.jumpOffset;
 
-            let dy = ((this.y - camY) * tileSize) - size + feetOffset - visualZ;
+            let dy = ((this.y - camY) * tileSize) - renderHeight + feetOffset - visualZ;
 
             // Damage Tint
             if (Date.now() - this.lastDamageTime < 200) {
@@ -97,7 +98,7 @@ export const player = {
             ctx.drawImage(
                 this.image,
                 sx, sy, frameW, frameH,
-                dx, dy, size, size
+                dx, dy, renderWidth, renderHeight
             );
 
             if (Date.now() - this.lastDamageTime < 200) {

@@ -1,7 +1,7 @@
 
 import { TILE_SIZE, VIEW_W, VIEW_H, SIGHT_RADIUS } from '../utils/constants.js';
 import { map } from '../world/map.js';
-import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
+import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
 import { player, updatePlayer } from '../entities/player.js';
 import { Ravager } from '../entities/ravager.js';
 import { Ghast } from '../entities/ghast.js';
@@ -149,9 +149,20 @@ function draw() {
             let z = (typeof tile === 'object') ? (tile.z || 0) : 0;
 
             let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
+            let texture = getBlockTexture(id, 1);
 
-            ctx.fillStyle = block.color;
-            ctx.fillRect(drawX, drawY - (z * 10), TILE_SIZE, TILE_SIZE); // Render visual height offset
+            if (texture) {
+                // Draw Texture from Sprite Sheet
+                ctx.drawImage(
+                    texture.image,
+                    texture.sx, texture.sy, texture.sw, texture.sh,
+                    drawX, drawY - (z * 10), TILE_SIZE, TILE_SIZE
+                );
+            } else {
+                // Fallback Color
+                ctx.fillStyle = block.color;
+                ctx.fillRect(drawX, drawY - (z * 10), TILE_SIZE, TILE_SIZE);
+            }
 
             // Side face for elevation
             if (z > 0) {
@@ -189,6 +200,10 @@ function draw() {
 
 // --- START / RESET GAME ---
 export function initGame() {
+    loadBlockTextures(() => {
+        console.log('Textures Loaded');
+    });
+
     // Start Overlay
     const overlay = document.getElementById('start-overlay');
     overlay.addEventListener('click', startGame);
