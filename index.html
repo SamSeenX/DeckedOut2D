@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decked Out 2D by SamSeen</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/toast.css">
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div id="start-overlay">
+            <div class="start-text">DECKED OUT 2D</div>
+            <div class="start-subtext">Click to Enter</div>
+        </div>
+
+        <div id="game-over-overlay" class="hidden">
+            <div class="start-text" style="color: red;">GAME OVER</div>
+            <div class="start-subtext">Click to Retry</div>
+        </div>
+
+        <div id="ui-layer">
+            <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
+            <div class="hud-item">HP: <span id="hp-display">10</span></div>
+            <a href="mapmaker.html" class="hud-link">🗺️ Map Maker</a>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
