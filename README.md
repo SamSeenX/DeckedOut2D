@@ -4,6 +4,26 @@
 **Status:** Pre-Alpha / Core Loop Prototype
 
 ---
+## 📚 Project Overview
+Decked Out 2D is a 2D recreation of the original Decked Out 2 by TangoTek from Hermetcraft SMP. It is an action-adventure game where players navigate through procedurally generated dungeons, avoiding enemies and collecting artifacts while managing their resources.
+
+## 📁 Folder Structure
+root
+├── public/             # Game distribution folder
+│   ├── assets/         # Sprites and tilesets
+│   ├── css/            # Stylesheets (style.css, toast.css)
+│   ├── js/             # Game Logic
+│   │   ├── core/       # Engine, input, audio, UI
+│   │   ├── entities/   # Player, Enemies (Ravager, Ghast, Vex)
+│   │   ├── utils/      # Helpers (collision, constants)
+│   │   ├── world/      # Map data, tiles, lighting
+│   │   ├── main.js     # Entry point
+│   │   └── mapmaker.js # Map Editor logic
+│   ├── index.html      # Game entry point
+│   └── mapmaker.html   # Map Editor tool
+└── temp/               # Master assets and work-in-progress
+
+
 
 ## 📅 Progress Tracker
 
@@ -71,5 +91,5 @@
 
 
 ## Start commands 
-* python3 -m http.server
-* npx serve .
+* python3 -m http.server -d public
+* npx serve public
