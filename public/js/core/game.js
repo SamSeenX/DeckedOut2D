@@ -71,11 +71,21 @@ function setupLevel() {
                 }
 
                 // 2. Normalize Map
-                if (cell.z !== undefined) {
-                    // Preserve object for elevation
-                    map[y][x] = { id: (cell.id !== undefined) ? cell.id : 0, z: cell.z };
+                // We must preserve 'variant' and 'z' if they exist.
+                // If it has important metadata (z, variant), keep it as an object.
+                // Otherwise, we can simplify it to a number IF we want to optimization, 
+                // BUT current logic suggests we should just keep the object structure if it was already an object to be safe.
+
+                // Construct the normalized cell
+                let newCell = { id: (cell.id !== undefined) ? cell.id : 0 };
+                if (cell.z !== undefined) newCell.z = cell.z;
+                if (cell.variant !== undefined) newCell.variant = cell.variant;
+
+                // If the only thing is ID, revert to number (optional optimization, matches previous logic style)
+                if (newCell.z === undefined && newCell.variant === undefined) {
+                    map[y][x] = newCell.id;
                 } else {
-                    map[y][x] = (cell.id !== undefined) ? cell.id : 0;
+                    map[y][x] = newCell;
                 }
             }
             // Preserve Attributes if switching to object
