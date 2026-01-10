@@ -1,8 +1,8 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST } from '../utils/constants.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY } from '../data/constants.js';
 
 import { keys } from '../core/input.js';
 import { triggerShake } from '../core/camera.js';
-import { map } from '../world/map.js';
+import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { gameState } from '../core/state.js';
@@ -18,14 +18,14 @@ sprite.src = 'assets/sprits/player.webp';
 export const player = {
     x: 0, y: 0,
     vx: 0, vy: 0,
-    hp: 10,
+    hp: PLAYER_MAX_HP,
     radius: 0.3,
 
     // Animation State
     image: sprite,
     frameIndex: 0,
     tickCount: 0,
-    ticksPerFrame: 10,
+    ticksPerFrame: PLAYER_ANIMATION_SPEED,
     direction: 0, // 0: Down, 1: Left, 2: Right, 3: Up
     lastDamageTime: 0,
 
@@ -262,7 +262,7 @@ export function updatePlayer() {
     if (isJumping && !player.isFalling && !player.isJumping) { // Start jump
         player.isJumping = true;
         player.isBumping = false; // Override bump
-        player.jumpVelocity = 4; // Start upward
+        player.jumpVelocity = PLAYER_JUMP_VELOCITY; // Start upward
         player.bumpCount = 0; // Success! Reset counter
     }
 
@@ -297,8 +297,8 @@ function checkTileEvents(tileX, tileY) {
 
     // Clank Generation
     let currentSpeed = Math.sqrt(player.vx ** 2 + player.vy ** 2);
-    if (currentSpeed > 0.05) {
-        let chance = currentSpeed * 0.5;
+    if (currentSpeed > CLANK_SPEED_THRESHOLD) {
+        let chance = currentSpeed * CLANK_CHANCE_MULTIPLIER;
         if (keys['shift']) chance = 0;
 
         if (Math.random() < chance) {
@@ -308,7 +308,7 @@ function checkTileEvents(tileX, tileY) {
     }
 
     // Hazards
-    if (block.damage && Math.random() < 0.05) {
+    if (block.damage && Math.random() < HAZARD_DAMAGE_CHANCE) {
         player.takeDamage(block.damage);
     }
 
@@ -335,16 +335,16 @@ function checkTileEvents(tileX, tileY) {
 
     // Input: Eat Food ('F')
     if (keys['f']) {
-        if (!player.lastEatTime || Date.now() - player.lastEatTime > 500) {
-            if (gameState.inventory.food > 0 && player.hp < 10) {
+        if (!player.lastEatTime || Date.now() - player.lastEatTime > PLAYER_EAT_COOLDOWN) {
+            if (gameState.inventory.food > 0 && player.hp < PLAYER_MAX_HP) {
                 gameState.inventory.food--;
-                player.hp = Math.min(10, player.hp + 2);
+                player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_EAT_HEAL_AMOUNT);
                 player.lastEatTime = Date.now();
                 updateUI(gameState, player);
                 showToast("Ate a Berry", 1000);
             } else if (gameState.inventory.food <= 0) {
                 // showToast("No Food!", 1000); 
-            } else if (player.hp >= 10) {
+            } else if (player.hp >= PLAYER_MAX_HP) {
                 // Full HP
             }
         }
@@ -352,7 +352,7 @@ function checkTileEvents(tileX, tileY) {
 
     // Input: Check Location / Artifact ('E')
     if (keys['e']) {
-        if (!player.lastCheckTime || Date.now() - player.lastCheckTime > 1000) {
+        if (!player.lastCheckTime || Date.now() - player.lastCheckTime > PLAYER_CHECK_COOLDOWN) {
             player.lastCheckTime = Date.now();
 
             // 1. Check for Artifact
@@ -363,7 +363,7 @@ function checkTileEvents(tileX, tileY) {
 
                 gameState.hasArtifact = true;
                 showToast("ARTIFACT FOUND! Run to the Exit!", 5000);
-                gameState.clank += 20; // Loud noise!
+                gameState.clank += ARTIFACT_CLANK_PENALTY; // Loud noise!
                 updateUI(gameState, player);
                 return;
             } else if (!gameState.hasArtifact) {

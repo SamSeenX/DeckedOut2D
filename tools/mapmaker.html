@@ -56,9 +56,9 @@
         <div class="control-group">
             <button id="clear-btn" class="control-btn secondary">🗑️ Clear Map</button>
             <button id="save-btn" class="control-btn primary">💾 Save Map</button>
-            <button id="export-js-btn" class="control-btn">📄 Export JS</button>
+
             <label class="control-label">
-                <input type="file" id="load-input" accept=".json" hidden>
+                <input type="file" id="load-input" accept=".json,.js" hidden>
                 <button id="load-btn" class="control-btn">📂 Load Map</button>
             </label>
         </div>
@@ -74,9 +74,14 @@
         <div id="tile-palette">
             <h3>Tools</h3>
             <div id="tool-palette">
-                <button class="tool-btn active" id="tool-paint" title="Paint (P)">🖌️ Paint</button>
-                <button class="tool-btn" id="tool-fill" title="Fill (F)">🪣 Fill</button>
-                <button class="tool-btn" id="tool-erase" title="Erase (E)">🧼 Erase</button>
+                <button class="tool-btn active" id="tool-paint" title="Paint (P)">🖌️ Paint <span
+                        class="key-shortcut">P</span></button>
+                <button class="tool-btn" id="tool-fill" title="Fill (F)">🪣 Fill <span
+                        class="key-shortcut">F</span></button>
+                <button class="tool-btn" id="tool-pick" title="Pick (I)">🆔 Pick <span
+                        class="key-shortcut">I</span></button>
+                <button class="tool-btn" id="tool-erase" title="Erase (E)">🧼 Erase <span
+                        class="key-shortcut">E</span></button>
             </div>
 
             <h3>Tiles</h3>

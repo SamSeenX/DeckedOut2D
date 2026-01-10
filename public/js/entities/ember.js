@@ -1,4 +1,4 @@
-import { PLAYER_RADIUS } from '../utils/constants.js';
+import { PLAYER_RADIUS, EMBER_LIFESPAN } from '../data/constants.js';
 
 export class Ember {
     constructor(x, y) {
@@ -6,7 +6,7 @@ export class Ember {
         this.y = y;
         this.z = 0; // Ground level by default, but could check map
         this.creationTime = Date.now();
-        this.lifespan = 45000; // 45 seconds
+        this.lifespan = EMBER_LIFESPAN; // 45 seconds
         this.collected = false;
 
         // Animation

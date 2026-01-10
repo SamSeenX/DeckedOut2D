@@ -164,6 +164,25 @@ body {
     text-align: left;
     transition: all 0.2s;
     font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tool-btn .key-shortcut {
+    font-size: 11px;
+    color: #666;
+    background: #1a1a1a;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #333;
+    font-family: monospace;
+}
+
+.tool-btn.active .key-shortcut {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .tool-btn:hover {

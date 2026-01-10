@@ -1,6 +1,5 @@
-
 import { Enemy } from './enemy.js';
-import { TILE_SIZE } from '../utils/constants.js';
+import { TILE_SIZE, RAVAGER_SPEED, RAVAGER_CHASE_SPEED_MULT, RAVAGER_VIEW_RANGE } from '../data/constants.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
@@ -11,7 +10,7 @@ const STATES = {
     SEARCHING: 'SEARCHING'
 };
 
-const VIEW_RANGE = 7;
+const VIEW_RANGE = RAVAGER_VIEW_RANGE;
 const SEARCH_DURATION = 3000;
 const IDLE_MOVE_INTERVAL = 2000;
 
@@ -20,7 +19,7 @@ export class Ravager extends Enemy {
         super(x, y);
         this.type = 'ravager';
         this.accel = 0.002;
-        this.maxSpeed = 0.05;
+        this.maxSpeed = RAVAGER_SPEED;
         this.color = 'red';
         this.lastAttackTime = 0;
     }
@@ -122,7 +121,7 @@ export class Ravager extends Enemy {
 
         // Velocity Clamping
         let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * 1.5 : this.maxSpeed;
+        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * RAVAGER_CHASE_SPEED_MULT : this.maxSpeed;
 
         if (speed > actualMaxSpeed) {
             let ratio = actualMaxSpeed / speed;

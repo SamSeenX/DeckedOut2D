@@ -3,15 +3,16 @@ import { Enemy } from './enemy.js';
 import { Projectile } from './projectile.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { checkWallCollision } from '../utils/collision.js';
+import { GHAST_SPEED, GHAST_VIEW_RANGE, GHAST_ATTACK_COOLDOWN } from '../data/constants.js';
 
 const STATES = {
     IDLE: 'IDLE',
     ATTACK: 'ATTACK'
 };
 
-const VIEW_RANGE = 20;
-const ATTACK_COOLDOWN = 3000;
-const FLOAT_SPEED = 0.03;
+const VIEW_RANGE = GHAST_VIEW_RANGE;
+const ATTACK_COOLDOWN = GHAST_ATTACK_COOLDOWN;
+const FLOAT_SPEED = GHAST_SPEED;
 
 export class Ghast extends Enemy {
     constructor(x, y) {

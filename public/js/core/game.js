@@ -1,7 +1,7 @@
 
-import { TILE_SIZE, VIEW_W, VIEW_H, SIGHT_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE } from '../utils/constants.js';
+import { TILE_SIZE, VIEW_W, VIEW_H, SIGHT_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
 
-import { map } from '../world/map.js';
+import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
 import { player, updatePlayer } from '../entities/player.js';
 import { Ravager } from '../entities/ravager.js';
@@ -30,8 +30,7 @@ let treasureSpots = []; // [{x, y}]
 
 
 let lastVexSpawnClank = 0;
-const VEX_START_CLANK = 60; // Start spawning Vexes after 60 Clank
-const VEX_SPAWN_INTERVAL = 10; // Then spawn a Vex every 10 Clank
+
 let isGameRunning = false;
 
 // Initialize Input
@@ -193,7 +192,7 @@ function gameLoop(timestamp) {
         // Check Distance (10 blocks)
         const dist = Math.sqrt((player.x - b.x) ** 2 + (player.y - b.y) ** 2);
 
-        if (dist <= 10) {
+        if (dist <= SPAWNER_ACTIVATION_RANGE) {
             // Random Chance (from constants)
             if (Math.random() < BERRY_REGROW_CHANCE) {
                 // Restore to Berry Bush (ID 8)
@@ -243,9 +242,10 @@ function draw() {
             let tile = map[y][x];
             let id = (typeof tile === 'object') ? tile.id : tile;
             let z = (typeof tile === 'object') ? (tile.z || 0) : 0;
+            let variant = (typeof tile === 'object') ? (tile.variant || 1) : 1;
 
             let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
-            let texture = getBlockTexture(id, 1);
+            let texture = getBlockTexture(id, variant);
 
             if (texture) {
                 // Draw Texture from Sprite Sheet
@@ -353,7 +353,7 @@ function resetGame() {
 }
 
 function resetGameLogic() {
-    player.hp = 10;
+    player.hp = PLAYER_MAX_HP;
     setupLevel(); // Reset map, enemies, player pos
     gameState.clank = 0;
     updateUI(gameState, player);
@@ -372,7 +372,7 @@ function updateSpawners() {
     treasureSpots.forEach(spot => {
         // 1. Check Distance (10 blocks)
         const dist = Math.sqrt((player.x - spot.x) ** 2 + (player.y - spot.y) ** 2);
-        if (dist > 10) return;
+        if (dist > SPAWNER_ACTIVATION_RANGE) return;
 
         // 2. Random Chance (Lower chance per frame since it's active constantly, not just when moving)
         // Previous was 1% when moving. Let's try 0.5% per frame (approx 1 per 3 sec per spawner)

@@ -1,5 +1,5 @@
 
-import { TILE_SIZE, PLAYER_RADIUS } from '../utils/constants.js';
+import { TILE_SIZE, PLAYER_RADIUS } from '../data/constants.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { checkLineOfSight } from '../world/lighting.js';
 

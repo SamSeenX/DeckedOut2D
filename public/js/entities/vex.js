@@ -1,6 +1,7 @@
 
 import { Enemy } from './enemy.js';
 import { checkLineOfSight } from '../world/lighting.js';
+import { VEX_ORBIT_SPEED, VEX_SWOOP_SPEED, VEX_SWOOP_COOLDOWN } from '../data/constants.js';
 
 const STATES = {
     ORBIT: 'ORBIT',
@@ -9,9 +10,9 @@ const STATES = {
 };
 
 const ORBIT_DIST = 2.5;
-const ORBIT_SPEED = 0.02; // Angular speed
-const SWOOP_SPEED = 0.12;
-const SWOOP_COOLDOWN = 3000;
+const ORBIT_SPEED = VEX_ORBIT_SPEED; // Angular speed
+const SWOOP_SPEED = VEX_SWOOP_SPEED;
+const SWOOP_COOLDOWN = VEX_SWOOP_COOLDOWN;
 
 export class Vex extends Enemy {
     constructor(playerX, playerY) {

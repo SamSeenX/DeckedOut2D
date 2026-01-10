@@ -1,4 +1,4 @@
-import { map } from '../world/map.js';
+import { map } from '../data/map.js';
 
 export function updateUI(gameState, player) {
     // Basic Stats

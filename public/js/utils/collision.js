@@ -1,6 +1,6 @@
-import { map } from '../world/map.js';
+import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
-import { PLAYER_RADIUS } from './constants.js';
+import { PLAYER_RADIUS } from '../data/constants.js';
 
 export function checkWallCollision(targetX, targetY) {
     const corners = [
