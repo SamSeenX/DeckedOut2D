@@ -171,21 +171,7 @@ canvas {
     color: #444;
 }
 
-.hud-link {
-    margin-left: auto;
-    color: #6a5acd;
-    text-decoration: none;
-    font-size: 14px;
-    padding: 4px 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 4px;
-    pointer-events: auto;
-    transition: background 0.2s;
-}
 
-.hud-link:hover {
-    background: rgba(106, 90, 205, 0.3);
-}
 
 /* Start & Game Over Overlay */
 #start-overlay,

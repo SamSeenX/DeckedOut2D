@@ -287,7 +287,7 @@
 
     <!-- SCRIPT -->
     <script type="module">
-        import { BLOCK_DEFS } from './js/world/tiles.js';
+        import { BLOCK_DEFS } from '../public/js/world/tiles.js';
 
         // --- State ---
         let currentDefs = JSON.parse(JSON.stringify(BLOCK_DEFS)); // Deep copy to edit
@@ -317,7 +317,7 @@
 
         // Load Sprite Sheet
         const spriteImage = new Image();
-        spriteImage.src = 'assets/sprits/tiles.webp';
+        spriteImage.src = '../public/assets/sprits/tiles.webp';
         spriteImage.onload = () => {
             sheetCanvas.width = spriteImage.width;
             sheetCanvas.height = spriteImage.height;

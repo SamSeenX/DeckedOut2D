@@ -1,0 +1,25 @@
+{
+  "name": "deckedout2d",
+  "version": "1.0.0",
+  "description": "**Repository:** Private **Status:** Pre-Alpha / Core Loop Prototype",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite public",
+    "build": "vite build public --outDir ../dist --emptyOutDir && cp -r public/assets/* dist/assets/",
+    "preview": "vite preview --outDir dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamSeenX/DeckedOut2D.git"
+  },
+  "keywords": [],
+  "author": "SamSeen",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SamSeenX/DeckedOut2D/issues"
+  },
+  "homepage": "https://github.com/SamSeenX/DeckedOut2D#readme",
+  "devDependencies": {
+    "vite": "^7.3.1"
+  }
+}

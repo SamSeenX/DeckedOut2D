@@ -266,7 +266,7 @@ export const DEFAULT_BLOCK = { name: "Void", color: "magenta", solid: true, shee
 const tileSheet = new Image();
 let texturesLoaded = false;
 
-export function loadBlockTextures(callback) {
+export function loadBlockTextures(callback, basePath = '') {
     tileSheet.onload = () => {
         texturesLoaded = true;
         console.log("Sprite sheet loaded.");
@@ -277,7 +277,8 @@ export function loadBlockTextures(callback) {
         if (callback) callback();
     };
     // Correct path considering the public folder structure used in game
-    tileSheet.src = 'assets/sprits/tiles.webp';
+    // basePath allows tools in other folders (like ../tools) to resolve assets correctly
+    tileSheet.src = (basePath ? basePath + '/' : '') + 'assets/sprits/tiles.webp';
 }
 
 // Get render info for a block
