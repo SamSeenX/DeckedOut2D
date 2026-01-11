@@ -557,12 +557,20 @@ function draw() {
             const drawX = (state.hoverX - offset) * state.scale;
             const drawY = (state.hoverY - offset) * state.scale;
             const drawSize = bSize * state.scale;
+            const centerX = drawX + (drawSize / 2);
+            const centerY = drawY + (drawSize / 2);
+            const radius = drawSize / 2;
 
             ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.strokeStyle = "rgba(0,0,0,0.5)";
-            ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.strokeStyle = "rgba(255,255,255,0.8)";
-            ctx.strokeRect(drawX - 1, drawY - 1, drawSize + 2, drawSize + 2);
+            ctx.stroke();
         }
     }
 
@@ -644,11 +652,6 @@ function handleMouseMove(e) {
         return; // Skip drawing logic if panning
     }
 
-    // For picker, we might want to just hover, but let's stick to click/drag for now
-    if (!state.isDrawing && state.activeTool !== 'picker') return;
-
-    if (state.activeTool === 'picker' && !state.isDrawing) return; // Only pick on click/drag
-
     const pos = getMousePos(e);
 
     // Map Canvas Pos -> Pixel in Frame
@@ -670,6 +673,10 @@ function handleMouseMove(e) {
         state.hoverY = null;
         canvas.style.cursor = 'default';
     }
+
+    // Tool Check
+    if (!state.isDrawing && state.activeTool !== 'picker') return;
+    if (state.activeTool === 'picker' && !state.isDrawing) return;
 
     // If out of cell bounds, ignore
     if (state.hoverX === null) return;
