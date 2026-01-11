@@ -69,8 +69,14 @@ let state = {
     offsetX: 0,
     offsetY: 0,
     isPanning: false,
+    offsetX: 0,
+    offsetY: 0,
+    isPanning: false,
     startPanX: 0,
-    startPanY: 0
+    startPanY: 0,
+    brushSize: 1,
+    hoverX: null,
+    hoverY: null
 };
 
 // Save settings to localStorage
@@ -287,6 +293,14 @@ function init() {
                 updateDebugInfo();
                 saveSettings();
             }
+        }
+
+        // Brush Size
+        if (key === '[') {
+            state.brushSize = Math.max(1, state.brushSize - 1);
+        }
+        if (key === ']') {
+            state.brushSize = Math.min(10, state.brushSize + 1);
         }
     });
 
@@ -516,7 +530,7 @@ function draw() {
 
     // Check bounds
     if (sx + state.w > masterCanvas.width || sy + state.h > masterCanvas.height) {
-        // Out of bounds - draw error placeholder
+        // ... (bounds error logic remains same) ...
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "red";
@@ -528,8 +542,29 @@ function draw() {
     ctx.drawImage(
         masterCanvas,
         sx, sy, state.w, state.h,     // Source
-        0, 0, canvas.width, canvas.height // Dest (scaled by canvas size)
+        0, 0, canvas.width, canvas.height // Dest
     );
+
+    // --- Cursor/Brush Overlay ---
+    if (state.hoverX !== null && state.hoverY !== null && !state.isPanning) {
+        if (state.activeTool === 'paint' || state.activeTool === 'eraser') {
+            const bSize = state.brushSize;
+            // Center the brush? Or top-left?
+            // Usually paint tools are centered if odd, or top-left.
+            // Let's do Standard Top-Left or Centered logic.
+            // Let's do Centered.
+            const offset = Math.floor(bSize / 2);
+            const drawX = (state.hoverX - offset) * state.scale;
+            const drawY = (state.hoverY - offset) * state.scale;
+            const drawSize = bSize * state.scale;
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "rgba(0,0,0,0.5)";
+            ctx.strokeRect(drawX, drawY, drawSize, drawSize);
+            ctx.strokeStyle = "rgba(255,255,255,0.8)";
+            ctx.strokeRect(drawX - 1, drawY - 1, drawSize + 2, drawSize + 2);
+        }
+    }
 
     // Grid overlay (optional, help visualize cell)
     // ctx.strokeStyle = "rgba(255,255,255,0.2)";
@@ -617,12 +652,27 @@ function handleMouseMove(e) {
     const pos = getMousePos(e);
 
     // Map Canvas Pos -> Pixel in Frame
-    // Canvas is scaled by state.scale
     const pixelX = Math.floor(pos.x / state.scale);
     const pixelY = Math.floor(pos.y / state.scale);
 
+    // Update Hover State (for cursor drawing)
+    if (pixelX >= 0 && pixelX < state.w && pixelY >= 0 && pixelY < state.h) {
+        state.hoverX = pixelX;
+        state.hoverY = pixelY;
+        // Hide default cursor if painting
+        if (state.activeTool === 'paint' || state.activeTool === 'eraser') {
+            canvas.style.cursor = 'none';
+        } else {
+            canvas.style.cursor = 'default';
+        }
+    } else {
+        state.hoverX = null;
+        state.hoverY = null;
+        canvas.style.cursor = 'default';
+    }
+
     // If out of cell bounds, ignore
-    if (pixelX < 0 || pixelX >= state.w || pixelY < 0 || pixelY >= state.h) return;
+    if (state.hoverX === null) return;
 
     // Map Pixel in Frame -> Pixel in Sheet
     const sheetX = state.padX + (currentFrame * state.w) + pixelX;
@@ -633,14 +683,9 @@ function handleMouseMove(e) {
     performToolAction(sheetX, sheetY);
 }
 
-function performToolAction(x, y) {
-    if (state.activeTool === 'paint') {
-        masterCtx.fillStyle = state.activeColor;
-        masterCtx.fillRect(x, y, 1, 1);
-    } else if (state.activeTool === 'eraser') {
-        masterCtx.clearRect(x, y, 1, 1);
-    } else if (state.activeTool === 'picker') {
-        const p = masterCtx.getImageData(x, y, 1, 1).data;
+function performToolAction(centerX, centerY) {
+    if (state.activeTool === 'picker') {
+        const p = masterCtx.getImageData(centerX, centerY, 1, 1).data;
         // Convert to hex
         const hex = rgbToHex(p[0], p[1], p[2]);
         state.activeColor = hex;
@@ -650,6 +695,24 @@ function performToolAction(x, y) {
         state.isDrawing = false;
 
         // Switch back to paint? optional. Let's stay in picker.
+        return;
+    }
+
+    const bSize = state.brushSize;
+    const offset = Math.floor(bSize / 2);
+
+    for (let i = 0; i < bSize; i++) {
+        for (let j = 0; j < bSize; j++) {
+            const x = centerX - offset + i;
+            const y = centerY - offset + j;
+
+            if (state.activeTool === 'paint') {
+                masterCtx.fillStyle = state.activeColor;
+                masterCtx.fillRect(x, y, 1, 1);
+            } else if (state.activeTool === 'eraser') {
+                masterCtx.clearRect(x, y, 1, 1);
+            }
+        }
     }
 }
 
