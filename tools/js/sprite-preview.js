@@ -491,19 +491,26 @@ function draw() {
     const sy = state.padY + (state.row * state.h);
 
     // --- Onion Skin Layer ---
-    if (state.onionSkin && currentFrame > 0) {
-        const prevSx = state.padX + ((currentFrame - 1) * state.w);
-        const prevSy = sy; // Same row
+    if (state.onionSkin) {
+        const maxFrames = state.frames > 0 ? state.frames : state.detectedFrames;
+        // Wrap around logic
+        let prevFrame = currentFrame - 1;
+        if (prevFrame < 0) prevFrame = maxFrames - 1;
 
-        // Check bounds for previous frame
-        if (prevSx + state.w <= masterCanvas.width && prevSy + state.h <= masterCanvas.height) {
-            ctx.globalAlpha = 0.5;
-            ctx.drawImage(
-                masterCanvas,
-                prevSx, prevSy, state.w, state.h,
-                0, 0, canvas.width, canvas.height
-            );
-            ctx.globalAlpha = 1.0;
+        if (maxFrames > 1) {
+            const prevSx = state.padX + (prevFrame * state.w);
+            const prevSy = sy; // Same row
+
+            // Check bounds for previous frame
+            if (prevSx + state.w <= masterCanvas.width && prevSy + state.h <= masterCanvas.height) {
+                ctx.globalAlpha = 0.5;
+                ctx.drawImage(
+                    masterCanvas,
+                    prevSx, prevSy, state.w, state.h,
+                    0, 0, canvas.width, canvas.height
+                );
+                ctx.globalAlpha = 1.0;
+            }
         }
     }
 
