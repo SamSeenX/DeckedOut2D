@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - 2026-01-11
 
 ### Added
+- **Sprite Editor Overhaul**:
+  - **Collapsible Layout**: Added expandable/collapsible sidebars (Toggle `F`).
+  - **Tools Palette**: Paint (`B`), Eraser (`E`), Picker (`I`), Onion Skin (`O`).
+  - **Visual Brush**: Circular cursor showing brush size (`[` / `]`).
+  - **Multi-Line Animation**: Added "Animation Rows" configuration for sheets that wrap.
+  - **Canvas Controls**: Pan (`Space`), Zoom (`+`/`-`), Background Toggle (`1-7`).
+  - **Persistence**: Settings and State (Brush, Color, etc.) are saved to local storage.
 - **Lighting System Upgrades**:
   - Implemented `FLASHLIGHT_RADIUS` (clear vision) and `DIM_VIEW_RADIUS` (peripheral vision).
   - Blocks outside line-of-sight but within `DIM_VIEW_RADIUS` are now rendered at 20% opacity instead of being completely invisible.
