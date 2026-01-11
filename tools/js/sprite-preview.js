@@ -254,6 +254,12 @@ function init() {
             togglePlay();
         }
 
+        // Collapse Sidebars
+        if (key === 'f') {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.sidebar-right').classList.toggle('collapsed');
+        }
+
         // Pan Mode (Space Hold)
         if (key === ' ' && !state.isPanning) {
             e.preventDefault();
