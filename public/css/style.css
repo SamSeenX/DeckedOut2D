@@ -195,6 +195,12 @@ canvas {
     cursor: pointer;
     z-index: 100;
     transition: opacity 0.5s ease;
+    background-image: url('/assets/menu_bg.webp');
+    background-size: cover;
+    background-position: center;
+    /*add opacity or tint to background-image*/
+    background-color: rgba(0, 0, 0, 0.7);
+    background-blend-mode: multiply;
 }
 
 #start-overlay.hidden,

@@ -1,5 +1,5 @@
 
-import { TILE_SIZE, VIEW_W, VIEW_H, FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
+import { TILE_SIZE, VIEW_W, VIEW_H, FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
 
 import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
@@ -237,23 +237,57 @@ function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Draw Blocks (Layer 1)
+    // 3. First pass: Determine which tiles are "lit" (in flashlight)
+    let litTiles = new Set();
+
+    for (let y = Math.floor(camY); y < camY + VIEW_H + 1; y++) {
+        for (let x = Math.floor(camX); x < camX + VIEW_W + 1; x++) {
+            if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
+
+            let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
+            let isFlashlight = (distToFocus <= FLASHLIGHT_RADIUS) && checkLineOfSight(player.x, player.y, x, y);
+
+            if (isFlashlight) {
+                litTiles.add(`${x},${y}`);
+            }
+        }
+    }
+
+    // Helper: Check if a tile has an adjacent lit tile
+    function hasAdjacentLitTile(x, y) {
+        const neighbors = [
+            `${x - 1},${y}`, `${x + 1},${y}`,
+            `${x},${y - 1}`, `${x},${y + 1}`
+        ];
+        for (let n of neighbors) {
+            if (litTiles.has(n)) return true;
+        }
+        return false;
+    }
+
+    // 4. Draw Blocks (Layer 1)
     for (let y = Math.floor(camY); y < camY + VIEW_H + 1; y++) {
         for (let x = Math.floor(camX); x < camX + VIEW_W + 1; x++) {
 
-            if (y >= map.length || x >= map[0].length) continue;
+            if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
 
-            let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
             let distToPlayer = Math.sqrt((player.x - x) ** 2 + (player.y - y) ** 2);
-
-            // Visibility Logic
-            let isFlashlight = (distToFocus <= FLASHLIGHT_RADIUS) && checkLineOfSight(player.x, player.y, x, y);
+            let isLit = litTiles.has(`${x},${y}`);
             let isDim = distToPlayer <= DIM_VIEW_RADIUS;
 
-            if (!isFlashlight && !isDim) continue;
+            if (!isLit && !isDim) continue;
 
-            // Set Brightness
-            ctx.globalAlpha = isFlashlight ? 1.0 : 0.2; // 0.2 for dim blocks
+            // Set Brightness based on visibility
+            if (isLit) {
+                ctx.globalAlpha = 1.0;
+            } else {
+                // Shadow tile - check if adjacent to lit tile
+                if (hasAdjacentLitTile(x, y)) {
+                    ctx.globalAlpha = SHADOW_EDGE_OPACITY;  // Edge tile (60%)
+                } else {
+                    ctx.globalAlpha = SHADOW_INNER_OPACITY; // Inner tile (30%)
+                }
+            }
 
             let drawX = (x - camX) * TILE_SIZE;
             let drawY = (y - camY) * TILE_SIZE;
@@ -296,25 +330,38 @@ function draw() {
     }
 
     ctx.globalAlpha = 1.0;
-    // 4. Draw Player (Layer 2)
+
+    // 5. Draw Player (Layer 2)
     player.draw(ctx, camX, camY, TILE_SIZE);
 
-    // 5. Draw Enemies
-    enemies.forEach(enemy => enemy.draw(ctx, camX, camY));
+    // 6. Draw Enemies - Only if in line of sight
+    enemies.forEach(enemy => {
+        if (checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
+            enemy.draw(ctx, camX, camY);
+        }
+    });
 
-    // 5b. Draw Projectiles
-    projectiles.forEach(p => p.draw(ctx, camX, camY));
+    // 6b. Draw Projectiles - Only if in line of sight
+    projectiles.forEach(p => {
+        if (checkLineOfSight(player.x, player.y, p.x, p.y)) {
+            p.draw(ctx, camX, camY);
+        }
+    });
 
-    // 5c. Draw Embers
-    embers.forEach(e => e.draw(ctx, camX, camY, TILE_SIZE));
+    // 6c. Draw Embers - Only if in line of sight
+    embers.forEach(e => {
+        if (checkLineOfSight(player.x, player.y, e.x, e.y)) {
+            e.draw(ctx, camX, camY, TILE_SIZE);
+        }
+    });
 
-    // 6. Damage Flash Overlay
+    // 7. Damage Flash Overlay
     if (Date.now() - player.lastDamageTime < 200) {
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // 7. Lighting Gradient (Layer 3)
+    // 8. Lighting Gradient (Layer 3) - Subtle atmosphere
     let lightX = (focus.x - camX) * TILE_SIZE;
     let lightY = (focus.y - camY) * TILE_SIZE;
 
@@ -324,13 +371,10 @@ function draw() {
     );
 
     gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(0.7, "rgba(0, 0, 0, 0.3)"); // Less opaque to allow seeing dim blocks?
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");   // Not full black, just dark
+    gradient.addColorStop(0.8, "rgba(0, 0, 0, 0.2)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.5)");
 
     ctx.fillStyle = gradient;
-    // content loop handles the main visibility, this just adds atmosphere. 
-    // Actually, if we want "Dim" blocks to be visible, we shouldn't cover them with a heavy gradient.
-    // Let's make it subtle.
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 

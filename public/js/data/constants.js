@@ -19,6 +19,8 @@ export const VIEW_W = 20;
 export const VIEW_H = 15;
 export const FLASHLIGHT_RADIUS = 8;
 export const DIM_VIEW_RADIUS = 10;
+export const SHADOW_EDGE_OPACITY = 0.6;  // Shadow tiles adjacent to lit tiles
+export const SHADOW_INNER_OPACITY = 0.4; // Shadow tiles not adjacent to lit tiles
 export const MAX_LOOK_OFFSET = 6;
 
 // === Game Balance / Rules ===
