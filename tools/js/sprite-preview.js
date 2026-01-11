@@ -2,11 +2,19 @@ const canvas = document.getElementById('preview-canvas');
 const ctx = canvas.getContext('2d');
 const sheetCanvas = document.getElementById('sheet-canvas');
 const sheetCtx = sheetCanvas.getContext('2d');
+const previewArea = document.getElementById('preview-area');
+const frameCounter = document.getElementById('frame-counter');
+
+// Overlay Controls
+const overlayPrevBtn = document.getElementById('overlay-prev-btn');
+const overlayPlayBtn = document.getElementById('overlay-play-btn');
+const overlayNextBtn = document.getElementById('overlay-next-btn');
 
 const fileInput = document.getElementById('file-input');
 const updateBtn = document.getElementById('update-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const debugInfo = document.getElementById('debug-info');
+const bgButtons = document.querySelectorAll('.bg-btn');
 
 // Inputs
 const inputWidth = document.getElementById('cell-width');
@@ -17,6 +25,9 @@ const inputPadY = document.getElementById('pad-y');
 const inputFrames = document.getElementById('frame-count');
 const inputFps = document.getElementById('fps');
 const inputScale = document.getElementById('scale');
+
+// Storage key for localStorage
+const STORAGE_KEY = 'spritePreviewSettings';
 
 let spritesheet = new Image();
 let isLoaded = false;
@@ -35,13 +46,91 @@ let state = {
     scale: 4,
     padX: 0,
     padY: 0,
-    detectedFrames: 0
+    detectedFrames: 0,
+    bgColor: 'checkered' // Track background color
 };
 
+// Save settings to localStorage
+function saveSettings() {
+    const settings = {
+        w: state.w,
+        h: state.h,
+        row: state.row,
+        frames: state.frames,
+        fps: state.fps,
+        scale: state.scale,
+        padX: state.padX,
+        padY: state.padY,
+        bgColor: state.bgColor
+    };
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+        console.warn('Could not save settings to localStorage:', e);
+    }
+}
+
+// Load settings from localStorage
+function loadSettings() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const settings = JSON.parse(saved);
+
+            // Apply saved values to state
+            state.w = settings.w ?? 32;
+            state.h = settings.h ?? 32;
+            state.row = settings.row ?? 0;
+            state.frames = settings.frames ?? 0;
+            state.fps = settings.fps ?? 8;
+            state.scale = settings.scale ?? 4;
+            state.padX = settings.padX ?? 0;
+            state.padY = settings.padY ?? 0;
+            state.bgColor = settings.bgColor ?? 'checkered';
+
+            // Update input fields
+            inputWidth.value = state.w;
+            inputHeight.value = state.h;
+            inputRow.value = state.row;
+            inputFrames.value = state.frames;
+            inputFps.value = state.fps;
+            inputScale.value = state.scale;
+            inputPadX.value = state.padX;
+            inputPadY.value = state.padY;
+
+            // Apply background color
+            bgButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.bg === state.bgColor) {
+                    btn.classList.add('active');
+                }
+            });
+            previewArea.className = 'preview-area';
+            previewArea.classList.add(`bg-${state.bgColor}`);
+        }
+    } catch (e) {
+        console.warn('Could not load settings from localStorage:', e);
+    }
+}
+
 function init() {
+    // Load saved settings first
+    loadSettings();
+
     fileInput.addEventListener('change', handleFileSelect);
     updateBtn.addEventListener('click', updateSettings);
     playPauseBtn.addEventListener('click', togglePlay);
+
+    // Overlay Control Listeners
+    overlayPlayBtn.addEventListener('click', togglePlay);
+    overlayNextBtn.addEventListener('click', () => {
+        pause(); // Pause when stepping manually
+        nextFrame();
+    });
+    overlayPrevBtn.addEventListener('click', () => {
+        pause(); // Pause when stepping manually
+        prevFrame();
+    });
 
     // Auto-update on input changes? Maybe annoying if typing numbers.
     // Let's stick to update button for now, or blur events.
@@ -49,6 +138,33 @@ function init() {
         inp.addEventListener('change', updateSettings);
     });
 
+    // Background color switcher
+    bgButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            bgButtons.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+
+            // Get the background type from data attribute
+            const bgType = btn.dataset.bg;
+            state.bgColor = bgType; // Track in state
+
+            // Remove all bg-* classes from preview area
+            previewArea.className = 'preview-area';
+            // Add the selected background class
+            previewArea.classList.add(`bg-${bgType}`);
+
+            // Save to localStorage
+            saveSettings();
+        });
+    });
+
+    // Apply initial canvas size from loaded settings
+    canvas.width = state.w * state.scale;
+    canvas.height = state.h * state.scale;
+
+    updatePlayButtons();
     requestAnimationFrame(loop);
 }
 
@@ -101,8 +217,12 @@ function updateSettings() {
     // Reset animation
     currentFrame = 0;
     timer = 0;
+    if (frameCounter) frameCounter.textContent = `Frame: ${currentFrame}`;
 
     updateDebugInfo();
+
+    // Save settings to localStorage
+    saveSettings();
 }
 
 function updateDebugInfo() {
@@ -122,7 +242,41 @@ function updateDebugInfo() {
 
 function togglePlay() {
     isPlaying = !isPlaying;
-    playPauseBtn.textContent = isPlaying ? "⏸ Pause" : "▶ Play";
+    updatePlayButtons();
+}
+
+function pause() {
+    isPlaying = false;
+    updatePlayButtons();
+}
+
+function updatePlayButtons() {
+    const text = isPlaying ? "⏸ Pause" : "▶ Play";
+    const icon = isPlaying ? "⏸" : "▶";
+    playPauseBtn.textContent = text;
+    if (overlayPlayBtn) overlayPlayBtn.textContent = icon;
+}
+
+function nextFrame() {
+    if (!isLoaded) return;
+    const maxFrames = state.frames > 0 ? state.frames : state.detectedFrames;
+    if (maxFrames === 0) return;
+
+    currentFrame++;
+    if (currentFrame >= maxFrames) currentFrame = 0;
+
+    if (frameCounter) frameCounter.textContent = `Frame: ${currentFrame}`;
+}
+
+function prevFrame() {
+    if (!isLoaded) return;
+    const maxFrames = state.frames > 0 ? state.frames : state.detectedFrames;
+    if (maxFrames === 0) return;
+
+    currentFrame--;
+    if (currentFrame < 0) currentFrame = maxFrames - 1;
+
+    if (frameCounter) frameCounter.textContent = `Frame: ${currentFrame}`;
 }
 
 function loop(timestamp) {
@@ -141,6 +295,7 @@ function loop(timestamp) {
             if (currentFrame >= maxFrames) {
                 currentFrame = 0;
             }
+            if (frameCounter) frameCounter.textContent = `Frame: ${currentFrame}`;
         }
     }
 
