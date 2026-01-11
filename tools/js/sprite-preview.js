@@ -10,11 +10,25 @@ const overlayPrevBtn = document.getElementById('overlay-prev-btn');
 const overlayPlayBtn = document.getElementById('overlay-play-btn');
 const overlayNextBtn = document.getElementById('overlay-next-btn');
 
+// Tool Controls
+const toolPaint = document.getElementById('tool-paint');
+const toolEraser = document.getElementById('tool-eraser');
+const toolPicker = document.getElementById('tool-picker');
+const toolOnion = document.getElementById('tool-onion');
+const colorPicker = document.getElementById('color-picker');
+const colorHex = document.getElementById('color-hex');
+const savePngBtn = document.getElementById('save-png');
+const saveWebpBtn = document.getElementById('save-webp');
+
 const fileInput = document.getElementById('file-input');
 const updateBtn = document.getElementById('update-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const debugInfo = document.getElementById('debug-info');
 const bgButtons = document.querySelectorAll('.bg-btn');
+
+// Master Canvas (Source of Truth)
+const masterCanvas = document.createElement('canvas');
+const masterCtx = masterCanvas.getContext('2d', { willReadFrequently: true });
 
 // Inputs
 const inputWidth = document.getElementById('cell-width');
@@ -47,7 +61,16 @@ let state = {
     padX: 0,
     padY: 0,
     detectedFrames: 0,
-    bgColor: 'checkered' // Track background color
+    bgColor: 'checkered', // Track background color
+    activeTool: 'paint', // paint, eraser, picker
+    activeColor: '#ffffff',
+    isDrawing: false,
+    onionSkin: false,
+    offsetX: 0,
+    offsetY: 0,
+    isPanning: false,
+    startPanX: 0,
+    startPanY: 0
 };
 
 // Save settings to localStorage
@@ -61,7 +84,8 @@ function saveSettings() {
         scale: state.scale,
         padX: state.padX,
         padY: state.padY,
-        bgColor: state.bgColor
+        bgColor: state.bgColor,
+        onionSkin: state.onionSkin
     };
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -87,6 +111,12 @@ function loadSettings() {
             state.padX = settings.padX ?? 0;
             state.padY = settings.padY ?? 0;
             state.bgColor = settings.bgColor ?? 'checkered';
+            state.onionSkin = settings.onionSkin ?? false;
+
+            // Update UI
+            if (state.onionSkin) {
+                toolOnion.classList.add('active');
+            }
 
             // Update input fields
             inputWidth.value = state.w;
@@ -138,27 +168,151 @@ function init() {
         inp.addEventListener('change', updateSettings);
     });
 
+    // Helper to set background
+    function setBackground(bgType) {
+        state.bgColor = bgType;
+
+        // Update Buttons
+        bgButtons.forEach(b => {
+            if (b.dataset.bg === bgType) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
+        // Update Preview
+        previewArea.className = 'preview-area';
+        previewArea.classList.add(`bg-${bgType}`);
+
+        saveSettings();
+    }
+
     // Background color switcher
     bgButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remove active class from all buttons
-            bgButtons.forEach(b => b.classList.remove('active'));
-            // Add active class to clicked button
-            btn.classList.add('active');
-
-            // Get the background type from data attribute
-            const bgType = btn.dataset.bg;
-            state.bgColor = bgType; // Track in state
-
-            // Remove all bg-* classes from preview area
-            previewArea.className = 'preview-area';
-            // Add the selected background class
-            previewArea.classList.add(`bg-${bgType}`);
-
-            // Save to localStorage
-            saveSettings();
-        });
+        btn.addEventListener('click', () => setBackground(btn.dataset.bg));
     });
+
+    // Tool Selectors
+    function activateTool(tool) {
+        state.activeTool = tool;
+        [toolPaint, toolEraser, toolPicker].forEach(btn => btn.classList.remove('active'));
+        if (tool === 'paint') toolPaint.classList.add('active');
+        if (tool === 'eraser') toolEraser.classList.add('active');
+        if (tool === 'picker') toolPicker.classList.add('active');
+    }
+
+    toolPaint.addEventListener('click', () => activateTool('paint'));
+    toolEraser.addEventListener('click', () => activateTool('eraser'));
+    toolPicker.addEventListener('click', () => activateTool('picker'));
+
+    // Onion Skin
+    function toggleOnionSkin() {
+        state.onionSkin = !state.onionSkin;
+        if (state.onionSkin) toolOnion.classList.add('active');
+        else toolOnion.classList.remove('active');
+        saveSettings();
+        if (!isPlaying) draw(); // Redraw immediately if paused
+    }
+    toolOnion.addEventListener('click', toggleOnionSkin);
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ignore if typing in inputs
+        if (e.target.tagName === 'INPUT') return;
+
+        const key = e.key.toLowerCase();
+        if (key === 'o') toggleOnionSkin();
+        if (key === 'b') activateTool('paint');
+        if (key === 'e') activateTool('eraser');
+        if (key === 'i') activateTool('picker');
+
+        // Background Shortcuts (1-7)
+        if (key >= '1' && key <= '7') {
+            const bgMap = ['checkered', 'black', 'white', 'gray', 'red', 'green', 'blue'];
+            setBackground(bgMap[parseInt(key) - 1]);
+        }
+
+        // Zoom
+        if (key === '=' || key === '+') {
+            state.scale = Math.min(20, state.scale + 1);
+            inputScale.value = state.scale;
+            updateSettings();
+        }
+        if (key === '-' || key === '_') {
+            state.scale = Math.max(1, state.scale - 1);
+            inputScale.value = state.scale;
+            updateSettings();
+        }
+
+        // Play/Pause (Moved to Enter)
+        if (key === 'enter') {
+            e.preventDefault();
+            togglePlay();
+        }
+
+        // Pan Mode (Space Hold)
+        if (key === ' ' && !state.isPanning) {
+            e.preventDefault();
+            state.isPanning = true;
+            canvas.style.cursor = 'grab';
+        }
+
+        // Arrow Control
+        if (key === 'arrowleft') {
+            e.preventDefault();
+            pause();
+            prevFrame();
+        }
+        if (key === 'arrowright') {
+            e.preventDefault();
+            pause();
+            nextFrame();
+        }
+        if (key === 'arrowup') {
+            e.preventDefault();
+            if (!isPlaying) {
+                togglePlay();
+            } else {
+                state.fps = Math.min(60, state.fps + 1);
+                inputFps.value = state.fps;
+                updateDebugInfo();
+                saveSettings();
+            }
+        }
+        if (key === 'arrowdown') {
+            e.preventDefault();
+            if (!isPlaying) {
+                togglePlay();
+            } else {
+                state.fps = Math.max(1, state.fps - 1);
+                inputFps.value = state.fps;
+                updateDebugInfo();
+                saveSettings();
+            }
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.key === ' ') {
+            state.isPanning = false;
+            state.isPanningDrag = false;
+            canvas.style.cursor = 'default';
+        }
+    });
+
+    // Color Picker
+    colorPicker.addEventListener('input', (e) => {
+        state.activeColor = e.target.value;
+        colorHex.textContent = state.activeColor;
+    });
+
+    // Canvas Interaction (Drawing)
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mouseleave', handleMouseUp);
+
+    // Save Buttons
+    savePngBtn.addEventListener('click', () => downloadImage('png'));
+    saveWebpBtn.addEventListener('click', () => downloadImage('webp'));
 
     // Apply initial canvas size from loaded settings
     canvas.width = state.w * state.scale;
@@ -174,12 +328,19 @@ function handleFileSelect(e) {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-        spritesheet = new Image();
-        spritesheet.onload = () => {
+        const img = new Image();
+        img.onload = () => {
             isLoaded = true;
+            spritesheet = img; // Keep ref just in case
+
+            // Initialize Master Canvas
+            masterCanvas.width = img.width;
+            masterCanvas.height = img.height;
+            masterCtx.drawImage(img, 0, 0);
+
             updateSettings(); // Recalculate based on new image
         };
-        spritesheet.src = event.target.result;
+        img.src = event.target.result;
     };
     reader.readAsDataURL(file);
 }
@@ -200,8 +361,15 @@ function updateSettings() {
 
     // Resize Sheet Canvas
     if (isLoaded) {
-        sheetCanvas.width = spritesheet.width;
-        sheetCanvas.height = spritesheet.height;
+        // Ensure master canvas is correct size if needed (usually handled on load)
+        if (masterCanvas.width !== spritesheet.width) {
+            masterCanvas.width = spritesheet.width;
+            masterCanvas.height = spritesheet.height;
+            masterCtx.drawImage(spritesheet, 0, 0);
+        }
+
+        sheetCanvas.width = masterCanvas.width;
+        sheetCanvas.height = masterCanvas.height;
     }
 
     // Auto-detect max frames in this row if 0
@@ -322,8 +490,25 @@ function draw() {
     const sx = state.padX + (currentFrame * state.w);
     const sy = state.padY + (state.row * state.h);
 
+    // --- Onion Skin Layer ---
+    if (state.onionSkin && currentFrame > 0) {
+        const prevSx = state.padX + ((currentFrame - 1) * state.w);
+        const prevSy = sy; // Same row
+
+        // Check bounds for previous frame
+        if (prevSx + state.w <= masterCanvas.width && prevSy + state.h <= masterCanvas.height) {
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(
+                masterCanvas,
+                prevSx, prevSy, state.w, state.h,
+                0, 0, canvas.width, canvas.height
+            );
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
     // Check bounds
-    if (sx + state.w > spritesheet.width || sy + state.h > spritesheet.height) {
+    if (sx + state.w > masterCanvas.width || sy + state.h > masterCanvas.height) {
         // Out of bounds - draw error placeholder
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -334,7 +519,7 @@ function draw() {
     }
 
     ctx.drawImage(
-        spritesheet,
+        masterCanvas,
         sx, sy, state.w, state.h,     // Source
         0, 0, canvas.width, canvas.height // Dest (scaled by canvas size)
     );
@@ -349,7 +534,7 @@ function drawSheet() {
 
     if (!isLoaded) return;
 
-    sheetCtx.drawImage(spritesheet, 0, 0);
+    sheetCtx.drawImage(masterCanvas, 0, 0);
 
     // Draw Highlight with Padding
     const sx = state.padX + (currentFrame * state.w);
@@ -364,7 +549,118 @@ function drawSheet() {
     sheetCtx.strokeStyle = "rgba(0, 188, 212, 0.3)";
     sheetCtx.lineWidth = 1;
     // Highlight the row starting from padX
-    sheetCtx.strokeRect(state.padX, sy, spritesheet.width - state.padX, state.h);
+    sheetCtx.strokeRect(state.padX, sy, masterCanvas.width - state.padX, state.h);
+}
+
+// --- Interaction / Editing ---
+
+function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function handleMouseDown(e) {
+    if (!isLoaded) return;
+
+    // Pan Mode Start
+    if (state.isPanning) {
+        state.isPanningDrag = true;
+        state.startPanX = e.clientX;
+        state.startPanY = e.clientY;
+        canvas.style.cursor = 'grabbing';
+        return;
+    }
+
+    // Draw Mode Start
+    state.isDrawing = true;
+    handleMouseMove(e); // Draw immediately
+}
+
+function handleMouseUp(e) {
+    state.isDrawing = false;
+    if (state.isPanningDrag) {
+        state.isPanningDrag = false;
+        canvas.style.cursor = 'grab';
+    }
+}
+
+function handleMouseMove(e) {
+    if (!isLoaded) return;
+
+    // Panning Logic
+    if (state.isPanningDrag) {
+        const dx = e.clientX - state.startPanX;
+        const dy = e.clientY - state.startPanY;
+        state.offsetX += dx;
+        state.offsetY += dy;
+        state.startPanX = e.clientX;
+        state.startPanY = e.clientY;
+        updateCanvasTransform();
+        return; // Skip drawing logic if panning
+    }
+
+    // For picker, we might want to just hover, but let's stick to click/drag for now
+    if (!state.isDrawing && state.activeTool !== 'picker') return;
+
+    if (state.activeTool === 'picker' && !state.isDrawing) return; // Only pick on click/drag
+
+    const pos = getMousePos(e);
+
+    // Map Canvas Pos -> Pixel in Frame
+    // Canvas is scaled by state.scale
+    const pixelX = Math.floor(pos.x / state.scale);
+    const pixelY = Math.floor(pos.y / state.scale);
+
+    // If out of cell bounds, ignore
+    if (pixelX < 0 || pixelX >= state.w || pixelY < 0 || pixelY >= state.h) return;
+
+    // Map Pixel in Frame -> Pixel in Sheet
+    const sheetX = state.padX + (currentFrame * state.w) + pixelX;
+    const sheetY = state.padY + (state.row * state.h) + pixelY;
+
+    if (sheetX >= masterCanvas.width || sheetY >= masterCanvas.height) return;
+
+    performToolAction(sheetX, sheetY);
+}
+
+function performToolAction(x, y) {
+    if (state.activeTool === 'paint') {
+        masterCtx.fillStyle = state.activeColor;
+        masterCtx.fillRect(x, y, 1, 1);
+    } else if (state.activeTool === 'eraser') {
+        masterCtx.clearRect(x, y, 1, 1);
+    } else if (state.activeTool === 'picker') {
+        const p = masterCtx.getImageData(x, y, 1, 1).data;
+        // Convert to hex
+        const hex = rgbToHex(p[0], p[1], p[2]);
+        state.activeColor = hex;
+        colorPicker.value = hex;
+        colorHex.textContent = hex;
+        // Stop drawing after pick? Maybe.
+        state.isDrawing = false;
+
+        // Switch back to paint? optional. Let's stay in picker.
+    }
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function updateCanvasTransform() {
+    canvas.style.transform = `translate(${state.offsetX}px, ${state.offsetY}px)`;
+}
+
+function downloadImage(format) {
+    if (!isLoaded) return;
+
+    const link = document.createElement('a');
+    link.download = `sprite_edited.${format}`;
+    link.href = masterCanvas.toDataURL(`image/${format}`);
+    link.click();
 }
 
 init();

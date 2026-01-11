@@ -48,7 +48,7 @@
         }
 
         .sidebar {
-            width: 300px;
+            width: 250px;
             background: #181818;
             border-right: 1px solid #333;
             padding: 20px;
@@ -56,6 +56,19 @@
             flex-direction: column;
             gap: 15px;
             overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-right {
+            width: 280px;
+            background: #181818;
+            border-left: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
         }
 
         .control-group {
@@ -104,9 +117,9 @@
             padding-top: 10px;
             display: flex;
             flex-direction: column;
-            flex: 1;
-            /* Take remaining height */
-            min-height: 200px;
+            /* Fixed height for mini-map in right bar */
+            height: 200px;
+            flex-shrink: 0;
         }
 
         .sheet-canvas-wrapper {
@@ -118,6 +131,49 @@
             display: flex;
             align-items: flex-start;
             justify-content: flex-start;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .tool-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .tool-btn:hover {
+            background: #444;
+        }
+
+        .tool-btn.active {
+            background: #00bcd4;
+            color: #121212;
+            border-color: #00bcd4;
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
         }
 
         /* Custom scrollbar for preview */
@@ -362,32 +418,11 @@
                 <input type="number" id="scale" value="4" min="1" max="10">
             </div>
 
-            <div class="control-group">
-                <label>Background Color</label>
-                <div class="bg-selector">
-                    <button class="bg-btn checkered active" data-bg="checkered"
-                        title="Checkered (Transparency)"></button>
-                    <button class="bg-btn black" data-bg="black" title="Black"></button>
-                    <button class="bg-btn white" data-bg="white" title="White"></button>
-                    <button class="bg-btn gray" data-bg="gray" title="Gray"></button>
-                    <button class="bg-btn red" data-bg="red" title="Red"></button>
-                    <button class="bg-btn green" data-bg="green" title="Green"></button>
-                    <button class="bg-btn blue" data-bg="blue" title="Blue"></button>
-                </div>
-            </div>
-
             <button id="update-btn">🔄 Refresh Animation</button>
             <button id="play-pause-btn" class="secondary">⏸ Pause</button>
 
             <div class="info-panel" id="debug-info">
                 No image loaded.
-            </div>
-
-            <div class="sheet-preview-container">
-                <label>Full Sheet Preview</label>
-                <div class="sheet-canvas-wrapper">
-                    <canvas id="sheet-canvas"></canvas>
-                </div>
             </div>
         </div>
 
@@ -398,6 +433,53 @@
                 <button id="overlay-play-btn" title="Play/Pause">⏸</button>
                 <button id="overlay-next-btn" title="Next Frame">⏭</button>
                 <span id="frame-counter">Frame: 0</span>
+            </div>
+        </div>
+
+        <div class="sidebar-right">
+            <div class="control-group">
+                <label>Tools</label>
+                <div class="tools-grid">
+                    <button class="tool-btn active" id="tool-paint" title="Paint (B)">✏️</button>
+                    <button class="tool-btn" id="tool-eraser" title="Eraser (E)">🧹</button>
+                    <button class="tool-btn" id="tool-picker" title="Color Picker (I)">💉</button>
+                    <button class="tool-btn" id="tool-onion" title="Onion Skin (O)">🧅</button>
+                    <!-- Maybe more later -->
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="color-picker" value="#ffffff">
+                    <span id="color-hex">#ffffff</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Background Preview</label>
+                <div class="bg-selector">
+                    <button class="bg-btn checkered active" data-bg="checkered" title="Checkered (1)"></button>
+                    <button class="bg-btn black" data-bg="black" title="Black (2)"></button>
+                    <button class="bg-btn white" data-bg="white" title="White (3)"></button>
+                    <button class="bg-btn gray" data-bg="gray" title="Gray (4)"></button>
+                    <button class="bg-btn red" data-bg="red" title="Red (5)"></button>
+                    <button class="bg-btn green" data-bg="green" title="Green (6)"></button>
+                    <button class="bg-btn blue" data-bg="blue" title="Blue (7)"></button>
+                </div>
+            </div>
+
+            <div class="sheet-preview-container">
+                <label>Sheet Map</label>
+                <div class="sheet-canvas-wrapper">
+                    <canvas id="sheet-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="control-group" style="margin-top: auto;">
+                <label>Export/Save</label>
+                <button id="save-png">💾 Save PNG</button>
+                <button id="save-webp" class="secondary">💾 Save WebP</button>
             </div>
         </div>
     </div>
