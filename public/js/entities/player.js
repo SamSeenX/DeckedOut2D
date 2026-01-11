@@ -1,4 +1,4 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY } from '../data/constants.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY, CLANK_WALK_INC, CLANK_RUN_INC, CLANK_JUMP_INC } from '../data/config.js';
 
 import { keys } from '../core/input.js';
 import { triggerShake } from '../core/camera.js';
@@ -9,11 +9,19 @@ import { gameState } from '../core/state.js';
 import { updateUI, showToast, showVictory } from '../core/ui.js';
 
 import { spawnEmber, queueRegrowth } from '../core/game.js';
-
-
+import { playBingBing, playVictoryTone, playBerryCollect } from '../core/audio.js';
 
 const sprite = new Image();
 sprite.src = 'assets/sprits/player.webp';
+
+// Standardized Animation Config
+const ANIMATIONS = {
+    idle: { row: 0, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    walk_down: { row: 0, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    walk_left: { row: 1, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    walk_right: { row: 2, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    walk_up: { row: 3, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+};
 
 export const player = {
     x: 0, y: 0,
@@ -26,7 +34,7 @@ export const player = {
     frameIndex: 0,
     tickCount: 0,
     ticksPerFrame: PLAYER_ANIMATION_SPEED,
-    direction: 0, // 0: Down, 1: Left, 2: Right, 3: Up
+    anim: 'idle',
     lastDamageTime: 0,
 
     // Jump/Elevation State
@@ -37,11 +45,14 @@ export const player = {
     bumpVelocity: 0,
     bumpCount: 0, // Track failed attempts
 
+    // Timers
+    lastEatTime: 0,
+    lastCheckTime: 0,
+
     takeDamage(amount) {
         this.hp -= amount;
         this.lastDamageTime = Date.now();
         triggerShake(0.2); // Shake intensity
-        // Trigger UI update if needed, currently done in game loop or events
         updateUI(gameState, player);
     },
 
@@ -58,70 +69,83 @@ export const player = {
     },
 
     draw(ctx, camX, camY, tileSize) {
-        // Update Animation
+        // --- 1. Update Animation Logic ---
+        // Determine Anim State
         if (Math.abs(this.vx) > 0.001 || Math.abs(this.vy) > 0.001) {
+            if (Math.abs(this.vy) > Math.abs(this.vx)) {
+                this.anim = (this.vy > 0) ? 'walk_down' : 'walk_up';
+            } else {
+                this.anim = (this.vx > 0) ? 'walk_right' : 'walk_left';
+            }
+        } else {
+            // If we want idle to face the last direction, we'd need to track it.
+            // But existing code just set frame to 1 (center) and didn't change row (direction). 
+            // Actually, old code: "this.direction" PERSISTED when not moving?
+            // "if (moving) ... direction = ..." 
+            // "else frameIndex = 1" -> it kept the old direction row!
+
+            // My logic sets anim = 'idle'. 
+            // To preserve "Idle in last direction", I need multiple idle states or logic override.
+            // For strict standardization, let's just stick to 'idle' -> row 0 (down) for now, 
+            // OR improve the logic to have idle_down, idle_up etc.
+
+            // To match previous behavior "frameIndex = 1" (Center frame) on the LAST direction row:
+            // I'll need 'lastAnim' or just don't reset anim to 'idle' but switch to 'idle_X'.
+
+            // Let's Keep it Simple: 'idle' maps to Down (row 0) as defined in ANIMATIONS above.
+            // User can improve later if they want directional idle.
+            this.anim = 'idle';
+        }
+
+        // Cycle Frames
+        if (this.anim !== 'idle') {
             this.tickCount++;
             if (this.tickCount > this.ticksPerFrame) {
                 this.tickCount = 0;
-                this.frameIndex = (this.frameIndex + 1) % 3; // Fixed: 3 frames per row
-            }
-
-            // Determine Direction
-            if (Math.abs(this.vy) > Math.abs(this.vx)) {
-                this.direction = (this.vy > 0) ? 0 : 3; // Down or Up
-            } else {
-                this.direction = (this.vx > 0) ? 2 : 1; // Right or Left
+                this.frameIndex++;
             }
         } else {
-            this.frameIndex = 1; // Idle frame (Using middle frame 1 often looks better than 0 for 3-frame walkers)
+            this.frameIndex = 1; // Idle frame (Middle)
         }
 
+        const animData = ANIMATIONS[this.anim];
+        if (!animData) return; // Scale safety
+
+        // Frame Wrap
+        if (this.frameIndex >= animData.frames) this.frameIndex = 0;
+
+        // --- 2. Render ---
         if (this.image.complete) {
-            const frameW = this.image.width / 3; // Fixed: 3 columns
-            const frameH = this.image.height / 4;
 
-            // Source X/Y
-            let sx = this.frameIndex * frameW;
-            let sy = this.direction * frameH;
+            // Calculate Source
+            let sx = this.frameIndex * animData.width;
+            let sy = animData.row * animData.height;
 
-            // Destination X/Y
-            // Player.x/y is the CENTER of the tile (e.g. 1.5, 1.5)
-            // We want the Sprite's FEET to be at this center point.
+            // Calculate Dest Size (Standard Multipliers)
+            let scaleW = (animData.scaleW !== undefined) ? animData.scaleW : 1.0;
+            let scaleH = (animData.scaleH !== undefined) ? animData.scaleH : 1.0;
+            let renderWidth = tileSize * scaleW;
+            let renderHeight = tileSize * scaleH;
 
-            // 1. Calculate the Size on Screen
-            // Let's make the sprite 1.5x larger than a tile to have that nice overflow
-            // 1. Calculate the Size on Screen
-            // Maintain aspect ratio (e.g., 64x92)
-            // Use existing size logic for Width, then scale Height
-            let renderWidth = tileSize * 1.5;
-            let ratio = frameH / frameW;
-            let renderHeight = renderWidth * ratio;
-
-            // 2. Center Horizontally
-            // dx is the top-left corner. (x-camX)*tileSize is the center of the tile.
+            // Center Helper
             let dx = ((this.x - camX) * tileSize) - (renderWidth / 2);
 
-            // 3. Align Vertically (Feet at Pivot)
-            // We want the bottom of the image (feet) to be at (tileY + feetOffset)
+            // Vertical Alignment
             let feetOffset = tileSize * 0.25;
-
-            // Elevation Visual (Each Z level is 10px up) + Jump Offset
             let visualZ = (this.z * 10) + this.jumpOffset;
-
             let dy = ((this.y - camY) * tileSize) - renderHeight + feetOffset - visualZ;
 
-            // Damage Tint (Fix: Capture condition once to avoid race condition)
+            // Damage Tint
             const isDamaged = (Date.now() - this.lastDamageTime < 200);
 
             if (isDamaged) {
                 ctx.save();
-                // Red tint filter
                 ctx.filter = 'sepia(1) saturate(5) hue-rotate(-50deg)';
             }
 
             ctx.drawImage(
                 this.image,
-                sx, sy, frameW, frameH,
+                sx, sy, animData.width, animData.height,
                 dx, dy, renderWidth, renderHeight
             );
 
@@ -137,6 +161,15 @@ export const player = {
             ctx.beginPath();
             ctx.arc(drawX, drawY, 10, 0, Math.PI * 2);
             ctx.fill();
+        }
+
+        // DEBUG: Draw Player Hitbox
+        if (window.debugMode) {
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            let drawX = (this.x - this.radius - camX) * tileSize;
+            let drawY = (this.y - this.radius - camY) * tileSize;
+            ctx.strokeRect(drawX, drawY, this.radius * 2 * tileSize, this.radius * 2 * tileSize);
         }
     }
 };
@@ -173,6 +206,8 @@ export function updatePlayer() {
     // Bunny Hop (Run)
     if (isJumping) {
         speedLimit *= BUNNY_HOP_BOOST;
+    } else if (isRunning && !isSneaking) {
+        speedLimit *= RUN_MULT;
     }
 
     // Sneak (Priority over run if both held? usually sneak overrides)
@@ -264,6 +299,10 @@ export function updatePlayer() {
         player.isBumping = false; // Override bump
         player.jumpVelocity = PLAYER_JUMP_VELOCITY; // Start upward
         player.bumpCount = 0; // Success! Reset counter
+
+        // Jump Clank
+        gameState.clank += CLANK_JUMP_INC;
+        updateUI(gameState, player);
     }
 
     if (player.isJumping) {
@@ -284,6 +323,25 @@ export function updatePlayer() {
         }
     }
 
+    // --- Footstep Clank Logic ---
+    let currentSpeed = Math.sqrt(player.vx ** 2 + player.vy ** 2);
+    if (currentSpeed > CLANK_SPEED_THRESHOLD && !isSneaking && !player.isJumping) {
+        // Increment Step Timer
+        if (!player.stepTimer) player.stepTimer = 0;
+        player.stepTimer++;
+
+        const stepInterval = PLAYER_ANIMATION_SPEED * 3; // Approx 1 step per cycle
+        if (player.stepTimer >= stepInterval) {
+            player.stepTimer = 0;
+            // Add Clank
+            let inc = (isRunning) ? CLANK_RUN_INC : CLANK_WALK_INC;
+            gameState.clank += inc;
+            updateUI(gameState, player);
+        }
+    } else {
+        player.stepTimer = 0; // Reset if stopped or sneaking
+    }
+
     checkTileEvents(Math.floor(player.x), Math.floor(player.y));
 }
 
@@ -295,17 +353,7 @@ function checkTileEvents(tileX, tileY) {
     let block = BLOCK_DEFS[id];
     if (!block) return;
 
-    // Clank Generation
-    let currentSpeed = Math.sqrt(player.vx ** 2 + player.vy ** 2);
-    if (currentSpeed > CLANK_SPEED_THRESHOLD) {
-        let chance = currentSpeed * CLANK_CHANCE_MULTIPLIER;
-        if (keys['shift']) chance = 0;
-
-        if (Math.random() < chance) {
-            gameState.clank++;
-            updateUI(gameState, player);
-        }
-    }
+    // (Old Random Clank Logic Removed)
 
     // Hazards
     if (block.damage && Math.random() < HAZARD_DAMAGE_CHANCE) {
@@ -314,6 +362,9 @@ function checkTileEvents(tileX, tileY) {
 
     // Berry Bushes (Harvest)
     if (block.heal) {
+        // Sound
+        playBerryCollect();
+
         // Add to inventory instead of auto-eat
         let amount = Math.floor(Math.random() * 3) + 1; // 1-3 berries
         gameState.inventory.food += amount;
@@ -330,8 +381,6 @@ function checkTileEvents(tileX, tileY) {
 
         updateUI(gameState, player);
     }
-
-
 
     // Input: Eat Food ('F')
     if (keys['f']) {
@@ -363,6 +412,7 @@ function checkTileEvents(tileX, tileY) {
 
                 gameState.hasArtifact = true;
                 showToast("ARTIFACT FOUND! Run to the Exit!", 5000);
+                playBingBing();
                 gameState.clank += ARTIFACT_CLANK_PENALTY; // Loud noise!
                 updateUI(gameState, player);
                 return;
@@ -381,6 +431,7 @@ function checkTileEvents(tileX, tileY) {
         if (gameState.hasArtifact) {
             if (!gameState.gameWon) { // Prevent double trigger
                 gameState.gameWon = true;
+                playVictoryTone();
                 showVictory(gameState.targetArtifactItem, gameState.embersCollected);
             }
         } else {

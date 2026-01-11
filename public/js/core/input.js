@@ -13,4 +13,11 @@ export function initInput(canvas) {
         mouse.x = ((e.clientX - rect.left) / canvas.width) * 2 - 1;
         mouse.y = ((e.clientY - rect.top) / canvas.height) * 2 - 1;
     });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Backquote') { // ` key
+            window.debugMode = !window.debugMode;
+            console.log("Debug Mode:", window.debugMode);
+        }
+    });
 }

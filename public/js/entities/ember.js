@@ -1,4 +1,4 @@
-import { PLAYER_RADIUS, EMBER_LIFESPAN } from '../data/constants.js';
+import { PLAYER_RADIUS, EMBER_LIFESPAN } from '../data/config.js';
 
 export class Ember {
     constructor(x, y) {

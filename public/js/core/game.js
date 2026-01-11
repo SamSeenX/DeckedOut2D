@@ -1,5 +1,12 @@
 
-import { TILE_SIZE, VIEW_W, VIEW_H, FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
+import {
+    TILE_SIZE,
+    VIEW_W, VIEW_H, updateViewDimensions,
+    DESKTOP_WIDTH, DESKTOP_HEIGHT, DESKTOP_VIEW_W, DESKTOP_VIEW_H,
+    MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H,
+    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
+    CLANK_DECAY_AMOUNT, CLANK_DECAY_INTERVAL
+} from '../data/config.js';
 
 import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
@@ -12,16 +19,61 @@ import { getRandomArtifact } from '../data/artifacts.js';
 import { gameState } from './state.js';
 
 import { initInput, mouse } from './input.js';
-import { playGong, speak } from './audio.js';
+import { initTouchControls, updateTouchVisibility } from './touch.js';
+import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem } from './audio.js';
 import { getCamera } from './camera.js'; // Restored import
 import { checkLineOfSight, getFocusPoint } from '../world/lighting.js'; // Restored import
-
 import { updateUI, showToast } from './ui.js';
 
 // Setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
+
+// --- Device Detection & Config Application ---
+function applyDeviceConfig() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+
+    if (isMobile) {
+        // Mobile Settings: Fullscreen Dynamic
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let viewW = Math.ceil(canvas.width / TILE_SIZE);
+        let viewH = Math.ceil(canvas.height / TILE_SIZE);
+
+        updateViewDimensions(viewW, viewH);
+        console.log(`Applied Mobile Config: ${canvas.width}x${canvas.height} (View: ${viewW}x${viewH})`);
+    } else {
+        // Desktop Settings
+        canvas.width = DESKTOP_WIDTH;
+        canvas.height = DESKTOP_HEIGHT;
+        updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
+        console.log("Applied Desktop Config: 800x600");
+    }
+}
+
+function checkOrientation() {
+    const warning = document.getElementById('rotate-warning');
+    // Show warning only if on mobile AND in portrait mode
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+    const isPortrait = window.innerHeight > window.innerWidth;
+
+    if (isMobile && isPortrait) {
+        warning.classList.remove('hidden');
+        // Optional: Pause game?
+    } else {
+        warning.classList.add('hidden');
+    }
+}
+
+applyDeviceConfig();
+checkOrientation();
+window.addEventListener('resize', () => {
+    applyDeviceConfig(); // Update resolution if window changes
+    checkOrientation();  // Check orientation
+});
+// ---------------------------------------------
 
 let enemies = [];
 let projectiles = [];
@@ -30,7 +82,9 @@ let regrowingBushes = []; // {x, y, readyTime}
 let treasureSpots = []; // [{x, y}]
 
 
+
 let lastVexSpawnClank = 0;
+let lastClankDecayTime = 0;
 
 let isGameRunning = false;
 
@@ -45,6 +99,7 @@ function setupLevel() {
     regrowingBushes = [];
     treasureSpots = [];
     gameState.clank = 0;
+    lastClankDecayTime = 0;
 
 
     gameState.hasArtifact = false;
@@ -138,9 +193,25 @@ function gameLoop(timestamp) {
     if (!isGameRunning) return;
 
     // Check Death
+    // Check Death
     if (player.hp <= 0) {
         handleGameOver();
         return;
+    }
+
+    // Check Victory (Pause Game)
+    if (gameState.gameWon) {
+        return;
+    }
+
+    // Clank Decay Logic
+    if (timestamp - lastClankDecayTime > CLANK_DECAY_INTERVAL) {
+        if (gameState.clank > 0) {
+            gameState.clank = Math.max(0, gameState.clank - CLANK_DECAY_AMOUNT);
+            updateUI(gameState, player);
+            // Optional: Toast "Clank reduced..."? No, keep it subtle.
+        }
+        lastClankDecayTime = timestamp;
     }
 
     updatePlayer();
@@ -151,7 +222,8 @@ function gameLoop(timestamp) {
             enemies.push(new Vex(player.x, player.y));
             // Ensure we don't double-spawn if Clank jumps by multiple, but align to grid
             lastVexSpawnClank = Math.floor(gameState.clank / VEX_SPAWN_INTERVAL) * VEX_SPAWN_INTERVAL;
-            speak("A Vex has been summoned!");
+            playScaryDing();
+            showToast("A Vex has been summoned!", 2000); // Visual feedback since voice is gone
         }
     } else {
         // Keeps 'lastVexSpawn' updated so the first spawn happens immediately at 60
@@ -334,9 +406,10 @@ function draw() {
     // 5. Draw Player (Layer 2)
     player.draw(ctx, camX, camY, TILE_SIZE);
 
-    // 6. Draw Enemies - Only if in line of sight
+    // 6. Draw Enemies - Only if in line of sight AND within range
     enemies.forEach(enemy => {
-        if (checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
+        const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
+        if (dist <= DIM_VIEW_RADIUS && checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
             enemy.draw(ctx, camX, camY);
         }
     });
@@ -376,6 +449,35 @@ function draw() {
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 9. DEBUG OVERLAY
+    if (window.debugMode) {
+        ctx.lineWidth = 2;
+
+        // Enemies (Pink)
+        ctx.strokeStyle = "hotpink";
+        enemies.forEach(e => {
+            let drawX = (e.x - camX) * TILE_SIZE;
+            let drawY = (e.y - camY) * TILE_SIZE;
+            ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+        });
+
+        // Artifact Target (Red)
+        if (gameState.targetArtifactLoc) {
+            ctx.strokeStyle = "red";
+            let tx = (gameState.targetArtifactLoc.x - camX) * TILE_SIZE;
+            let ty = (gameState.targetArtifactLoc.y - camY) * TILE_SIZE;
+            ctx.strokeRect(tx, ty, TILE_SIZE, TILE_SIZE);
+        }
+
+        // Ember Spawn Locations (Yellow)
+        ctx.strokeStyle = "yellow";
+        treasureSpots.forEach(spot => {
+            let sx = (spot.x - 0.5 - camX) * TILE_SIZE;
+            let sy = (spot.y - 0.5 - camY) * TILE_SIZE;
+            ctx.strokeRect(sx, sy, TILE_SIZE, TILE_SIZE);
+        });
+    }
 }
 
 // --- START / RESET GAME ---
@@ -383,6 +485,8 @@ export function initGame() {
     loadBlockTextures(() => {
         console.log('Textures Loaded');
     });
+
+    initTouchControls(); // Initialize Touch
 
     // Start Overlay
     const overlay = document.getElementById('start-overlay');
@@ -395,21 +499,151 @@ export function initGame() {
 
 function startGame() {
     const overlay = document.getElementById('start-overlay');
-    overlay.classList.add('hidden');
+    overlay.classList.add('hidden'); // Hide Menu immediately
 
+    // Start Cinematic Sequence instead of immediate game loop
+    playIntroSequence();
+
+    // Trigger Fullscreen
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log('Fullscreen failed:', e));
+    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+        document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+        document.documentElement.msRequestFullscreen();
+    }
+}
+
+function launchGame() {
     console.log("Decked Out 2D is ready for its next victim!");
-    resetGameLogic();
-    showToast("WASD to Move, Hold SHIFT to Sneak", 5000); // Updated Tutorial
-    playGong(() => {
-        speak("Decked Out 2D is ready for its next victim!");
-    });
+    resetGameLogic(); // Initialize Map/Player
+
+    showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
+
+    // Start Audio Systems
+    startHeartbeatSystem(() => gameState.clank);
+
+    // Show HUD
+    document.getElementById('ui-layer').classList.remove('hidden');
 
     isGameRunning = true;
+    updateTouchVisibility(true); // Show Touch Controls if enabled
     requestAnimationFrame(gameLoop);
+}
+
+// === CINEMATIC INTRO ===
+function playIntroSequence() {
+    const cinematic = document.getElementById('cinematic-overlay');
+    const doorContainer = document.getElementById('door-container');
+    const canvas = document.getElementById('intro-particles');
+    const ctx = canvas.getContext('2d');
+
+    // 1. Show Cinematic Layer
+    cinematic.classList.remove('hidden');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // 2. Play Audio
+    // 2. Play Audio
+    const readyVoice = new Audio('assets/voice/ready.opus');
+    readyVoice.volume = 0.8;
+    readyVoice.play().catch(e => console.warn("Audio play failed:", e));
+
+    // 3. Particle System (Spiral)
+    let particles = [];
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 5 * 3;
+    let frame = 0;
+
+    // Create/Update Particles
+    function renderParticles() {
+        if (!cinematic.classList.contains('hidden')) requestAnimationFrame(renderParticles);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Spawn new particles
+        if (frame < 120) { // Spawn for 2 seconds
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    angle: Math.random() * Math.PI * 2,
+                    radius: 10 + Math.random() * 50, // Start relative center
+                    speed: 2 + Math.random() * 2,
+                    size: 2 + Math.random() * 3,
+                    alpha: 1,
+                    hue: 40 + Math.random() * 20 // Gold/Yellow
+                });
+            }
+        }
+
+        // Update & Draw
+        particles.forEach((p, index) => {
+            p.radius += p.speed; // Expand outward spiral
+            p.angle += 0.05; // Rotate
+            p.alpha -= 0.01; // Fade
+
+            // Draw
+            let x = centerX + Math.cos(p.angle) * p.radius;
+            let y = centerY + Math.sin(p.angle) * p.radius;
+
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = `hsl(${p.hue}, 100%, 50%)`;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            if (p.alpha <= 0) particles.splice(index, 1);
+        });
+
+        frame++;
+    }
+    renderParticles();
+
+
+    // 4. Sequence Timing
+    // A) Fade In Doors (over menu)
+    setTimeout(() => {
+        doorContainer.classList.add('visible');
+    }, 1000);
+
+    // B) Open Doors & Reveal Game
+    setTimeout(() => {
+        // Play Gong right before door opens for impact
+        playGong(() => { });
+
+        // Reveal Game behind doors (make overlay transparent)
+        cinematic.classList.add('transparent-bg');
+
+        // Open
+        doorContainer.classList.add('open');
+
+        // Fade out particles
+        canvas.style.transition = "opacity 1s";
+        canvas.style.opacity = 0;
+
+        // Start Game Rendering immediately so it's visible
+        launchGame();
+
+    }, 2700); // 2.5s + 200ms hold
+
+    // 5. Finish & Start Game
+    setTimeout(() => {
+        cinematic.classList.add('hidden');
+        // Reset styles for next time (reloads anyway, but good practice)
+        doorContainer.classList.remove('open');
+        doorContainer.classList.remove('visible');
+        cinematic.classList.remove('transparent-bg');
+        canvas.style.opacity = 1;
+
+    }, 7000); // 2.7s + 4s anim + buffer
 }
 
 function handleGameOver() {
     isGameRunning = false;
+    updateTouchVisibility(false); // Hide Touch Controls
     const overlay = document.getElementById('game-over-overlay');
     overlay.classList.remove('hidden');
     speak("Game Over");
@@ -452,7 +686,7 @@ function updateSpawners() {
             if (spawnPos) {
                 spawnEmber(spawnPos.x, spawnPos.y);
                 // Optional: Play a distant sound? Or only if very close?
-                if (dist < 5) showToast("Ember Spawned Nearby!", 1000);
+                if (dist < 5) playDing();
             }
         }
     });

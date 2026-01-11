@@ -17,6 +17,56 @@ body {
     /* Prevent overlay spill */
 }
 
+/* Orientation Warning Overlay */
+#rotate-warning {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    color: white;
+}
+
+#rotate-warning-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: rotatePhone 2s infinite ease-in-out;
+}
+
+#rotate-warning-text {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+@keyframes rotatePhone {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(90deg);
+    }
+
+    50% {
+        transform: rotate(90deg);
+    }
+
+    75% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
 /* ... existing styles ... */
 
 /* Victory Card */
@@ -195,10 +245,9 @@ canvas {
     cursor: pointer;
     z-index: 100;
     transition: opacity 0.5s ease;
-    background-image: url('/assets/menu_bg.webp');
+    background-image: url('../assets/menu_bg.webp');
     background-size: cover;
     background-position: center;
-    /*add opacity or tint to background-image*/
     background-color: rgba(0, 0, 0, 0.7);
     background-blend-mode: multiply;
 }
@@ -208,6 +257,11 @@ canvas {
 #victory-overlay.hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Generic Hidden Class */
+.hidden {
+    display: none !important;
 }
 
 .start-text {
@@ -235,3 +289,131 @@ canvas {
         opacity: 1;
     }
 }
+
+/* Victory Stats Breakdown */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-size: 16px;
+    color: #eee;
+}
+
+.stat-divider {
+    border: 0;
+    border-top: 1px solid #555;
+    margin: 10px 0;
+}
+
+.total-row {
+    font-size: 20px;
+    color: gold;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* === Cinematic Intro === */
+#cinematic-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+    /* Match Menu Background */
+    background-image: url('/assets/menu_bg.webp');
+    background-size: cover;
+    background-position: center;
+    background-color: black;
+    /* Fallback */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.5s;
+    /* Allow clearing bg */
+}
+
+#cinematic-overlay.hidden {
+    display: none;
+}
+
+#cinematic-overlay.transparent-bg {
+    background: transparent;
+}
+
+#intro-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    background-color: transparent;
+    /* Override global canvas black */
+    pointer-events: none;
+}
+
+#door-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: flex;
+    opacity: 0;
+    /* Hidden initially */
+    transition: opacity 1s, transform 2.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+#door-container.visible {
+    opacity: 1;
+}
+
+#door-left,
+#door-right {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    /* transition: transform 2.5s cubic-bezier(0.25, 1, 0.5, 1); */
+    transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Open States */
+#door-container.open #door-left {
+    transform: translateX(-100%);
+}
+
+#door-container.open #door-right {
+    transform: translateX(100%);
+}
+
+/* === HUD Hearts === */
+#hp-container {
+    display: flex;
+    gap: 4px;
+}
+
+.heart {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    font-size: 20px;
+    line-height: 20px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.heart.full::before {
+    content: "❤️";
+    color: #ff3333;
+}
+
+.heart.empty::before {
+    content: "🖤";
+    color: #333;
+    opacity: 0.5;
+}
+
+/* Optional: If we want half hearts later, we can use gradients on the text or SVG */

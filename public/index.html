@@ -7,15 +7,32 @@
     <title>Decked Out 2D by SamSeen</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/toast.css">
+    <link rel="stylesheet" href="css/touch.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="icon" href="favicon.png">
 </head>
 
 <body>
 
     <div id="game-container">
+
+        <!-- Orientation Warning Overlay -->
+        <div id="rotate-warning" class="hidden">
+            <div id="rotate-warning-icon">📱</div>
+            <div id="rotate-warning-text">PLEASE ROTATE YOUR DEVICE</div>
+        </div>
+
         <div id="start-overlay">
             <div class="start-text">DECKED OUT 2D</div>
             <div class="start-subtext">Click to Enter</div>
+
+            <div class="start-options" style="margin-top: 20px; z-index: 200;">
+                <label class="retro-toggle-container">
+                    <input type="checkbox" id="touch-toggle" style="display: none;">
+                    <div class="retro-toggle-btn"></div>
+                    <span>TOUCH CONTROLS</span>
+                </label>
+            </div>
         </div>
 
         <div id="game-over-overlay" class="hidden">
@@ -30,16 +47,30 @@
                 <h2 id="victory-artifact-name">Crown of Souls</h2>
                 <p id="victory-artifact-desc">A jagged iron crown...</p>
                 <div class="victory-stats">
-                    <span>🔥 Embers Collected: <strong id="victory-embers">0</strong></span>
+                    <div class="stat-row">
+                        <span>🔥 Embers Collected:</span>
+                        <strong id="victory-embers">0</strong>
+                    </div>
                 </div>
             </div>
             <div class="start-subtext">Click to Escaping</div>
         </div>
 
-        <div id="ui-layer">
+        <!-- NEW: Cinematic Intro Layer -->
+        <div id="cinematic-overlay" class="hidden">
+            <canvas id="intro-particles"></canvas>
+            <div id="door-container">
+                <img id="door-left" src="assets/door_left.webp" alt="Door Left">
+                <img id="door-right" src="assets/door_right.webp" alt="Door Right">
+            </div>
+        </div>
+
+        <div id="ui-layer" class="hidden">
             <div id="top-bar">
                 <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
-                <div class="hud-item hud-hp">HP: <span id="hp-display">10</span></div>
+                <div class="hud-item hud-hp">
+                    <div id="hp-container"></div>
+                </div>
             </div>
 
             <div id="bottom-bar">
@@ -67,7 +98,36 @@
             </div>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+        <!-- Touch Controls -->
+        <div id="touch-controls" class="hidden">
+            <div id="dpad-container">
+                <div id="dpad-base">
+                    <div id="dpad-stick"></div>
+                </div>
+            </div>
+            <div id="action-buttons">
+                <!-- Jump (Space) -->
+                <button id="btn-jump" class="touch-btn" data-key=" ">
+                    <div class="btn-icon">⬆️</div>
+                </button>
+                <div class="action-row">
+                    <!-- Sneak (Shift) -->
+                    <button id="btn-sneak" class="touch-btn" data-key="shift">
+                        <div class="btn-icon">👟</div>
+                    </button>
+                    <!-- Eat (F) -->
+                    <button id="btn-eat" class="touch-btn" data-key="f">
+                        <div class="btn-icon">🍒</div>
+                    </button>
+                    <!-- Check Artifact/Compass (E) -->
+                    <button id="btn-check" class="touch-btn" data-key="e">
+                        <div class="btn-icon">🧭</div>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="js/main.js"></script>

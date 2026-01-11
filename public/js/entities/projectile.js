@@ -1,5 +1,5 @@
 
-import { TILE_SIZE, PROJECTILE_SPEED, PROJECTILE_RADIUS } from '../data/constants.js';
+import { TILE_SIZE, PROJECTILE_SPEED, PROJECTILE_RADIUS } from '../data/config.js';
 import { checkWallCollision } from '../utils/collision.js';
 
 export class Projectile {

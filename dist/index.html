@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decked Out 2D by SamSeen</title>
     <link rel="icon" href="/assets/favicon-BAh9kyrF.png">
-  <script type="module" crossorigin src="/assets/index-DvWnqiVt.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DzevjKSU.css">
+  <script type="module" crossorigin src="/assets/index-DumZLxjo.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CozZBg2I.css">
 </head>
 
 <body>
@@ -30,16 +30,30 @@
                 <h2 id="victory-artifact-name">Crown of Souls</h2>
                 <p id="victory-artifact-desc">A jagged iron crown...</p>
                 <div class="victory-stats">
-                    <span>🔥 Embers Collected: <strong id="victory-embers">0</strong></span>
+                    <div class="stat-row">
+                        <span>🔥 Embers Collected:</span>
+                        <strong id="victory-embers">0</strong>
+                    </div>
                 </div>
             </div>
             <div class="start-subtext">Click to Escaping</div>
         </div>
 
+        <!-- NEW: Cinematic Intro Layer -->
+        <div id="cinematic-overlay" class="hidden">
+            <canvas id="intro-particles"></canvas>
+            <div id="door-container">
+                <img id="door-left" src="/assets/door_left-ABEFfOnQ.webp" alt="Door Left">
+                <img id="door-right" src="/assets/door_right-CwskD9A1.webp" alt="Door Right">
+            </div>
+        </div>
+
         <div id="ui-layer">
             <div id="top-bar">
                 <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
-                <div class="hud-item hud-hp">HP: <span id="hp-display">10</span></div>
+                <div class="hud-item hud-hp">
+                    <div id="hp-container"></div>
+                </div>
             </div>
 
             <div id="bottom-bar">

@@ -1,0 +1,344 @@
+/* Video to Sprite Tool Styles */
+/* Inherits design language from Map Maker */
+
+body {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Control Bar */
+#control-bar {
+    background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+    border-bottom: 1px solid #333;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-group.right-aligned {
+    margin-left: auto;
+}
+
+.separator {
+    color: #444;
+    margin: 0 5px;
+}
+
+/* Inputs & Buttons */
+input[type="number"] {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    width: 60px;
+}
+
+.control-btn {
+    padding: 8px 12px;
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.control-btn:hover:not(:disabled) {
+    background: #444;
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.control-btn.primary {
+    background: #6a5acd;
+    border-color: #5a4abf;
+    color: #fff;
+}
+
+.control-btn.primary:hover:not(:disabled) {
+    background: #7b6bdd;
+}
+
+.control-btn.secondary {
+    background: #332222;
+    border-color: #553333;
+    color: #ffaaaa;
+}
+
+.control-btn.active-green {
+    background: #2e5c33;
+    border-color: #3e7c43;
+    color: #ccffcc;
+}
+
+.control-btn.active-green:hover:not(:disabled) {
+    background: #3e7c43;
+}
+
+.control-btn.sm {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+.control-select {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+/* Workspace Layout */
+#workspace {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Left Column: Video */
+#video-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333;
+    padding: 10px;
+    background: #111;
+    min-width: 400px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #888;
+}
+
+#video-meta {
+    font-size: 12px;
+    color: #666;
+}
+
+.video-wrapper {
+    flex: 1;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid #222;
+    max-height: 60%;
+}
+
+#video-player {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.playback-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+}
+
+#current-time {
+    font-family: monospace;
+    color: #6a5acd;
+    min-width: 60px;
+    text-align: center;
+}
+
+.timeline-container {
+    flex: 1;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    overflow: hidden;
+}
+
+.timeline-container h4 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #aaa;
+}
+
+#captured-frames-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+    padding: 5px;
+    background: #0e0e0e;
+    border: 1px solid #222;
+}
+
+.captured-frame {
+    position: relative;
+    border: 2px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.captured-frame:hover {
+    border-color: #6a5acd;
+}
+
+.captured-frame.selected {
+    border-color: #00ff00;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.captured-frame canvas {
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    display: block;
+}
+
+.captured-frame .frame-time {
+    font-size: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 2px;
+    text-align: center;
+    width: 100%;
+}
+
+.captured-frame .remove-frame {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background: #f00;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 10px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.captured-frame:hover .remove-frame {
+    display: flex;
+}
+
+.empty-state {
+    width: 100%;
+    text-align: center;
+    color: #444;
+    padding-top: 20px;
+    font-style: italic;
+}
+
+/* Right Column: Preview */
+#preview-column {
+    width: 400px;
+    background: #151515;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-left: 1px solid #333;
+}
+
+.preview-wrapper {
+    flex: 1;
+    overflow: auto;
+    background:
+        linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+        linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+        linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#sheet-canvas {
+    max-width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background: transparent;
+    image-rendering: pixelated;
+}
+
+.animation-preview-section {
+    margin-top: 20px;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.anim-timer-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.anim-canvas-wrapper {
+    width: 128px;
+    height: 128px;
+    border: 1px solid #444;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: repeating-conic-gradient(#222 0% 25%, #111 0% 50%) 50% / 10px 10px;
+}
+
+#animation-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+}

@@ -1,9 +1,30 @@
 import { map } from '../data/map.js';
+import { PLAYER_MAX_HP } from '../data/config.js';
 
 export function updateUI(gameState, player) {
     // Basic Stats
     document.getElementById('clank-display').innerText = gameState.clank;
-    document.getElementById('hp-display').innerText = Math.floor(player.hp);
+
+    // Heart Rendering
+    const hpContainer = document.getElementById('hp-container');
+    if (hpContainer) {
+        hpContainer.innerHTML = '';
+        // Assume 1 Heart = 1 HP for clarity with 10 Max HP
+        // (Or 1 Heart = 2 HP if we want 5 hearts, but user said "row of hearts" and 10 is fine)
+        // Let's go with 1 Heart = 1 HP to match the integer value exactly displayed before.
+
+        for (let i = 0; i < PLAYER_MAX_HP; i++) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            if (i < Math.floor(player.hp)) {
+                heart.classList.add('full');
+            } else {
+                heart.classList.add('empty');
+            }
+            hpContainer.appendChild(heart);
+        }
+    }
+
     document.getElementById('ember-display').innerText = gameState.embers;
     document.getElementById('food-display').innerText = gameState.inventory.food;
 
@@ -73,12 +94,34 @@ export function showToast(message, duration = 3000) {
     }, duration);
 }
 
-export function showVictory(artifact, embers) {
+export function showVictory(artifact, mapEmbers) {
     const overlay = document.getElementById('victory-overlay');
     document.getElementById('victory-artifact-name').innerText = artifact.name;
     document.getElementById('victory-artifact-desc').innerText = artifact.description;
     document.getElementById('victory-artifact-icon').innerText = artifact.icon;
-    document.getElementById('victory-embers').innerText = embers;
+
+    // Breakdown Logic
+    const artifactValue = artifact.value || 0;
+    const totalEmbers = mapEmbers + artifactValue;
+
+    const statsContainer = document.querySelector('.victory-stats');
+    if (statsContainer) {
+        statsContainer.innerHTML = `
+            <div class="stat-row">
+                <span>🔥 Embers Collected:</span>
+                <strong>${mapEmbers}</strong>
+            </div>
+            <div class="stat-row">
+                <span>${artifact.icon} Artifact Value:</span>
+                <strong>${artifactValue}</strong>
+            </div>
+            <hr class="stat-divider">
+            <div class="stat-row total-row">
+                <span>🏆 TOTAL:</span>
+                <strong>${totalEmbers}</strong>
+            </div>
+        `;
+    }
 
     overlay.classList.remove('hidden');
     overlay.onclick = () => location.reload();

@@ -1,7 +1,7 @@
 
 import { Enemy } from './enemy.js';
 import { checkLineOfSight } from '../world/lighting.js';
-import { VEX_ORBIT_SPEED, VEX_SWOOP_SPEED, VEX_SWOOP_COOLDOWN } from '../data/constants.js';
+import { VEX_ORBIT_SPEED, VEX_SWOOP_SPEED, VEX_SWOOP_COOLDOWN } from '../data/config.js';
 
 const STATES = {
     ORBIT: 'ORBIT',
@@ -48,10 +48,13 @@ export class Vex extends Enemy {
 
                 // Check for swoop
                 if (timeNow - this.lastSwoopTime > SWOOP_COOLDOWN) {
-                    this.state = STATES.SWOOP;
-                    this.swoopTarget = { x: player.x, y: player.y };
-                    this.lastSwoopTime = timeNow;
-                    this.color = '#fff'; // Bright flash
+                    // Check Line of Sight before swooping
+                    if (checkLineOfSight(this.x, this.y, player.x, player.y)) {
+                        this.state = STATES.SWOOP;
+                        this.swoopTarget = { x: player.x, y: player.y };
+                        this.lastSwoopTime = timeNow;
+                        this.color = '#fff'; // Bright flash
+                    }
                 }
                 break;
 
