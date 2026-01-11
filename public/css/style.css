@@ -73,6 +73,11 @@ body {
 canvas {
     display: block;
     background-color: #000;
+    /* Pixel Art Scaling */
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 #ui-layer {

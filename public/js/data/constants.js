@@ -17,7 +17,8 @@ export const PLAYER_ANIMATION_SPEED = 10; // Ticks per frame
 // === Camera & Lighting ===
 export const VIEW_W = 20;
 export const VIEW_H = 15;
-export const SIGHT_RADIUS = 8;
+export const FLASHLIGHT_RADIUS = 8;
+export const DIM_VIEW_RADIUS = 10;
 export const MAX_LOOK_OFFSET = 6;
 
 // === Game Balance / Rules ===

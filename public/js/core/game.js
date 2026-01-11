@@ -1,5 +1,5 @@
 
-import { TILE_SIZE, VIEW_W, VIEW_H, SIGHT_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
+import { TILE_SIZE, VIEW_W, VIEW_H, FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP } from '../data/constants.js';
 
 import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
@@ -21,6 +21,7 @@ import { updateUI, showToast } from './ui.js';
 // Setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
 
 let enemies = [];
 let projectiles = [];
@@ -243,8 +244,16 @@ function draw() {
             if (y >= map.length || x >= map[0].length) continue;
 
             let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
-            if (distToFocus > SIGHT_RADIUS + 2) continue;
-            if (!checkLineOfSight(player.x, player.y, x, y)) continue;
+            let distToPlayer = Math.sqrt((player.x - x) ** 2 + (player.y - y) ** 2);
+
+            // Visibility Logic
+            let isFlashlight = (distToFocus <= FLASHLIGHT_RADIUS) && checkLineOfSight(player.x, player.y, x, y);
+            let isDim = distToPlayer <= DIM_VIEW_RADIUS;
+
+            if (!isFlashlight && !isDim) continue;
+
+            // Set Brightness
+            ctx.globalAlpha = isFlashlight ? 1.0 : 0.2; // 0.2 for dim blocks
 
             let drawX = (x - camX) * TILE_SIZE;
             let drawY = (y - camY) * TILE_SIZE;
@@ -286,6 +295,7 @@ function draw() {
         }
     }
 
+    ctx.globalAlpha = 1.0;
     // 4. Draw Player (Layer 2)
     player.draw(ctx, camX, camY, TILE_SIZE);
 
@@ -310,14 +320,17 @@ function draw() {
 
     let gradient = ctx.createRadialGradient(
         lightX, lightY, TILE_SIZE * 1,
-        lightX, lightY, TILE_SIZE * SIGHT_RADIUS
+        lightX, lightY, TILE_SIZE * FLASHLIGHT_RADIUS
     );
 
     gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(0.6, "rgba(0, 0, 0, 0.1)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+    gradient.addColorStop(0.7, "rgba(0, 0, 0, 0.3)"); // Less opaque to allow seeing dim blocks?
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");   // Not full black, just dark
 
     ctx.fillStyle = gradient;
+    // content loop handles the main visibility, this just adds atmosphere. 
+    // Actually, if we want "Dim" blocks to be visible, we shouldn't cover them with a heavy gradient.
+    // Let's make it subtle.
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
