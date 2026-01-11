@@ -37,7 +37,7 @@ const inputRow = document.getElementById('anim-row');
 const inputPadX = document.getElementById('pad-x');
 const inputPadY = document.getElementById('pad-y');
 const inputFrames = document.getElementById('frame-count');
-const inputFramesPerRow = document.getElementById('frames-per-row');
+const inputAnimRows = document.getElementById('anim-rows');
 const inputFps = document.getElementById('fps');
 const inputScale = document.getElementById('scale');
 
@@ -57,7 +57,7 @@ let state = {
     h: 32,
     row: 0,
     frames: 0, // 0 means auto-detect
-    framesPerRow: 0,
+    animRows: 1,
     fps: 8,
     scale: 4,
     padX: 0,
@@ -85,7 +85,7 @@ function saveSettings() {
         h: state.h,
         row: state.row,
         frames: state.frames,
-        framesPerRow: state.framesPerRow,
+        animRows: state.animRows,
         fps: state.fps,
         scale: state.scale,
         padX: state.padX,
@@ -112,7 +112,7 @@ function loadSettings() {
             state.h = settings.h ?? 32;
             state.row = settings.row ?? 0;
             state.frames = settings.frames ?? 0;
-            state.framesPerRow = settings.framesPerRow ?? 0;
+            state.animRows = settings.animRows ?? 1;
             state.fps = settings.fps ?? 8;
             state.scale = settings.scale ?? 4;
             state.padX = settings.padX ?? 0;
@@ -130,7 +130,7 @@ function loadSettings() {
             inputHeight.value = state.h;
             inputRow.value = state.row;
             inputFrames.value = state.frames;
-            inputFramesPerRow.value = state.framesPerRow;
+            inputAnimRows.value = state.animRows;
             inputFps.value = state.fps;
             inputScale.value = state.scale;
             inputPadX.value = state.padX;
@@ -165,12 +165,19 @@ function getFrameSheetPos(frameIndex) {
     let r = state.row;
     let c = frameIndex;
 
-    if (state.framesPerRow > 0) {
-        const limit = state.framesPerRow;
-        const rowsAdded = Math.floor(frameIndex / limit);
-        const col = frameIndex % limit;
-        r += rowsAdded;
-        c = col;
+    if (state.animRows > 1) {
+        let total = state.frames;
+        if (total === 0) total = state.detectedFrames;
+
+        if (total > 0) {
+            const framesPerLine = Math.ceil(total / state.animRows);
+            if (framesPerLine > 0) {
+                const rowsAdded = Math.floor(frameIndex / framesPerLine);
+                const col = frameIndex % framesPerLine;
+                r += rowsAdded;
+                c = col;
+            }
+        }
     }
 
     return {
@@ -200,7 +207,7 @@ function init() {
 
     // Auto-update on input changes? Maybe annoying if typing numbers.
     // Let's stick to update button for now, or blur events.
-    [inputWidth, inputHeight, inputRow, inputPadX, inputPadY, inputFps, inputScale, inputFrames, inputFramesPerRow].forEach(inp => {
+    [inputWidth, inputHeight, inputRow, inputPadX, inputPadY, inputFps, inputScale, inputFrames, inputAnimRows].forEach(inp => {
         inp.addEventListener('change', updateSettings);
     });
 
@@ -394,7 +401,7 @@ function updateSettings() {
     state.padX = parseInt(inputPadX.value) || 0;
     state.padY = parseInt(inputPadY.value) || 0;
     state.frames = parseInt(inputFrames.value) || 0;
-    state.framesPerRow = parseInt(inputFramesPerRow.value) || 0;
+    state.animRows = parseInt(inputAnimRows.value) || 1;
     state.fps = parseInt(inputFps.value) || 8;
     state.scale = parseInt(inputScale.value) || 1;
 
