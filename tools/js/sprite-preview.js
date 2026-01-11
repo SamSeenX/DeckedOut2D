@@ -37,6 +37,7 @@ const inputRow = document.getElementById('anim-row');
 const inputPadX = document.getElementById('pad-x');
 const inputPadY = document.getElementById('pad-y');
 const inputFrames = document.getElementById('frame-count');
+const inputFramesPerRow = document.getElementById('frames-per-row');
 const inputFps = document.getElementById('fps');
 const inputScale = document.getElementById('scale');
 
@@ -56,6 +57,7 @@ let state = {
     h: 32,
     row: 0,
     frames: 0, // 0 means auto-detect
+    framesPerRow: 0,
     fps: 8,
     scale: 4,
     padX: 0,
@@ -66,9 +68,6 @@ let state = {
     activeColor: '#ffffff',
     isDrawing: false,
     onionSkin: false,
-    offsetX: 0,
-    offsetY: 0,
-    isPanning: false,
     offsetX: 0,
     offsetY: 0,
     isPanning: false,
@@ -86,6 +85,7 @@ function saveSettings() {
         h: state.h,
         row: state.row,
         frames: state.frames,
+        framesPerRow: state.framesPerRow,
         fps: state.fps,
         scale: state.scale,
         padX: state.padX,
@@ -112,6 +112,7 @@ function loadSettings() {
             state.h = settings.h ?? 32;
             state.row = settings.row ?? 0;
             state.frames = settings.frames ?? 0;
+            state.framesPerRow = settings.framesPerRow ?? 0;
             state.fps = settings.fps ?? 8;
             state.scale = settings.scale ?? 4;
             state.padX = settings.padX ?? 0;
@@ -129,6 +130,7 @@ function loadSettings() {
             inputHeight.value = state.h;
             inputRow.value = state.row;
             inputFrames.value = state.frames;
+            inputFramesPerRow.value = state.framesPerRow;
             inputFps.value = state.fps;
             inputScale.value = state.scale;
             inputPadX.value = state.padX;
@@ -147,6 +149,34 @@ function loadSettings() {
     } catch (e) {
         console.warn('Could not load settings from localStorage:', e);
     }
+}
+
+
+
+function activateTool(tool) {
+    state.activeTool = tool;
+    [toolPaint, toolEraser, toolPicker].forEach(btn => btn.classList.remove('active'));
+    if (tool === 'paint') toolPaint.classList.add('active');
+    if (tool === 'eraser') toolEraser.classList.add('active');
+    if (tool === 'picker') toolPicker.classList.add('active');
+}
+
+function getFrameSheetPos(frameIndex) {
+    let r = state.row;
+    let c = frameIndex;
+
+    if (state.framesPerRow > 0) {
+        const limit = state.framesPerRow;
+        const rowsAdded = Math.floor(frameIndex / limit);
+        const col = frameIndex % limit;
+        r += rowsAdded;
+        c = col;
+    }
+
+    return {
+        x: state.padX + (c * state.w),
+        y: state.padY + (r * state.h)
+    };
 }
 
 function init() {
@@ -170,7 +200,7 @@ function init() {
 
     // Auto-update on input changes? Maybe annoying if typing numbers.
     // Let's stick to update button for now, or blur events.
-    [inputWidth, inputHeight, inputRow, inputPadX, inputPadY, inputFps, inputScale, inputFrames].forEach(inp => {
+    [inputWidth, inputHeight, inputRow, inputPadX, inputPadY, inputFps, inputScale, inputFrames, inputFramesPerRow].forEach(inp => {
         inp.addEventListener('change', updateSettings);
     });
 
@@ -197,14 +227,6 @@ function init() {
     });
 
     // Tool Selectors
-    function activateTool(tool) {
-        state.activeTool = tool;
-        [toolPaint, toolEraser, toolPicker].forEach(btn => btn.classList.remove('active'));
-        if (tool === 'paint') toolPaint.classList.add('active');
-        if (tool === 'eraser') toolEraser.classList.add('active');
-        if (tool === 'picker') toolPicker.classList.add('active');
-    }
-
     toolPaint.addEventListener('click', () => activateTool('paint'));
     toolEraser.addEventListener('click', () => activateTool('eraser'));
     toolPicker.addEventListener('click', () => activateTool('picker'));
@@ -372,6 +394,7 @@ function updateSettings() {
     state.padX = parseInt(inputPadX.value) || 0;
     state.padY = parseInt(inputPadY.value) || 0;
     state.frames = parseInt(inputFrames.value) || 0;
+    state.framesPerRow = parseInt(inputFramesPerRow.value) || 0;
     state.fps = parseInt(inputFps.value) || 8;
     state.scale = parseInt(inputScale.value) || 1;
 
@@ -507,8 +530,9 @@ function draw() {
     ctx.imageSmoothingEnabled = false;
 
     // Calculate source with Padding
-    const sx = state.padX + (currentFrame * state.w);
-    const sy = state.padY + (state.row * state.h);
+    const pos = getFrameSheetPos(currentFrame);
+    const sx = pos.x;
+    const sy = pos.y;
 
     // --- Onion Skin Layer ---
     if (state.onionSkin) {
@@ -518,8 +542,9 @@ function draw() {
         if (prevFrame < 0) prevFrame = maxFrames - 1;
 
         if (maxFrames > 1) {
-            const prevSx = state.padX + (prevFrame * state.w);
-            const prevSy = sy; // Same row
+            const prevPos = getFrameSheetPos(prevFrame);
+            const prevSx = prevPos.x;
+            const prevSy = prevPos.y;
 
             // Check bounds for previous frame
             if (prevSx + state.w <= masterCanvas.width && prevSy + state.h <= masterCanvas.height) {
@@ -593,8 +618,9 @@ function drawSheet() {
     sheetCtx.drawImage(masterCanvas, 0, 0);
 
     // Draw Highlight with Padding
-    const sx = state.padX + (currentFrame * state.w);
-    const sy = state.padY + (state.row * state.h);
+    const pos = getFrameSheetPos(currentFrame);
+    const sx = pos.x;
+    const sy = pos.y;
 
     // Highlight Current Frame
     sheetCtx.strokeStyle = "#00bcd4";
@@ -671,6 +697,8 @@ function handleMouseMove(e) {
         // Hide default cursor if painting
         if (state.activeTool === 'paint' || state.activeTool === 'eraser') {
             canvas.style.cursor = 'none';
+        } else if (state.activeTool === 'picker') {
+            canvas.style.cursor = 'crosshair';
         } else {
             canvas.style.cursor = 'default';
         }
@@ -688,8 +716,9 @@ function handleMouseMove(e) {
     if (state.hoverX === null) return;
 
     // Map Pixel in Frame -> Pixel in Sheet
-    const sheetX = state.padX + (currentFrame * state.w) + pixelX;
-    const sheetY = state.padY + (state.row * state.h) + pixelY;
+    const framePos = getFrameSheetPos(currentFrame);
+    const sheetX = framePos.x + pixelX;
+    const sheetY = framePos.y + pixelY;
 
     if (sheetX >= masterCanvas.width || sheetY >= masterCanvas.height) return;
 
@@ -707,7 +736,8 @@ function performToolAction(centerX, centerY) {
         // Stop drawing after pick? Maybe.
         state.isDrawing = false;
 
-        // Switch back to paint? optional. Let's stay in picker.
+        // Auto-switch to paint
+        activateTool('paint');
         return;
     }
 
