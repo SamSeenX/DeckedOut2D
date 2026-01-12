@@ -10,6 +10,7 @@ export default defineConfig({
                 main: 'public/index.html',
                 guide: 'public/guide.html',
                 devlog: 'public/devlog.html',
+                play: 'public/play.html',
                 notFound: 'public/404.html'
             },
             output: {

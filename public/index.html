@@ -40,174 +40,129 @@
     <meta name="twitter:image" content="https://do.samseen.dev/assets/menu_bg.webp">
 
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/toast.css">
-    <link rel="stylesheet" href="css/touch.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="stylesheet" href="css/ui.css">
     <link rel="stylesheet" href="css/article.css">
+    <!-- UI/Game CSS not needed here -->
     <link rel="icon" href="assets/favicon.png">
     <link rel="canonical" href="https://do.samseen.dev">
+
+    <style>
+        /* Landing Page Specific Styles */
+        body {
+            overflow-y: auto;
+            /* Enable scrolling for landing page */
+            background: #0b0b14;
+        }
+
+        .hero-section {
+            height: 100vh;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('assets/menu_bg.webp');
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 80px;
+            color: #4fc3f7;
+            text-shadow: 0 0 20px rgba(79, 195, 247, 0.6), 4px 4px 0 #000;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            color: #e0e0e0;
+            margin: 20px 0 40px;
+            max-width: 600px;
+            line-height: 1.5;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .play-btn-large {
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b6b 100%);
+            color: #000;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 4px solid #fff;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .play-btn-large:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.7);
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            color: #aaa;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-10px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Adjust article for landing page layout */
+        .landing-article {
+            margin-top: -50px;
+            /* Overlap hero slightly */
+            position: relative;
+            z-index: 10;
+        }
+    </style>
 </head>
 
 <body>
 
-    <div id="game-container">
+    <section class="hero-section">
+        <h1 class="hero-title">DECKED OUT 2D</h1>
+        <p class="hero-subtitle">Dive into the dungeon. Avoid the Ravagers. Find the Artifacts. Escape with your life.
+        </p>
+        <a href="play.html" class="play-btn-large">▶ PLAY NOW</a>
 
-        <!-- Fullscreen Toggle -->
-        <button id="fullscreen-btn" title="Toggle Fullscreen" tabindex="-1">⛶</button>
+        <div class="scroll-down">Scroll for Game Guide & Roadmap ▼</div>
+    </section>
 
-        <!-- Orientation Warning Overlay -->
-        <div id="rotate-warning" class="hidden">
-            <div id="rotate-warning-icon">📱</div>
-            <div id="rotate-warning-text">PLEASE ROTATE YOUR DEVICE</div>
-        </div>
-
-        <div id="start-overlay">
-            <div class="start-text">DECKED OUT 2D</div>
-            <div class="start-subtext">Click to Enter</div>
-            <div class="menu-footer">do.samseen.dev</div>
-        </div>
-
-        <div id="game-over-overlay" class="hidden">
-            <div class="start-text" style="color: red;">GAME OVER</div>
-            <div class="start-subtext">Click to Retry</div>
-        </div>
-
-        <!-- Victory Overlay -->
-        <div id="victory-overlay" class="hidden">
-            <div id="victory-container">
-                <h1 class="victory-title">VICTORY OVERCOME</h1>
-
-                <div id="victory-card">
-                    <div class="card-header">
-                        <div id="victory-icon-container">
-                            <div id="victory-artifact-icon">👑</div>
-                        </div>
-                        <h2 id="victory-artifact-name">Crown of Souls</h2>
-                    </div>
-
-                    <div class="card-body">
-                        <p id="victory-artifact-desc">Loading lore...</p>
-
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <span class="stat-label">Value</span>
-                                <span class="stat-value" id="victory-value">???</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Collected</span>
-                                <span class="stat-value" id="victory-embers">0</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Time</span>
-                                <span class="stat-value" id="victory-duration">0m 0s</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <button id="victory-share-btn" class="primary-btn">📸 SAVE VICTORY CARD</button>
-                    </div>
-                </div>
-                <div class="start-subtext" id="victory-continue">Click to Escape</div>
-            </div>
-        </div>
-
-        <!-- Cinematic Intro Layer -->
-        <div id="cinematic-overlay" class="hidden">
-            <canvas id="intro-particles"></canvas>
-            <div id="door-container">
-                <img id="door-left" src="assets/door_left.webp" alt="Door Left">
-                <img id="door-right" src="assets/door_right.webp" alt="Door Right">
-            </div>
-        </div>
-
-        <div id="ui-layer" class="hidden">
-            <div id="top-bar">
-                <div class="hud-item hud-clank">
-                    CLANK: <div id="clank-meter-container"></div>
-                </div>
-                <div class="hud-item hud-hp">
-                    <div id="hp-container"></div>
-                </div>
-            </div>
-
-            <div id="bottom-bar">
-                <div class="hud-group">
-                    <div id="compass-container" title="Points to Artifact or Exit">
-                        <div id="compass-needle">➤</div>
-                    </div>
-                </div>
-
-                <div class="hud-group">
-                    <div class="hud-icon">🔥</div>
-                    <span id="ember-display">0</span>
-                </div>
-
-                <div class="hud-group">
-                    <div class="hud-icon">🍒</div>
-                    <span id="food-display">0</span>
-                    <small>F to Eat</small>
-                </div>
-
-                <div class="hud-group" id="artifact-slot">
-                    <div class="hud-label">Artifact</div>
-                    <div id="artifact-icon" class="empty">?</div>
-                </div>
-            </div>
-        </div>
-
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-        <!-- Touch Controls Toggle (Bottom Right) -->
-        <div id="touch-toggle-container">
-            <label class="retro-toggle-container">
-                <input type="checkbox" id="touch-toggle" style="display: none;">
-                <div class="retro-toggle-btn"></div>
-                <span>TOUCH</span>
-            </label>
-        </div>
-
-        <!-- Touch Controls -->
-        <div id="touch-controls" class="hidden">
-            <div id="dpad-container">
-                <div id="dpad-base">
-                    <div id="dpad-stick"></div>
-                </div>
-            </div>
-            <div id="action-buttons">
-                <!-- Jump (Space) -->
-                <button id="btn-jump" class="touch-btn" data-key=" ">
-                    <div class="btn-icon">⬆️</div>
-                </button>
-                <div class="action-row">
-                    <!-- Sneak (Shift) -->
-                    <button id="btn-sneak" class="touch-btn" data-key="shift">
-                        <div class="btn-icon">👟</div>
-                    </button>
-                    <!-- Eat (F) -->
-                    <button id="btn-eat" class="touch-btn" data-key="f">
-                        <div class="btn-icon">🍒</div>
-                    </button>
-                    <!-- Check Artifact/Compass (E) -->
-                    <button id="btn-check" class="touch-btn" data-key="e">
-                        <div class="btn-icon">🧭</div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SEO Article Section -->
-    <article id="game-info" class="game-article">
-        <header class="article-header" onclick="toggleArticle()">
-            <h1>Decked Out 2D – Free Browser Dungeon Crawler Game</h1>
-            <button id="collapse-btn" aria-label="Toggle article visibility">X</button>
+    <!-- SEO Article Section (Renamed to Landing Article) -->
+    <article class="game-article landing-article">
+        <header class="article-header">
+            <h1>Game Guide & Lore</h1>
         </header>
 
-        <div id="article-content" class="article-body">
+        <div class="article-body">
             <section>
-                <h2>About Decked Out 2D</h2>
+                <h2>About the Game</h2>
                 <p><strong>Decked Out 2D</strong> is a free-to-play browser-based dungeon crawler game inspired by the
                     popular Hermitcraft season 9 minigame "Decked Out 2" created by Mr. Tango Tek. Navigate through
                     dark,
@@ -215,8 +170,7 @@
                     dungeons, avoid deadly monsters, collect valuable artifacts, and escape before your clank meter
                     attracts too many enemies!</p>
                 <p>This 2D adaptation brings the thrilling stealth-action gameplay to your browser with no downloads
-                    required. Experience the tension of sneaking through dungeons, the excitement of finding rare
-                    artifacts, and the panic of being chased by relentless creatures.</p>
+                    required.</p>
             </section>
 
             <section>
@@ -244,19 +198,6 @@
                     <li>👑 <strong>Rare Artifacts</strong> – Discover unique treasures with different values</li>
                     <li>📱 <strong>Mobile Friendly</strong> – Touch controls available for mobile devices</li>
                 </ul>
-            </section>
-
-            <section>
-                <h2>Tips for Beginners</h2>
-                <ol>
-                    <li><strong>Sneak Often</strong> – Hold SHIFT when moving to reduce clank and avoid detection</li>
-                    <li><strong>Watch Your Clank</strong> – Keep the clank meter low to prevent Vex spawns</li>
-                    <li><strong>Collect Berries</strong> – Stock up on food before venturing deep into the dungeon</li>
-                    <li><strong>Use the Compass</strong> – The red needle points toward your objective</li>
-                    <li><strong>Time Your Jumps</strong> – Use SPACEBAR to hop over hazards and climb elevated terrain
-                    </li>
-                    <li><strong>Find the Exit</strong> – After grabbing an artifact, follow your compass to escape!</li>
-                </ol>
             </section>
 
             <section class="roadmap-section">
@@ -357,37 +298,6 @@
             </footer>
         </div>
     </article>
-
-    <script type="module" src="js/main.js"></script>
-
-    <script>
-        // Article Collapse Toggle
-        function toggleArticle() {
-            const content = document.getElementById('article-content');
-            const btn = document.getElementById('collapse-btn');
-            const article = document.getElementById('game-info');
-
-            if (content.classList.contains('collapsed')) {
-                content.classList.remove('collapsed');
-                btn.textContent = '▲';
-                article.classList.remove('minimized');
-            } else {
-                content.classList.add('collapsed');
-                btn.textContent = '▼';
-                article.classList.add('minimized');
-            }
-        }
-
-        // Close article on Enter key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const content = document.getElementById('article-content');
-                if (!content.classList.contains('collapsed')) {
-                    toggleArticle();
-                }
-            }
-        });
-    </script>
 
 </body>
 
