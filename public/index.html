@@ -108,8 +108,12 @@
         }
 
         .scroll-down {
-            display: none;
-            /* Hidden - was causing visual issues */
+            position: absolute;
+            bottom: 30px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+            animation: bounce 2s infinite;
+            font-size: 14px;
         }
 
         @keyframes bounce {
