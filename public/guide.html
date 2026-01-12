@@ -85,21 +85,29 @@
         }
 
         .artifact-icon {
-            width: 32px;
-            height: 32px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 4px;
-            /* Placeholder styling if image fails */
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            border: 1px solid #444;
+            overflow: hidden;
+        }
+
+        .artifact-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
         }
 
         .artifact-name {
             color: #ffd700;
             font-weight: bold;
             font-size: 14px;
+            line-height: 1.2;
         }
 
         .artifact-desc {
@@ -208,193 +216,212 @@
                     <!-- Artifacts populated here -->
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">👑</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/crown_of_souls.webp" alt="Crown">
+                            </div>
                             <span class="artifact-name">Crown of Souls</span>
                         </div>
                         <p class="artifact-desc">Forged in the fires of the Nether, worn by the mad King Thrandor.</p>
-                        <div class="artifact-value">Value: 18</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🌋</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/ember_heart.webp" alt="Ember Heart">
+                            </div>
                             <span class="artifact-name">Ember Heart</span>
                         </div>
                         <p class="artifact-desc">A pulsating core extracted from a dormant Volcanic Golem.</p>
-                        <div class="artifact-value">Value: 22</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">❄️</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/frost_fang.webp" alt="Frost Fang">
+                            </div>
                             <span class="artifact-name">Frost Fang</span>
                         </div>
                         <p class="artifact-desc">A massive crystalline fang from the Great Wyrm of the North.</p>
-                        <div class="artifact-value">Value: 26</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🧭</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/shadow_compass.webp"
+                                    alt="Shadow Compass"></div>
                             <span class="artifact-name">Shadow Compass</span>
                         </div>
                         <p class="artifact-desc">Its needle spins wildly in daylight but locks onto darkness at night.
                         </p>
-                        <div class="artifact-value">Value: 28</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🔦</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/void_lantern.webp" alt="Void Lantern">
+                            </div>
                             <span class="artifact-name">Void Lantern</span>
                         </div>
                         <p class="artifact-desc">Burns with a cold black flame that reveals the unseen.</p>
-                        <div class="artifact-value">Value: 30</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">💀</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/crystal_skull.webp"
+                                    alt="Crystal Skull"></div>
                             <span class="artifact-name">Crystal Skull</span>
                         </div>
                         <p class="artifact-desc">Staring into its eyes induces visions of burnt worlds.</p>
-                        <div class="artifact-value">Value: 25</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🏺</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/golden_scarab.webp"
+                                    alt="Golden Scarab"></div>
                             <span class="artifact-name">Golden Scarab</span>
                         </div>
                         <p class="artifact-desc">An ancient automaton counting down to an apocalypse.</p>
-                        <div class="artifact-value">Value: 19</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🪶</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/phoenix_feather.webp"
+                                    alt="Phoenix Feather"></div>
                             <span class="artifact-name">Phoenix Feather</span>
                         </div>
                         <p class="artifact-desc">Warm to the touch. Turns to ash and reforms at dawn.</p>
-                        <div class="artifact-value">Value: 24</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🗡️</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/obsidian_dagger.webp"
+                                    alt="Obsidian Dagger"></div>
                             <span class="artifact-name">Obsidian Dagger</span>
                         </div>
                         <p class="artifact-desc">Used by the Cult of the Deep to sever ties with the mortal realm.</p>
-                        <div class="artifact-value">Value: 17</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🍷</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/lunar_chalice.webp"
+                                    alt="Lunar Chalice"></div>
                             <span class="artifact-name">Lunar Chalice</span>
                         </div>
                         <p class="artifact-desc">Water poured into it glows, granting clarity of mind.</p>
-                        <div class="artifact-value">Value: 21</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">📯</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/storm_caller.webp" alt="Storm Caller">
+                            </div>
                             <span class="artifact-name">Storm Caller</span>
                         </div>
                         <p class="artifact-desc">One blow summons clouds, two summons lightning, three summons the end.
                         </p>
-                        <div class="artifact-value">Value: 29</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">📜</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/emerald_tablet.webp"
+                                    alt="Emerald Tablet"></div>
                             <span class="artifact-name">Emerald Tablet</span>
                         </div>
                         <p class="artifact-desc">Inscribed with the dead formula for the Elixir of Life.</p>
-                        <div class="artifact-value">Value: 32</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🪙</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/cursed_coin.webp" alt="Cursed Coin">
+                            </div>
                             <span class="artifact-name">Cursed Coin</span>
                         </div>
                         <p class="artifact-desc">Always returns to its owner, bringing misfortune with it.</p>
-                        <div class="artifact-value">Value: 66</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🪞</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/spectral_mirror.webp"
+                                    alt="Spectral Mirror"></div>
                             <span class="artifact-name">Spectral Mirror</span>
                         </div>
                         <p class="artifact-desc">Shows not your reflection, but the entity standing behind you.</p>
-                        <div class="artifact-value">Value: 23</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">👺</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/ancient_mask.webp" alt="Ancient Mask">
+                            </div>
                             <span class="artifact-name">Ancient Mask</span>
                         </div>
                         <p class="artifact-desc">Wearing it grants strength, but you forget your own name.</p>
-                        <div class="artifact-value">Value: 20</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🥊</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/titan_gauntlet.webp"
+                                    alt="Titan Gauntlet"></div>
                             <span class="artifact-name">Titan Gauntlet</span>
                         </div>
                         <p class="artifact-desc">Hums with the kinetic energy of a thousand earthquakes.</p>
-                        <div class="artifact-value">Value: 35</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🗺️</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/star_map.webp" alt="Star Map"></div>
                             <span class="artifact-name">Star Map</span>
                         </div>
                         <p class="artifact-desc">Charts a course to the edge of the universe.</p>
-                        <div class="artifact-value">Value: 31</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">💎</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/soul_gem.webp" alt="Soul Gem"></div>
                             <span class="artifact-name">Soul Gem</span>
                         </div>
                         <p class="artifact-desc">Swirls with trapped mists. Faint tapping comes from within.</p>
-                        <div class="artifact-value">Value: 27</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🥚</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/dragon_egg.webp" alt="Dragon Egg">
+                            </div>
                             <span class="artifact-name">Dragon Egg</span>
                         </div>
                         <p class="artifact-desc">Vibrates with a heartbeat that is slow, powerful, and terrifying.</p>
-                        <div class="artifact-value">Value: 40</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">⏳</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/runic_hourglass.webp"
+                                    alt="Runic Hourglass"></div>
                             <span class="artifact-name">Runic Hourglass</span>
                         </div>
                         <p class="artifact-desc">The sand inside flows upwards. Moves time back one minute.</p>
-                        <div class="artifact-value">Value: 33</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                     <div class="artifact-card">
                         <div class="artifact-header">
-                            <div class="artifact-icon">🗝️</div>
+                            <div class="artifact-icon"><img src="assets/artifacts/whispering_key.webp"
+                                    alt="Whispering Key"></div>
                             <span class="artifact-name">Whispering Key</span>
                         </div>
                         <p class="artifact-desc">Fits any lock. The door it opens always leads somewhere else.</p>
-                        <div class="artifact-value">Value: 15</div>
+                        <div class="artifact-value">Value: ??</div>
                     </div>
 
                 </div>
