@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Log - Decked Out 2D</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Follow the development journey of Decked Out 2D. Updates, patch notes, and behind-the-scenes insights from SamSeen.">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/article.css">
+    <link rel="icon" href="assets/favicon.png">
+
+    <style>
+        body {
+            background-color: #0b0b14;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .site-header {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .home-link {
+            color: #ffd700;
+            text-decoration: none;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.2s;
+        }
+
+        .home-link:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .home-link::before {
+            content: "⬅";
+        }
+
+        /* DevLog Specific Styles */
+        .log-entry {
+            border-left: 2px solid #333;
+            padding-left: 25px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .log-entry::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            left: -7px;
+            top: 5px;
+            border: 2px solid #0f1020;
+        }
+
+        .log-entry.pinned {
+            border-left-color: #ffd700;
+        }
+
+        .log-entry.pinned::before {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        .log-date {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+
+        .log-title {
+            color: #fff;
+            font-size: 22px;
+            margin: 0 0 15px 0;
+            font-weight: 600;
+        }
+
+        .pinned-badge {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .log-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a href="index.html" class="home-link">Back to Game</a>
+        <div style="color: #4fc3f7; font-weight: bold;">DevLog</div>
+    </header>
+
+    <article class="game-article">
+        <header class="article-header" style="cursor: default;">
+            <h1>🔨 Captain's Log (SamSeen)</h1>
+        </header>
+
+        <div class="article-body">
+
+            <!-- Pinned Note -->
+            <div class="log-entry pinned">
+                <div class="pinned-badge">📌 Pinned Note</div>
+                <div class="log-date">UPCOMING FEATURES</div>
+                <h2 class="log-title">Roadmap: The Deck Builder Update</h2>
+                <div class="log-content">
+                    <p>The "Beta" is just the beginning. The next major update will introduce the core mechanic that
+                        inspired this game: <strong>Deck Building</strong>.</p>
+                    <p>Get ready for cards that modify your run:</p>
+                    <ul>
+                        <li><strong>Stumble Cards:</strong> Random events that hinder your movement or create noise.
+                        </li>
+                        <li><strong>Momentum:</strong> Build up speed but risk crashing.</li>
+                        <li><strong>Ethereal Cards:</strong> Temporary buffs found in the dungeon.</li>
+                    </ul>
+                    <p><em>Stay tuned. The dungeon is evolving.</em></p>
+                </div>
+            </div>
+
+            <!-- Log 2: Beta Launch -->
+            <div class="log-entry">
+                <div class="log-date">January 12, 2026</div>
+                <h2 class="log-title">🚀 Beta Launch & 2500 Subscribers!</h2>
+                <div class="log-content">
+                    <p>Today marks a huge milestone. To celebrate reaching <strong>2,500 subscribers on
+                            YouTube</strong>, I am officially launching the Open Beta of Decked Out 2D!</p>
+                    <p><strong>What's New in v0.1.0:</strong></p>
+                    <ul>
+                        <li><strong>Full Map Loop:</strong> Explore the dungeon, find artifacts, and escape.</li>
+                        <li><strong>21 Unique Artifacts:</strong> From the <em>Crown of Souls</em> to the <em>Whispering
+                                Key</em>, there are tons of secrets to find.</li>
+                        <li><strong>Intelligent Enemies:</strong> The Ravager listens for your footsteps (Clank!) and
+                            will chase you down.</li>
+                        <li><strong>Mobile Support:</strong> Full touch controls for playing on the go.</li>
+                    </ul>
+                    <p>Thank you to everyone who has supported the channel. This project is for you!</p>
+                </div>
+            </div>
+
+            <!-- Log 1: Inception -->
+            <div class="log-entry">
+                <div class="log-date">January 08, 2026</div>
+                <h2 class="log-title">The Journey Begins</h2>
+                <div class="log-content">
+                    <p>Development has officially started on a browser-based tribute to <em>Hermitcraft's Decked Out
+                            2</em>.</p>
+                    <p>The goal is simple but ambitious: create a stealth dungeon crawler that captures the tension of
+                        the original Minecraft minigame, but accessible to anyone with a web browser. No download
+                        required.</p>
+                    <p>Stay tuned for updates as I build the engine from scratch using vanilla JavaScript and Vite.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="article-footer">
+            <p>DevLog for Decked Out 2D &copy; 2026 SamSeen</p>
+        </footer>
+    </article>
+
+</body>
+
+</html>
