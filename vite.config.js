@@ -10,12 +10,12 @@ export default defineConfig({
                 main: 'public/index.html'
             },
             output: {
-                // All assets get hash for cache busting
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name.endsWith('.css')) {
                         return 'css/[name]-[hash][extname]';
                     }
-                    return 'assets/[name][extname]';
+                    // Add hash to ALL assets for cache busting
+                    return 'assets/[name]-[hash][extname]';
                 },
                 chunkFileNames: 'js/[name]-[hash].js',
                 entryFileNames: 'js/[name]-[hash].js',
@@ -23,3 +23,4 @@ export default defineConfig({
         }
     }
 });
+

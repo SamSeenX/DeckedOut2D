@@ -117,41 +117,47 @@ body {
     flex-direction: column;
 }
 
-/* Header with Icon */
+/* Header with Icon - Horizontal Layout */
 .card-header {
     background: linear-gradient(to bottom, #333, #222);
-    padding: 30px 20px;
-    text-align: center;
+    padding: 20px;
     border-bottom: 2px solid #444;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
-/* Glowing Icon Container */
+/* Icon Container - No circle, just glow on icon */
 #victory-icon-container {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 15px auto;
-    background: radial-gradient(circle, rgba(255, 204, 0, 0.2) 0%, transparent 70%);
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 50%;
-    animation: pulseGlow 3s infinite alternate;
 }
 
 #victory-artifact-icon {
-    font-size: 80px;
-    filter: drop-shadow(0 0 15px gold);
-    transform: translateY(-5px);
-    /* Visual center */
+    font-size: 60px;
+}
+
+#victory-artifact-icon img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 15px var(--artifact-glow, gold));
 }
 
 #victory-artifact-name {
     color: #ffcc00;
     font-family: 'Georgia', serif;
-    font-size: 28px;
+    font-size: 24px;
     margin: 0;
     text-shadow: 2px 2px 0 #000;
+    flex: 1;
+    text-align: left;
 }
 
 /* Body & Stats */
@@ -427,10 +433,10 @@ canvas {
     justify-content: center;
 }
 
-#artifact-icon svg {
+#artifact-icon img {
     width: 28px;
     height: 28px;
-    fill: currentColor;
+    object-fit: contain;
 }
 
 #artifact-icon.empty {
@@ -499,6 +505,19 @@ canvas {
     50% {
         opacity: 1;
     }
+}
+
+/* Menu Footer */
+.menu-footer {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 2px;
+    font-family: monospace;
+    text-transform: none;
 }
 
 /* Victory Stats Breakdown */

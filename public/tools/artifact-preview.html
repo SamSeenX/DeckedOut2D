@@ -14,16 +14,48 @@
             margin: 0;
             display: flex;
             height: 100vh;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        #sidebar {
-            width: 300px;
+        #controls {
+            height: 60px;
             background-color: #222;
-            border-right: 1px solid #444;
-            padding: 20px;
-            overflow-y: auto;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 0 20px;
             flex-shrink: 0;
+            z-index: 100;
+        }
+
+        button.nav-btn {
+            background: #ffcc00;
+            border: none;
+            color: #000;
+            padding: 8px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button.nav-btn:hover {
+            background: #ffdb4d;
+        }
+
+        button.nav-btn:disabled {
+            background: #444;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .counter {
+            font-family: monospace;
+            font-size: 18px;
+            color: #888;
         }
 
         #preview-area {
@@ -36,51 +68,6 @@
             position: relative;
         }
 
-        h2 {
-            margin-top: 0;
-            color: #ffcc00;
-        }
-
-        .artifact-list-item {
-            padding: 10px;
-            background: #333;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .artifact-list-item:hover {
-            background: #444;
-            border-color: #666;
-        }
-
-        .artifact-list-item.active {
-            background: #442200;
-            border-color: #ffcc00;
-        }
-
-        .list-icon {
-            font-size: 24px;
-            width: 30px;
-            text-align: center;
-        }
-
-        .list-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-
-        .list-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
         /* Mocking the Victory Overlay structure for accurate preview */
         #mock-overlay {
             width: 100%;
@@ -89,25 +76,57 @@
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(10px);
-            /* Simulate the game look */
+        }
+
+        /* Override styles for preview - horizontal header */
+        .card-header {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+            padding: 20px !important;
+        }
+
+        #victory-icon-container {
+            width: 80px !important;
+            height: 80px !important;
+            margin: 0 !important;
+            flex-shrink: 0;
+        }
+
+        #victory-artifact-name {
+            text-align: left !important;
+            font-size: 24px !important;
+        }
+
+        /* Ensure img in icon container is sized correctly */
+        #victory-artifact-icon img {
+            width: 64px;
+            height: 64px;
+            display: block;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        #victory-artifact-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="sidebar">
-        <h2>Artifacts</h2>
-        <div id="artifact-list">
-            <!-- Populated by JS -->
-        </div>
+    <div id="controls">
+        <button class="nav-btn" id="prev-btn">← Previous</button>
+        <div class="counter" id="counter">1 / 10</div>
+        <button class="nav-btn" id="next-btn">Next →</button>
     </div>
 
     <div id="preview-area">
         <div id="mock-overlay">
             <div id="victory-card">
                 <div class="card-header">
-                    <h1 class="victory-title">VICTORY OVERCOME</h1>
                     <div id="victory-icon-container">
                         <span id="victory-artifact-icon">🏆</span>
                     </div>
@@ -124,17 +143,17 @@
                         </div>
                         <div class="stat-box">
                             <span class="stat-label">Collected</span>
-                            <span class="stat-value" id="victory-embers">0</span>
+                            <span class="stat-value" id="victory-embers">12</span>
                         </div>
                         <div class="stat-box">
                             <span class="stat-label">Time</span>
-                            <span class="stat-value" id="victory-duration">0m 0s</span>
+                            <span class="stat-value" id="victory-duration">4m 20s</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-footer">
-                    <button class="primary-btn">📸 PREVIEW CARD</button>
+                    <button class="primary-btn">📸 SAVE VICTORY CARD</button>
                 </div>
             </div>
         </div>
@@ -143,65 +162,63 @@
     <script type="module">
         import { ARTIFACTS } from '../js/data/artifacts.js';
 
-        const listContainer = document.getElementById('artifact-list');
         const iconEl = document.getElementById('victory-artifact-icon');
         const nameEl = document.getElementById('victory-artifact-name');
         const descEl = document.getElementById('victory-artifact-desc');
         const valueEl = document.getElementById('victory-value');
-        const embersEl = document.getElementById('victory-embers');
+        const counterEl = document.getElementById('counter');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
 
-        // Mock data
-        const MOCK_EMBERS = 12;
-        embersEl.textContent = MOCK_EMBERS;
+        let currentIndex = 0;
 
-        function renderList() {
-            listContainer.innerHTML = '';
-            ARTIFACTS.forEach(art => {
-                const item = document.createElement('div');
-                item.className = 'artifact-list-item';
-                item.onclick = () => selectArtifact(art, item);
+        function renderArtifact(index) {
+            const art = ARTIFACTS[index];
+            if (!art) return;
 
-                let iconDisplay = art.icon;
-                if (art.icon.trim().startsWith('<svg')) {
-                    // It's SVG
-                    iconDisplay = art.icon; // Render straight into div?
-                }
-
-                // Truncate name if too long
-                item.innerHTML = `
-                    <div class="list-icon">${art.icon.startsWith('<svg') ? '<span style="font-size:10px">SVG</span>' : art.icon}</div>
-                    <div class="list-name">${art.name}</div>
-                `;
-
-                if (art.icon.startsWith('<svg')) {
-                    item.querySelector('.list-icon').innerHTML = art.icon;
-                }
-
-                listContainer.appendChild(item);
-            });
-        }
-
-        function selectArtifact(art, itemEl) {
-            // Highlight list item
-            document.querySelectorAll('.artifact-list-item').forEach(el => el.classList.remove('active'));
-            itemEl.classList.add('active');
-
-            // Update Card
             nameEl.textContent = art.name;
             descEl.textContent = art.description;
             valueEl.textContent = art.value;
 
-            if (art.icon.trim().startsWith('<svg')) {
-                iconEl.innerHTML = art.icon;
+            // Handle Icon - now always a WebP filename
+            if (art.icon) {
+                iconEl.innerHTML = `<img src="/assets/artifacts/${art.icon}" alt="${art.name}">`;
             } else {
-                iconEl.textContent = art.icon;
+                iconEl.textContent = '🏆';
             }
+
+            // Update Counter
+            counterEl.textContent = `${index + 1} / ${ARTIFACTS.length}`;
+
+            // Button States
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === ARTIFACTS.length - 1;
         }
 
+        // Navigation
+        prevBtn.onclick = () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderArtifact(currentIndex);
+            }
+        };
+
+        nextBtn.onclick = () => {
+            if (currentIndex < ARTIFACTS.length - 1) {
+                currentIndex++;
+                renderArtifact(currentIndex);
+            }
+        };
+
+        // Keyboard Nav
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            if (e.key === 'ArrowRight') nextBtn.click();
+        });
+
         // Initialize
-        renderList();
         if (ARTIFACTS.length > 0) {
-            selectArtifact(ARTIFACTS[0], listContainer.children[0]);
+            renderArtifact(currentIndex);
         }
     </script>
 </body>

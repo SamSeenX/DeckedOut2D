@@ -4,10 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decked Out 2D by SamSeen</title>
-    <link rel="icon" href="/assets/favicon.png">
-  <script type="module" crossorigin src="/js/index-BU2lgdeP.js"></script>
-  <link rel="stylesheet" crossorigin href="/css/index-Cht62Wmw.css">
+    <title>Decked Out 2D by SamSeen - Free Browser Dungeon Crawler</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Play Decked Out 2D free in your browser! A stealth dungeon crawler inspired by Hermitcraft's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required.">
+    <meta name="keywords"
+        content="decked out 2d, dungeon crawler, browser game, free game, hermitcraft, tango tek, stealth game, indie game">
+    <meta name="author" content="SamSeen">
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta property="og:description"
+        content="Sneak through dungeons, avoid monsters, collect artifacts. A free browser game inspired by Hermitcraft's Decked Out 2!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://do.samseen.dev">
+    <meta property="og:image" content="https://do.samseen.dev/assets/menu_bg.webp">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta name="twitter:description"
+        content="Sneak through dungeons, avoid monsters, collect artifacts. Play free in your browser!">
+    <meta name="twitter:image" content="https://do.samseen.dev/assets/menu_bg.webp">
+
+    <link rel="icon" href="/assets/favicon-BAh9kyrF.png">
+    <link rel="canonical" href="https://do.samseen.dev">
+  <script type="module" crossorigin src="/js/main-dNKw-bur.js"></script>
+  <link rel="stylesheet" crossorigin href="/css/main-CUlktaO0.css">
 </head>
 
 <body>
@@ -26,14 +50,7 @@
         <div id="start-overlay">
             <div class="start-text">DECKED OUT 2D</div>
             <div class="start-subtext">Click to Enter</div>
-
-            <div class="start-options" style="margin-top: 20px; z-index: 200;">
-                <label class="retro-toggle-container">
-                    <input type="checkbox" id="touch-toggle" style="display: none;">
-                    <div class="retro-toggle-btn"></div>
-                    <span>TOUCH CONTROLS</span>
-                </label>
-            </div>
+            <div class="menu-footer">do.samseen.dev</div>
         </div>
 
         <div id="game-over-overlay" class="hidden">
@@ -41,28 +58,52 @@
             <div class="start-subtext">Click to Retry</div>
         </div>
 
+        <!-- Victory Overlay -->
         <div id="victory-overlay" class="hidden">
-            <div class="start-text">VICTORY!</div>
-            <div id="victory-card">
-                <div id="victory-artifact-icon">👑</div>
-                <h2 id="victory-artifact-name">Crown of Souls</h2>
-                <p id="victory-artifact-desc">A jagged iron crown...</p>
-                <div class="victory-stats">
-                    <div class="stat-row">
-                        <span>🔥 Embers Collected:</span>
-                        <strong id="victory-embers">0</strong>
+            <div id="victory-container">
+                <h1 class="victory-title">VICTORY OVERCOME</h1>
+
+                <div id="victory-card">
+                    <div class="card-header">
+                        <div id="victory-icon-container">
+                            <div id="victory-artifact-icon">👑</div>
+                        </div>
+                        <h2 id="victory-artifact-name">Crown of Souls</h2>
+                    </div>
+
+                    <div class="card-body">
+                        <p id="victory-artifact-desc">Loading lore...</p>
+
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">Value</span>
+                                <span class="stat-value" id="victory-value">???</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Collected</span>
+                                <span class="stat-value" id="victory-embers">0</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Time</span>
+                                <span class="stat-value" id="victory-duration">0m 0s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button id="victory-share-btn" class="primary-btn">📸 SAVE VICTORY CARD</button>
                     </div>
                 </div>
+                <div class="start-subtext" id="victory-continue">Click to Escape</div>
             </div>
-            <div class="start-subtext">Click to Escaping</div>
         </div>
 
         <!-- Cinematic Intro Layer -->
         <div id="cinematic-overlay" class="hidden">
             <canvas id="intro-particles"></canvas>
             <div id="door-container">
-                <img id="door-left" src="/assets/door_left.webp" alt="Door Left">
-                <img id="door-right" src="/assets/door_right.webp" alt="Door Right">
+                <img id="door-left" src="/assets/door_left-ABEFfOnQ.webp" alt="Door Left">
+                <img id="door-right" src="/assets/door_right-CwskD9A1.webp" alt="Door Right">
             </div>
         </div>
 
@@ -102,6 +143,15 @@
         </div>
 
         <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- Touch Controls Toggle (Bottom Right) -->
+        <div id="touch-toggle-container">
+            <label class="retro-toggle-container">
+                <input type="checkbox" id="touch-toggle" style="display: none;">
+                <div class="retro-toggle-btn"></div>
+                <span>TOUCH</span>
+            </label>
+        </div>
 
         <!-- Touch Controls -->
         <div id="touch-controls" class="hidden">

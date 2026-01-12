@@ -1,7 +1,7 @@
 # Decked Out 2D - Development Tracker
 
 **Repository:** Private
-**Status:** Pre-Alpha / Core Loop Prototype
+**Status:** Beta Release (v0.1.0)
 
 ---
 ## 📚 Project Overview

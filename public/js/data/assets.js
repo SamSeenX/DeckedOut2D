@@ -2,29 +2,41 @@
 // ASSET PATHS - Centralized Asset Configuration
 // ============================================
 // All sprite and asset file paths defined here
-// Update paths in one place when renaming files
+// Using ES imports allows Vite to hash filenames for cache busting
 
-// === SPRITES ===
+// === SPRITES (imported for cache-busted hashed filenames) ===
+import playerSprite from '../../assets/sprites/player.webp';
+import ravagerSprite from '../../assets/sprites/ravager.webp';
+import ghastSprite from '../../assets/sprites/ghast.webp';
+import vexSprite from '../../assets/sprites/vex.webp';
+import tilesSprite from '../../assets/sprites/tiles.webp';
+
 export const SPRITES = {
-    player: '/assets/sprites/player.webp',
-    ravager: '/assets/sprites/ravager.webp',
-    ghast: '/assets/sprites/ghast.webp',
-    vex: '/assets/sprites/vex.webp',
-    tiles: '/assets/sprites/tiles.webp',
+    player: playerSprite,
+    ravager: ravagerSprite,
+    ghast: ghastSprite,
+    vex: vexSprite,
+    tiles: tilesSprite,
 };
 
-// === UI & MENU ASSETS ===
-// === UI & MENU ASSETS ===
+// === UI & MENU ASSETS (imported for cache-busted hashed filenames) ===
+import menuBgImg from '../../assets/menu_bg.webp';
+import doorLeftImg from '../../assets/door_left.webp';
+import doorRightImg from '../../assets/door_right.webp';
+import faviconImg from '../../assets/favicon.png';
+
 export const UI_ASSETS = {
-    menuBg: '/assets/menu_bg.webp',
-    doorLeft: '/assets/door_left.webp',
-    doorRight: '/assets/door_right.webp',
-    favicon: '/assets/favicon.png',
+    menuBg: menuBgImg,
+    doorLeft: doorLeftImg,
+    doorRight: doorRightImg,
+    favicon: faviconImg,
 };
 
-// === AUDIO / VOICE ===
+// === AUDIO / VOICE (imported for cache-busted hashed filenames) ===
+import voiceReadyAudio from '../../assets/voice/ready.opus';
+
 export const AUDIO_ASSETS = {
-    voiceReady: '/assets/voice/ready.opus',
+    voiceReady: voiceReadyAudio,
     // Add more audio files here as they're added:
     // bgMusic: '/assets/audio/bg.mp3',
     // sfxDamage: '/assets/audio/damage.wav',

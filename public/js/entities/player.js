@@ -13,7 +13,7 @@ import { playBingBing, playVictoryTone, playBerryCollect, playEatBerry, playJson
 import { SPRITES } from '../data/assets.js';
 
 const sprite = new Image();
-sprite.src = '/assets/sprites/player.webp'; // Force absolute path if needed, though SPRITES constant should have it now
+sprite.src = SPRITES.player;
 
 // Standardized Animation Config
 const ANIMATIONS = {
@@ -475,11 +475,11 @@ function checkTileEvents() {
                 if (artifactDesc) artifactDesc.textContent = gameState.targetArtifactItem.description;
 
                 if (artifactIcon) {
-                    const iconStr = gameState.targetArtifactItem.icon || "🏆";
-                    if (iconStr.trim().startsWith('<svg')) {
-                        artifactIcon.innerHTML = iconStr;
+                    const iconFile = gameState.targetArtifactItem.icon;
+                    if (iconFile) {
+                        artifactIcon.innerHTML = `<img src="/assets/artifacts/${iconFile}" alt="${gameState.targetArtifactItem.name}">`;
                     } else {
-                        artifactIcon.textContent = iconStr;
+                        artifactIcon.textContent = '🏆';
                     }
                 }
 
@@ -504,6 +504,9 @@ function checkTileEvents() {
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
 
+                        // Enable pixelated rendering for images
+                        ctx.imageSmoothingEnabled = false;
+
                         // Background
                         const grad = ctx.createLinearGradient(0, 0, width, height);
                         grad.addColorStop(0, '#1a1a1a');
@@ -516,57 +519,49 @@ function checkTileEvents() {
                         ctx.lineWidth = 12;
                         ctx.strokeRect(0, 0, width, height);
 
-                        // --- TOTAL SCORE BADGE (Top Right) ---
+                        // Title (drawn first, not overlapped)
+                        ctx.fillStyle = '#ffcc00';
+                        ctx.font = 'bold 52px Impact';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Victory Card', width / 2, 60);
+
+                        // --- SCORE BADGE (Top Right Corner - Rounded Square) ---
                         const artValue = parseInt(gameState.targetArtifactItem.value) || 0;
                         const embersVal = parseInt(gameState.embersCollected) || 0;
                         const totalScore = artValue + embersVal;
 
-                        ctx.save();
-                        ctx.translate(width - 90, 90);
-                        ctx.rotate(15 * Math.PI / 180); // Tilt
+                        const badgeSize = 70;
+                        const badgeX = width - badgeSize - 20; // 20px from right edge
+                        const badgeY = 20; // 20px from top edge
+                        const badgeRadius = 8; // Rounded corner radius
 
-                        // Badge Circle
+                        // Badge Rounded Square
                         ctx.fillStyle = '#ffcc00';
                         ctx.beginPath();
-                        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+                        ctx.roundRect(badgeX, badgeY, badgeSize, badgeSize, badgeRadius);
                         ctx.fill();
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 4;
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 3;
                         ctx.stroke();
 
-                        // Badge Text
+                        // Badge Number Only (big bold)
                         ctx.fillStyle = '#000';
                         ctx.textAlign = 'center';
-                        ctx.font = 'bold 16px Arial';
-                        ctx.fillText('TOTAL', 0, -15);
+                        ctx.textBaseline = 'middle';
                         ctx.font = 'bold 36px Arial';
-                        ctx.fillText(totalScore, 0, 20);
-                        ctx.restore();
+                        ctx.fillText(totalScore, badgeX + badgeSize / 2, badgeY + badgeSize / 2);
+                        ctx.textBaseline = 'alphabetic'; // Reset
                         // -------------------------------------
-
-                        // Title
-                        ctx.fillStyle = '#ffcc00';
-                        ctx.font = 'bold 50px Impact';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('VICTORY OVERCOME', width / 2, 80);
 
                         // Helper to draw the rest after icon is ready
                         const drawCardContent = () => {
-                            // Icon Circle Border (Re-draw over icon for cleanliness)
-                            ctx.save();
-                            ctx.translate(width / 2, 220);
-                            ctx.strokeStyle = '#ffcc00';
-                            ctx.lineWidth = 4;
-                            ctx.beginPath();
-                            ctx.arc(0, 0, 90, 0, Math.PI * 2);
-                            ctx.stroke();
-                            ctx.restore();
+                            // No circle border - just glow on icon
 
                             // Artifact Name
                             ctx.fillStyle = '#ffcc00';
                             ctx.font = 'bold 40px Georgia';
                             ctx.textAlign = 'center';
-                            ctx.fillText(gameState.targetArtifactItem.name, width / 2, 360);
+                            ctx.fillText(gameState.targetArtifactItem.name, width / 2, 340);
 
                             // Stats Box Frame
                             ctx.fillStyle = '#111';
@@ -626,40 +621,46 @@ function checkTileEvents() {
                         };
 
                         // Icon Logic
-                        const iconStr = gameState.targetArtifactItem.icon || "🏆";
+                        const iconFile = gameState.targetArtifactItem.icon;
+                        const glowColor = gameState.targetArtifactItem.glow || '#ffcc00';
+                        const iconSize = 120; // Bigger icon
 
-                        // Icon Background
-                        ctx.save();
-                        ctx.translate(width / 2, 220);
-                        ctx.fillStyle = 'rgba(255, 204, 0, 0.1)';
-                        ctx.beginPath();
-                        ctx.arc(0, 0, 90, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
-
-                        if (iconStr.trim().startsWith('<svg')) {
+                        if (iconFile) {
                             const img = new Image();
-                            const svgBlob = new Blob([iconStr], { type: 'image/svg+xml;charset=utf-8' });
-                            const url = URL.createObjectURL(svgBlob);
+                            img.crossOrigin = 'anonymous';
                             img.onload = () => {
                                 ctx.save();
-                                ctx.translate(width / 2, 220);
-                                // Draw centered 100x100
-                                ctx.drawImage(img, -50, -50, 100, 100);
+                                ctx.translate(width / 2, 200);
+                                // Add glow effect
+                                ctx.shadowColor = glowColor;
+                                ctx.shadowBlur = 25;
+                                // Draw centered icon (bigger)
+                                ctx.drawImage(img, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
                                 ctx.restore();
-                                URL.revokeObjectURL(url);
                                 drawCardContent();
                             };
-                            img.src = url;
+                            img.onerror = () => {
+                                // Fallback if image fails to load
+                                ctx.save();
+                                ctx.translate(width / 2, 200);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = '100px Arial';
+                                ctx.textBaseline = 'middle';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('🏆', 0, 0);
+                                ctx.restore();
+                                drawCardContent();
+                            };
+                            img.src = `/assets/artifacts/${iconFile}`;
                         } else {
                             // Emoji Fallback
                             ctx.save();
-                            ctx.translate(width / 2, 220);
+                            ctx.translate(width / 2, 200);
                             ctx.fillStyle = '#ffffff';
                             ctx.font = '100px Arial';
                             ctx.textBaseline = 'middle';
                             ctx.textAlign = 'center';
-                            ctx.fillText(iconStr, 0, 5);
+                            ctx.fillText('🏆', 0, 0);
                             ctx.restore();
                             drawCardContent();
                         }

@@ -1,11 +1,11 @@
 {
   "name": "deckedout2d",
-  "version": "1.0.0",
-  "description": "**Repository:** Private **Status:** Pre-Alpha / Core Loop Prototype",
+  "version": "0.1.0",
+  "description": "**Repository:** Private **Status:** Beta Release",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && rm -rf dist/tools",
+    "build": "vite build && rm -rf dist/tools && cp -r public/assets/sounds dist/assets/ && cp -r public/assets/artifacts dist/assets/ && cp public/assets/menu_bg.webp dist/assets/",
     "preview": "vite preview"
   },
   "repository": {

@@ -4,7 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decked Out 2D by SamSeen</title>
+    <title>Decked Out 2D by SamSeen - Free Browser Dungeon Crawler</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Play Decked Out 2D free in your browser! A stealth dungeon crawler inspired by Hermitcraft's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required.">
+    <meta name="keywords"
+        content="decked out 2d, dungeon crawler, browser game, free game, hermitcraft, tango tek, stealth game, indie game">
+    <meta name="author" content="SamSeen">
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta property="og:description"
+        content="Sneak through dungeons, avoid monsters, collect artifacts. A free browser game inspired by Hermitcraft's Decked Out 2!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://do.samseen.dev">
+    <meta property="og:image" content="https://do.samseen.dev/assets/menu_bg.webp">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta name="twitter:description"
+        content="Sneak through dungeons, avoid monsters, collect artifacts. Play free in your browser!">
+    <meta name="twitter:image" content="https://do.samseen.dev/assets/menu_bg.webp">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/toast.css">
     <link rel="stylesheet" href="css/touch.css">
@@ -12,6 +35,7 @@
     <link rel="stylesheet" href="css/ui.css">
     <link rel="stylesheet" href="css/article.css">
     <link rel="icon" href="assets/favicon.png">
+    <link rel="canonical" href="https://do.samseen.dev">
 </head>
 
 <body>
@@ -30,14 +54,7 @@
         <div id="start-overlay">
             <div class="start-text">DECKED OUT 2D</div>
             <div class="start-subtext">Click to Enter</div>
-
-            <div class="start-options" style="margin-top: 20px; z-index: 200;">
-                <label class="retro-toggle-container">
-                    <input type="checkbox" id="touch-toggle" style="display: none;">
-                    <div class="retro-toggle-btn"></div>
-                    <span>TOUCH CONTROLS</span>
-                </label>
-            </div>
+            <div class="menu-footer">do.samseen.dev</div>
         </div>
 
         <div id="game-over-overlay" class="hidden">
@@ -130,6 +147,15 @@
         </div>
 
         <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- Touch Controls Toggle (Bottom Right) -->
+        <div id="touch-toggle-container">
+            <label class="retro-toggle-container">
+                <input type="checkbox" id="touch-toggle" style="display: none;">
+                <div class="retro-toggle-btn"></div>
+                <span>TOUCH</span>
+            </label>
+        </div>
 
         <!-- Touch Controls -->
         <div id="touch-controls" class="hidden">

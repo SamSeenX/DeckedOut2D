@@ -91,11 +91,11 @@ export function updateUI(gameState, player) {
     // Artifact Logic
     const artIcon = document.getElementById('artifact-icon');
     if (gameState.hasArtifact) {
-        const iconStr = gameState.targetArtifactItem ? gameState.targetArtifactItem.icon : '👑';
-        if (iconStr && iconStr.trim().startsWith('<svg')) {
-            artIcon.innerHTML = iconStr;
+        const iconFile = gameState.targetArtifactItem ? gameState.targetArtifactItem.icon : null;
+        if (iconFile) {
+            artIcon.innerHTML = `<img src="/assets/artifacts/${iconFile}" alt="${gameState.targetArtifactItem.name}">`;
         } else {
-            artIcon.textContent = iconStr;
+            artIcon.textContent = '👑';
         }
         artIcon.classList.remove('empty');
         artIcon.title = gameState.targetArtifactItem ? gameState.targetArtifactItem.name : "Artifact";
@@ -199,10 +199,10 @@ export function showVictory(artifact, mapEmbers) {
     document.getElementById('victory-artifact-name').innerText = artifact.name;
     document.getElementById('victory-artifact-desc').innerText = artifact.description;
     const vIcon = document.getElementById('victory-artifact-icon');
-    if (artifact.icon && artifact.icon.trim().startsWith('<svg')) {
-        vIcon.innerHTML = artifact.icon;
+    if (artifact.icon) {
+        vIcon.innerHTML = `<img src="/assets/artifacts/${artifact.icon}" alt="${artifact.name}">`;
     } else {
-        vIcon.innerText = artifact.icon;
+        vIcon.innerText = '🏆';
     }
 
     // Breakdown Logic
