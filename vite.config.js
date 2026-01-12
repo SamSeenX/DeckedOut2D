@@ -7,7 +7,9 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             input: {
-                main: 'public/index.html'
+                main: 'public/index.html',
+                guide: 'public/guide.html',
+                devlog: 'public/devlog.html'
             },
             output: {
                 assetFileNames: (assetInfo) => {

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && rm -rf dist/tools && cp -r public/assets/sounds dist/assets/ && cp -r public/assets/artifacts dist/assets/ && cp public/assets/menu_bg.webp dist/assets/",
+    "build": "vite build && rm -rf dist/tools && cp -r public/assets/sounds dist/assets/ && cp -r public/assets/artifacts dist/assets/ && cp public/assets/menu_bg.webp dist/assets/ && cp public/sitemap.xml dist/",
     "preview": "vite preview"
   },
   "repository": {
