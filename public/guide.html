@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Guide & Lore - Decked Out 2D</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Complete guide, controls, and lore for Decked Out 2D. Read the legend of the dungeon and discover the secrets of the 21 ancient artifacts.">
+    <meta name="keywords" content="decked out 2d guide, game lore, artifacts list, how to play, dungeon crawler tips">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/article.css">
+    <link rel="icon" href="assets/favicon.png">
+
+    <style>
+        body {
+            background-color: #0b0b14;
+            /* Match game background */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Navigation Header */
+        .site-header {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 20px;
+        }
+
+        .separator {
+            color: #555;
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .page-title {
+            color: #4fc3f7;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .home-link {
+            color: #ffd700;
+            text-decoration: none;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.2s;
+        }
+
+        .home-link:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .home-link::before {
+            content: "⬅";
+        }
+
+        /* Artifact Grid */
+        .artifact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .artifact-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #334;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .artifact-card:hover {
+            transform: translateY(-2px);
+            border-color: #ffd700;
+        }
+
+        .artifact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .artifact-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #444;
+            overflow: hidden;
+        }
+
+        .artifact-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .artifact-name {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .artifact-desc {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .artifact-value {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #4fc3f7;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* Lore Text Styling */
+        .lore-text {
+            border-left: 3px solid #8e44ad;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #d1c4e9;
+            font-style: italic;
+            background: rgba(142, 68, 173, 0.1);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a href="index.html" class="home-link">Back to Game</a>
+        <span class="separator">|</span>
+        <div class="page-title">Decked Out 2D Wiki</div>
+    </header>
+
+    <article class="game-article">
+        <header class="article-header" style="cursor: default;">
+            <h1>📜 The Librarian's Guide & Lore</h1>
+        </header>
+
+        <div class="article-body">
+
+            <section>
+                <h2>The Legend of the Hollow</h2>
+                <div class="lore-text">
+                    <p>"You didn't mean to fall. No one ever does.</p>
+                    <p>One moment you were exploring the ancient ruins mentioned in your grandfather's journal, and the
+                        next, the ground beneath you gave way. You tumbled into darkness, landing on cold, hard stone.
+                        When you stood up, the light from above was gone.</p>
+                    <p>You are now in <strong>The Hollow</strong>, a subterranean labyrinth built by a civilization that
+                        vanished eons ago. The air is thick with the smell of frost and old magic. The walls shift, and
+                        creatures made of shadow and bone patrol the corridors.</p>
+                    <p>A whisper in your mind reveals the only escape: <strong>The Gate of Exit</strong>. But the Gate
+                        demands a toll. It hungers for the <strong>21 Cursed Artifacts</strong> hidden throughout the
+                        dungeon. Only by retrieving these relics can you buy your freedom.</p>
+                    <p>But beware... the dungeon listens. If you move too fast, if you make too much noise...
+                        <strong>CLANK</strong>... the Wardens will wake."
+                    </p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Survival Guide</h2>
+                <p>Surviving The Hollow requires more than speed; it requires cunning and silence.</p>
+
+                <h3>🤫 The Clank System</h3>
+                <p>Noise is your enemy. Every action generates "Clank."</p>
+                <ul>
+                    <li><strong>Clank Meter:</strong> Located at the top left. Keep it low!</li>
+                    <li><strong>Generating Clank:</strong> Running and Jumping generate partial noise.</li>
+                    <li><strong>The Consequences:</strong> High Clank attracts more enemies and spawns <strong
+                            style="color: #ff6b6b;">Vexes</strong> (Phantoms) that fly through walls to hunt you.</li>
+                    <li><strong>Stealth:</strong> Hold <strong>SHIFT</strong> to Sneak. Sneaking generates 0 Clank and
+                        helps you evade detection.</li>
+                </ul>
+
+                <h3>👹 The Wardens</h3>
+                <p>You are not alone in the dark.</p>
+                <ul>
+                    <li><strong>Ravagers:</strong> Heavy beasts that patrol corridors. They have poor vision but
+                        excellent hearing. If they see you, run!</li>
+                    <li><strong>Ghasts:</strong> Floating skulls that guard open areas. They shoot fireballs if you
+                        enter their line of sight.</li>
+                    <li><strong>Vexes:</strong> Spirits summoned by high Clank. They can phase through walls. Lower your
+                        Clank to despawn them.</li>
+                </ul>
+
+                <h3>⚡ Vitality & Embers</h3>
+                <ul>
+                    <li><strong>Health:</strong> You have 3 Hearts. Taking damage knocks you back.</li>
+                    <li><strong>Berries (Food):</strong> Find bushes to harvest berries. Press <strong>F</strong> to eat
+                        and heal 1 Heart.</li>
+                    <li><strong>Embers:</strong> Glowing blue flames scattered around. Collect them to increase your
+                        score and prove your worth.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>The 21 Artifacts</h2>
+                <p>The Gatekeeper demands these relics. Each holds a fragment of the dungeon's history.</p>
+
+                <div class="artifact-grid">
+                    <!-- Artifacts populated here -->
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/crown_of_souls.webp" alt="Crown">
+                            </div>
+                            <span class="artifact-name">Crown of Souls</span>
+                        </div>
+                        <p class="artifact-desc">Forged in the fires of the Nether, worn by the mad King Thrandor.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/ember_heart.webp" alt="Ember Heart">
+                            </div>
+                            <span class="artifact-name">Ember Heart</span>
+                        </div>
+                        <p class="artifact-desc">A pulsating core extracted from a dormant Volcanic Golem.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/frost_fang.webp" alt="Frost Fang">
+                            </div>
+                            <span class="artifact-name">Frost Fang</span>
+                        </div>
+                        <p class="artifact-desc">A massive crystalline fang from the Great Wyrm of the North.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/shadow_compass.webp"
+                                    alt="Shadow Compass"></div>
+                            <span class="artifact-name">Shadow Compass</span>
+                        </div>
+                        <p class="artifact-desc">Its needle spins wildly in daylight but locks onto darkness at night.
+                        </p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/void_lantern.webp" alt="Void Lantern">
+                            </div>
+                            <span class="artifact-name">Void Lantern</span>
+                        </div>
+                        <p class="artifact-desc">Burns with a cold black flame that reveals the unseen.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/crystal_skull.webp"
+                                    alt="Crystal Skull"></div>
+                            <span class="artifact-name">Crystal Skull</span>
+                        </div>
+                        <p class="artifact-desc">Staring into its eyes induces visions of burnt worlds.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/golden_scarab.webp"
+                                    alt="Golden Scarab"></div>
+                            <span class="artifact-name">Golden Scarab</span>
+                        </div>
+                        <p class="artifact-desc">An ancient automaton counting down to an apocalypse.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/phoenix_feather.webp"
+                                    alt="Phoenix Feather"></div>
+                            <span class="artifact-name">Phoenix Feather</span>
+                        </div>
+                        <p class="artifact-desc">Warm to the touch. Turns to ash and reforms at dawn.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/obsidian_dagger.webp"
+                                    alt="Obsidian Dagger"></div>
+                            <span class="artifact-name">Obsidian Dagger</span>
+                        </div>
+                        <p class="artifact-desc">Used by the Cult of the Deep to sever ties with the mortal realm.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/lunar_chalice.webp"
+                                    alt="Lunar Chalice"></div>
+                            <span class="artifact-name">Lunar Chalice</span>
+                        </div>
+                        <p class="artifact-desc">Water poured into it glows, granting clarity of mind.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/storm_caller.webp" alt="Storm Caller">
+                            </div>
+                            <span class="artifact-name">Storm Caller</span>
+                        </div>
+                        <p class="artifact-desc">One blow summons clouds, two summons lightning, three summons the end.
+                        </p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/emerald_tablet.webp"
+                                    alt="Emerald Tablet"></div>
+                            <span class="artifact-name">Emerald Tablet</span>
+                        </div>
+                        <p class="artifact-desc">Inscribed with the dead formula for the Elixir of Life.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/cursed_coin.webp" alt="Cursed Coin">
+                            </div>
+                            <span class="artifact-name">Cursed Coin</span>
+                        </div>
+                        <p class="artifact-desc">Always returns to its owner, bringing misfortune with it.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/spectral_mirror.webp"
+                                    alt="Spectral Mirror"></div>
+                            <span class="artifact-name">Spectral Mirror</span>
+                        </div>
+                        <p class="artifact-desc">Shows not your reflection, but the entity standing behind you.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/ancient_mask.webp" alt="Ancient Mask">
+                            </div>
+                            <span class="artifact-name">Ancient Mask</span>
+                        </div>
+                        <p class="artifact-desc">Wearing it grants strength, but you forget your own name.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/titan_gauntlet.webp"
+                                    alt="Titan Gauntlet"></div>
+                            <span class="artifact-name">Titan Gauntlet</span>
+                        </div>
+                        <p class="artifact-desc">Hums with the kinetic energy of a thousand earthquakes.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/star_map.webp" alt="Star Map"></div>
+                            <span class="artifact-name">Star Map</span>
+                        </div>
+                        <p class="artifact-desc">Charts a course to the edge of the universe.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/soul_gem.webp" alt="Soul Gem"></div>
+                            <span class="artifact-name">Soul Gem</span>
+                        </div>
+                        <p class="artifact-desc">Swirls with trapped mists. Faint tapping comes from within.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/dragon_egg.webp" alt="Dragon Egg">
+                            </div>
+                            <span class="artifact-name">Dragon Egg</span>
+                        </div>
+                        <p class="artifact-desc">Vibrates with a heartbeat that is slow, powerful, and terrifying.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/runic_hourglass.webp"
+                                    alt="Runic Hourglass"></div>
+                            <span class="artifact-name">Runic Hourglass</span>
+                        </div>
+                        <p class="artifact-desc">The sand inside flows upwards. Moves time back one minute.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="assets/artifacts/whispering_key.webp"
+                                    alt="Whispering Key"></div>
+                            <span class="artifact-name">Whispering Key</span>
+                        </div>
+                        <p class="artifact-desc">Fits any lock. The door it opens always leads somewhere else.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <footer class="article-footer">
+            <p style="margin-bottom: 20px; font-size: 16px;">
+                📖 <a href="guide.html"
+                    style="color: #4fc3f7; margin-right: 20px; text-decoration: none; border-bottom: 1px dashed #4fc3f7;">Game
+                    Guide & Lore</a>
+                🔨 <a href="devlog.html"
+                    style="color: #ffd700; text-decoration: none; border-bottom: 1px dashed #ffd700;">Developer
+                    Log</a>
+            </p>
+            <p>
+                Developed by <strong><a href="https://www.buymeacoffee.com/samseen" target="_blank"
+                        alt="Buy Me a Coffee">SamSeen</a></strong> • Inspired by <strong><a
+                        href="https://www.youtube.com/@TangoTekLP">Mr. Tango Tek</a>'s</strong> Decked Out 2
+                minigame
+                from Hermitcraft Season 9
+            </p>
+            <p><em>Keep in touch to follow development updates!</em></p>
+        </footer>
+    </article>
+
+</body>
+
+</html>
