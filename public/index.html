@@ -49,20 +49,22 @@
         /* Landing Page Specific Styles */
         body {
             overflow-y: auto;
-            /* Enable scrolling for landing page */
-            background: #0b0b14;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('assets/main_bg.webp');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
         .hero-section {
-            height: 100vh;
-            min-height: 500px;
+            height: 60vh;
+            min-height: 400px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('assets/menu_bg.webp');
-            background-size: cover;
-            background-position: center;
+            background: transparent;
             text-align: center;
             padding: 20px;
             position: relative;
