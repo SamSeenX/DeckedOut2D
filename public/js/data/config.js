@@ -50,15 +50,21 @@ export const EMBER_SPAWN_CHANCE = 0.0002; // 0.5% per frame
 export const BERRY_REGROW_CHANCE = 0.0005; // 0.5% per frame
 export const SPAWNER_ACTIVATION_RANGE = 10; // Blocks
 export const CLANK_SPEED_THRESHOLD = 0.05;
-export const CLANK_WALK_INC = 1;
-export const CLANK_RUN_INC = 2;
-export const CLANK_JUMP_INC = 2;
-export const CLANK_DECAY_AMOUNT = 2; // Reduce clank by this amount
+// Walk/Move Clank now handled by timer, so these standard increments might be unused or retuned
+export const CLANK_WALK_INC = 0; // Disabled in favor of time-based
+export const CLANK_RUN_INC = 0;  // Disabled in favor of time-based
+export const CLANK_MOVE_INC = 0.1; // New time-based increment
+export const CLANK_MOVE_INTERVAL = 200; // ms
+
+export const CLANK_JUMP_INC = 0.2; // Reduced from 2
+export const CLANK_DECAY_AMOUNT = 0.5; // Reduce clank by this amount
 export const CLANK_DECAY_INTERVAL = 10000; // 10 seconds
 export const CLANK_CHANCE_MULTIPLIER = 0.5; // Keeping this for random chance logic if still used
 export const HEARTBEAT_MIN_INTERVAL = 400; // ms (Fastest) - High Clank
 export const HEARTBEAT_MAX_INTERVAL = 1200; // ms (Slowest) - Low Clank
 export const MAX_CLANK = 100; // Assumed max for scaling heartbeat
+export const HEARTBEAT_MIN_VOLUME = 0.05; // Low Clank - Very quiet
+export const HEARTBEAT_MAX_VOLUME = 0.5; // High Clank - Loud
 export const HAZARD_DAMAGE_CHANCE = 0.05;
 export const ARTIFACT_CLANK_PENALTY = 20;
 
@@ -87,6 +93,7 @@ export const VEX_SWOOP_SPEED = 0.12;
 export const VEX_SWOOP_COOLDOWN = 3000;
 export const VEX_START_CLANK = 60;
 export const VEX_SPAWN_INTERVAL = 10;
+export const VEX_SPAWN_CHANCE = 0.3; // 30% chance per interval
 
 // Ghast
 export const GHAST_SPEED = 0.03;

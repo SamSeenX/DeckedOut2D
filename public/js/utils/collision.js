@@ -2,12 +2,12 @@ import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
 import { PLAYER_RADIUS } from '../data/config.js';
 
-export function checkWallCollision(targetX, targetY) {
+export function checkWallCollision(targetX, targetY, radius = PLAYER_RADIUS) {
     const corners = [
-        { x: targetX - PLAYER_RADIUS, y: targetY - PLAYER_RADIUS },
-        { x: targetX + PLAYER_RADIUS, y: targetY - PLAYER_RADIUS },
-        { x: targetX - PLAYER_RADIUS, y: targetY + PLAYER_RADIUS },
-        { x: targetX + PLAYER_RADIUS, y: targetY + PLAYER_RADIUS }
+        { x: targetX - radius, y: targetY - radius },
+        { x: targetX + radius, y: targetY - radius },
+        { x: targetX - radius, y: targetY + radius },
+        { x: targetX + radius, y: targetY + radius }
     ];
 
     for (let point of corners) {

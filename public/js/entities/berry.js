@@ -1,35 +1,16 @@
-import { PLAYER_RADIUS } from '../data/config.js';
+import { Drop } from './drop.js';
 
-export class Berry {
+// Default Berry Lifespan: 60s (longer than ember)
+const BERRY_LIFESPAN = 60000;
+
+export class Berry extends Drop {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.z = 0;
-        this.creationTime = Date.now();
-        this.collected = false;
-
-        // Animation
-        this.bobOffset = 0;
+        super(x, y, BERRY_LIFESPAN);
+        this.bobSpeed = 300; // Slower bob
+        this.bobHeight = 0.05; // Smaller bob
     }
 
-    update(player) {
-        if (this.collected) return false;
-
-        // Bobbing animation
-        this.bobOffset = Math.sin((Date.now() - this.creationTime) / 300) * 0.05;
-
-        // Check collision with player
-        const dx = player.x - this.x;
-        const dy = player.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < PLAYER_RADIUS + 0.2) {
-            this.collected = true;
-            return true; // Return true to signal collection
-        }
-
-        return false;
-    }
+    // Update handled by Parent Class (Drop)
 
     draw(ctx, camX, camY, tileSize) {
         if (this.collected) return;

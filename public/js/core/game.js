@@ -4,7 +4,7 @@ import {
     VIEW_W, VIEW_H, updateViewDimensions,
     DESKTOP_WIDTH, DESKTOP_HEIGHT, DESKTOP_VIEW_W, DESKTOP_VIEW_H,
     MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H,
-    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
+    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, VEX_SPAWN_CHANCE, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
     CLANK_DECAY_AMOUNT, CLANK_DECAY_INTERVAL
 } from '../data/config.js';
 
@@ -221,11 +221,17 @@ function gameLoop(timestamp) {
     // Vex Spawning Logic
     if (gameState.clank >= VEX_START_CLANK) {
         if (gameState.clank >= lastVexSpawnClank + VEX_SPAWN_INTERVAL) {
-            enemies.push(new Vex(player.x, player.y));
-            // Ensure we don't double-spawn if Clank jumps by multiple, but align to grid
+            // Update tracking to consume this interval check regardless of success
+            // This prevents checking every frame once past the threshold.
+            // Alignment to grid ensures we check at 60, 70, 80...
             lastVexSpawnClank = Math.floor(gameState.clank / VEX_SPAWN_INTERVAL) * VEX_SPAWN_INTERVAL;
-            playScaryDing();
-            showToast("A Vex has been summoned!", 2000); // Visual feedback since voice is gone
+
+            // Probability Check
+            if (Math.random() < VEX_SPAWN_CHANCE) {
+                enemies.push(new Vex(player.x, player.y));
+                playScaryDing();
+                showToast("A Vex has been summoned!", 2000);
+            }
         }
     } else {
         // Keeps 'lastVexSpawn' updated so the first spawn happens immediately at 60
@@ -576,6 +582,7 @@ function launchGame() {
     resetGameLogic(); // Initialize Map/Player
 
     showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
+    gameState.startTime = Date.now(); // Start timer
 
     // Start Audio Systems
     startHeartbeatSystem(() => gameState.clank);
@@ -705,7 +712,7 @@ function handleGameOver() {
     updateTouchVisibility(false); // Hide Touch Controls
     const overlay = document.getElementById('game-over-overlay');
     overlay.classList.remove('hidden');
-    speak("Game Over");
+    playGameOverSequence();
     stopHeartbeatSystem();
     stopAmbientAudio();
 }

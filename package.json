@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp -r public/assets dist/",
+    "build": "vite build && rm -rf dist/tools",
     "preview": "vite preview"
   },
   "repository": {

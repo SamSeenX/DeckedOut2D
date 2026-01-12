@@ -1,4 +1,4 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY, CLANK_WALK_INC, CLANK_RUN_INC, CLANK_JUMP_INC } from '../data/config.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY, CLANK_WALK_INC, CLANK_RUN_INC, CLANK_JUMP_INC, CLANK_MOVE_INC, CLANK_MOVE_INTERVAL } from '../data/config.js';
 
 import { keys } from '../core/input.js';
 import { triggerShake } from '../core/camera.js';
@@ -13,7 +13,7 @@ import { playBingBing, playVictoryTone, playBerryCollect, playEatBerry, playJson
 import { SPRITES } from '../data/assets.js';
 
 const sprite = new Image();
-sprite.src = SPRITES.player;
+sprite.src = '/assets/sprites/player.webp'; // Force absolute path if needed, though SPRITES constant should have it now
 
 // Standardized Animation Config
 const ANIMATIONS = {
@@ -51,6 +51,7 @@ export const player = {
     // Timers
     lastEatTime: 0,
     lastCheckTime: 0,
+    lastMoveClankTime: 0,
 
     takeDamage(amount) {
         this.hp -= amount;
@@ -347,7 +348,9 @@ export function updatePlayer() {
         }
     }
 
-    // --- Footstep Clank Logic ---
+    // --- Footstep Clank Logic (Visual/Audio) ---
+    // Note: The actual clank integer accumulation is now time-based (below), 
+    // but we keep this for syncing the specific footstep SOUND.
     let currentSpeed = Math.sqrt(player.vx ** 2 + player.vy ** 2);
     if (currentSpeed > CLANK_SPEED_THRESHOLD && !isSneaking && !player.isJumping) {
         // Increment Step Timer
@@ -357,20 +360,32 @@ export function updatePlayer() {
         const stepInterval = PLAYER_ANIMATION_SPEED * 3; // Approx 1 step per cycle
         if (player.stepTimer >= stepInterval) {
             player.stepTimer = 0;
-            // Add Clank & Play Sound
-            let inc = CLANK_WALK_INC;
+            // Play Sound
             if (isRunning) {
-                inc = CLANK_RUN_INC;
                 playJson('assets/sounds/player_step_run.json');
             } else {
                 playJson('assets/sounds/player_step_walk.json');
             }
-
-            gameState.clank += inc;
-            updateUI(gameState, player);
+            // Clank addition from steps is now 0 in config (CLANK_WALK_INC), handled below
         }
     } else {
         player.stepTimer = 0; // Reset if stopped or sneaking
+    }
+
+    // --- Time-Based Movement Clank ---
+    // "add 0.1 clank every 200ms play hold walk"
+    // We check if keys are held AND we have velocity (actually moving)
+    const isMoving = currentSpeed > CLANK_SPEED_THRESHOLD;
+    if (isMoving && !isSneaking && !player.isJumping) {
+        if (!player.lastMoveClankTime) player.lastMoveClankTime = Date.now();
+
+        if (Date.now() - player.lastMoveClankTime >= CLANK_MOVE_INTERVAL) {
+            gameState.clank += CLANK_MOVE_INC;
+            updateUI(gameState, player);
+            player.lastMoveClankTime = Date.now();
+        }
+    } else {
+        player.lastMoveClankTime = Date.now(); // Reset timer so it starts counting fresh from next move
     }
 
     checkTileEvents();
@@ -445,21 +460,238 @@ function checkTileEvents() {
     if (isExit) {
         if (gameState.hasArtifact) {
             if (!gameState.gameWon) {
-                gameState.gameWon = true;
+                // 4. Update Victory Overlay
+                const overlay = document.getElementById('victory-overlay');
+                const artifactName = document.getElementById('victory-artifact-name');
+                const artifactDesc = document.getElementById('victory-artifact-desc');
+                const artifactIcon = document.getElementById('victory-artifact-icon');
+                const emberCount = document.getElementById('victory-embers');
+                const durationDisplay = document.getElementById('victory-duration');
+                const valueDisplay = document.getElementById('victory-value');
+                const shareBtn = document.getElementById('victory-share-btn');
+                const continueBtn = document.getElementById('victory-continue');
+
+                if (artifactName) artifactName.textContent = gameState.targetArtifactItem.name;
+                if (artifactDesc) artifactDesc.textContent = gameState.targetArtifactItem.description;
+
+                if (artifactIcon) {
+                    const iconStr = gameState.targetArtifactItem.icon || "🏆";
+                    if (iconStr.trim().startsWith('<svg')) {
+                        artifactIcon.innerHTML = iconStr;
+                    } else {
+                        artifactIcon.textContent = iconStr;
+                    }
+                }
+
+                if (emberCount) emberCount.textContent = gameState.embersCollected;
+                if (valueDisplay) valueDisplay.textContent = (gameState.targetArtifactItem.value || "???");
+
+                // Calculate Duration
+                const endTime = Date.now();
+                const durationMs = endTime - gameState.startTime;
+                const minutes = Math.floor(durationMs / 60000);
+                const seconds = Math.floor((durationMs % 60000) / 1000);
+
+                if (durationDisplay) durationDisplay.textContent = `${minutes}m ${seconds}s`;
+
+                // Share Button Logic (Canvas Draw)
+                if (shareBtn) {
+                    shareBtn.onclick = () => {
+                        const width = 600;
+                        const height = 800;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+
+                        // Background
+                        const grad = ctx.createLinearGradient(0, 0, width, height);
+                        grad.addColorStop(0, '#1a1a1a');
+                        grad.addColorStop(1, '#000000');
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(0, 0, width, height);
+
+                        // Border
+                        ctx.strokeStyle = '#ffcc00';
+                        ctx.lineWidth = 12;
+                        ctx.strokeRect(0, 0, width, height);
+
+                        // --- TOTAL SCORE BADGE (Top Right) ---
+                        const artValue = parseInt(gameState.targetArtifactItem.value) || 0;
+                        const embersVal = parseInt(gameState.embersCollected) || 0;
+                        const totalScore = artValue + embersVal;
+
+                        ctx.save();
+                        ctx.translate(width - 90, 90);
+                        ctx.rotate(15 * Math.PI / 180); // Tilt
+
+                        // Badge Circle
+                        ctx.fillStyle = '#ffcc00';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+
+                        // Badge Text
+                        ctx.fillStyle = '#000';
+                        ctx.textAlign = 'center';
+                        ctx.font = 'bold 16px Arial';
+                        ctx.fillText('TOTAL', 0, -15);
+                        ctx.font = 'bold 36px Arial';
+                        ctx.fillText(totalScore, 0, 20);
+                        ctx.restore();
+                        // -------------------------------------
+
+                        // Title
+                        ctx.fillStyle = '#ffcc00';
+                        ctx.font = 'bold 50px Impact';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('VICTORY OVERCOME', width / 2, 80);
+
+                        // Helper to draw the rest after icon is ready
+                        const drawCardContent = () => {
+                            // Icon Circle Border (Re-draw over icon for cleanliness)
+                            ctx.save();
+                            ctx.translate(width / 2, 220);
+                            ctx.strokeStyle = '#ffcc00';
+                            ctx.lineWidth = 4;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 90, 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.restore();
+
+                            // Artifact Name
+                            ctx.fillStyle = '#ffcc00';
+                            ctx.font = 'bold 40px Georgia';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(gameState.targetArtifactItem.name, width / 2, 360);
+
+                            // Stats Box Frame
+                            ctx.fillStyle = '#111';
+                            ctx.fillRect(50, 400, 500, 100);
+                            ctx.strokeStyle = '#333';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(50, 400, 500, 100);
+
+                            const drawStat = (label, val, x) => {
+                                ctx.fillStyle = '#888';
+                                ctx.font = '16px monospace';
+                                ctx.fillText(label, x, 430);
+                                ctx.fillStyle = '#fff';
+                                ctx.font = 'bold 28px monospace';
+                                ctx.fillText(val, x, 470);
+                            };
+
+                            drawStat('VALUE', (gameState.targetArtifactItem.value || "???"), 130);
+                            drawStat('EMBERS', gameState.embersCollected, 300);
+                            drawStat('TIME', `${minutes}m ${seconds}s`, 470);
+
+                            // Description Wrap
+                            ctx.fillStyle = '#ccc';
+                            ctx.font = 'italic 20px Georgia';
+                            ctx.textAlign = 'center';
+                            const text = gameState.targetArtifactItem.description || "No lore available.";
+                            const maxWidth = 500;
+                            const lineHeight = 30;
+                            let x = width / 2;
+                            let y = 560;
+
+                            const words = text.split(' ');
+                            let line = '';
+                            for (let n = 0; n < words.length; n++) {
+                                const testLine = line + words[n] + ' ';
+                                const metrics = ctx.measureText(testLine);
+                                if (metrics.width > maxWidth && n > 0) {
+                                    ctx.fillText(line, x, y);
+                                    line = words[n] + ' ';
+                                    y += lineHeight;
+                                } else {
+                                    line = testLine;
+                                }
+                            }
+                            ctx.fillText(line, x, y);
+
+                            // Footer
+                            ctx.fillStyle = '#444';
+                            ctx.font = '16px monospace';
+                            ctx.fillText('DECKED OUT 2D | do.samseen.dev', width / 2, height - 30);
+
+                            // Download
+                            const link = document.createElement('a');
+                            link.download = `Victory_${gameState.targetArtifactItem.id}_${Date.now()}.png`;
+                            link.href = canvas.toDataURL();
+                            link.click();
+                        };
+
+                        // Icon Logic
+                        const iconStr = gameState.targetArtifactItem.icon || "🏆";
+
+                        // Icon Background
+                        ctx.save();
+                        ctx.translate(width / 2, 220);
+                        ctx.fillStyle = 'rgba(255, 204, 0, 0.1)';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 90, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+
+                        if (iconStr.trim().startsWith('<svg')) {
+                            const img = new Image();
+                            const svgBlob = new Blob([iconStr], { type: 'image/svg+xml;charset=utf-8' });
+                            const url = URL.createObjectURL(svgBlob);
+                            img.onload = () => {
+                                ctx.save();
+                                ctx.translate(width / 2, 220);
+                                // Draw centered 100x100
+                                ctx.drawImage(img, -50, -50, 100, 100);
+                                ctx.restore();
+                                URL.revokeObjectURL(url);
+                                drawCardContent();
+                            };
+                            img.src = url;
+                        } else {
+                            // Emoji Fallback
+                            ctx.save();
+                            ctx.translate(width / 2, 220);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = '100px Arial';
+                            ctx.textBaseline = 'middle';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(iconStr, 0, 5);
+                            ctx.restore();
+                            drawCardContent();
+                        }
+                    };
+                }
+
+                if (continueBtn) {
+                    continueBtn.onclick = () => {
+                        window.location.reload();
+                    };
+                }
+
+                if (overlay) overlay.classList.remove('hidden');
+
+                // Play Victory Tone
                 playVictoryTone();
-                showVictory(gameState.targetArtifactItem, gameState.embersCollected);
+                stopHeartbeatSystem();
+                stopAmbientAudio();
             }
         }
     }
+
+    // Input: Harvest / Eat ('F')
     if (keys['f']) {
         if (!player.lastEatTime || Date.now() - player.lastEatTime > PLAYER_EAT_COOLDOWN) {
 
-            let tileX = Math.floor(player.x); // Use center for F interaction
+            let tileX = Math.floor(player.x);
             let tileY = Math.floor(player.y);
             // 1. Check for nearby Berry Bushes (Harvest)
             let bushFound = false;
             // Scan radius
-            const searchRadius = 2; // Check 2 tiles out to catch 1.5 distance
+            const searchRadius = 2;
             for (let dy = -searchRadius; dy <= searchRadius; dy++) {
                 for (let dx = -searchRadius; dx <= searchRadius; dx++) {
                     let tx = tileX + dx;
@@ -467,7 +699,6 @@ function checkTileEvents() {
 
                     if (ty < 0 || ty >= map.length || tx < 0 || tx >= map[0].length) continue;
 
-                    // Check Distance to center of tile
                     let dist = Math.sqrt((player.x - (tx + 0.5)) ** 2 + (player.y - (ty + 0.5)) ** 2);
 
                     if (dist <= 1.5) {
@@ -476,11 +707,9 @@ function checkTileEvents() {
 
                         if (tid === 8) { // Pull Berry Bush
                             bushFound = true;
-
-                            // Harvest Logic
                             playBerryCollect();
 
-                            // Spawn 1-3 Berries
+                            // Spawn Berries
                             let count = Math.floor(Math.random() * 3) + 1;
                             for (let i = 0; i < count; i++) {
                                 spawnBerry(tx + 0.5, ty + 0.5);
@@ -492,12 +721,8 @@ function checkTileEvents() {
                             } else {
                                 map[ty][tx] = 7;
                             }
-
                             queueRegrowth(tx, ty);
-
-                            // Cooldown
                             player.lastEatTime = Date.now();
-                            // Only harvest one bush per press?
                             break;
                         }
                     }
@@ -505,18 +730,14 @@ function checkTileEvents() {
                 if (bushFound) break;
             }
 
-            // 2. If no bush harvested, Try to Eat (Low Priority)
+            // 2. If no bush harvested, Try to Eat
             if (!bushFound) {
                 if (gameState.inventory.food > 0 && player.hp < PLAYER_MAX_HP) {
                     gameState.inventory.food--;
                     player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_EAT_HEAL_AMOUNT);
                     player.lastEatTime = Date.now();
                     updateUI(gameState, player);
-
                     playEatBerry();
-                    // showToast("Ate a Berry", 1000); // Visuals replaced by sound
-                } else if (gameState.inventory.food <= 0) {
-                    // NO OP
                 }
             }
         }
@@ -525,20 +746,19 @@ function checkTileEvents() {
     // Proximity Hint for Bushes & Artifacts
     if (!player.lastHintTime || Date.now() - player.lastHintTime > 2000) {
         let hintShown = false;
-
-        // 1. Artifact Hint (High Priority)
-        // User requested: "enter the 2 tile radius... give a toast message press e to check for artifect"
+        // 1. Artifact Hint
         if (gameState.targetArtifactLoc && !gameState.hasArtifact) {
             let dist = Math.sqrt((player.x - gameState.targetArtifactLoc.x) ** 2 + (player.y - gameState.targetArtifactLoc.y) ** 2);
-            if (dist <= 2.5) { // 2.5 covers the "entered" feeling better than strict 2.0
+            if (dist <= 2.5) {
                 showToast("Artifact Nearby! Press 'E' to Search", 2000);
                 player.lastHintTime = Date.now();
                 hintShown = true;
             }
         }
-
-        // 2. Berry Bush Hint (Lower Priority)
+        // 2. Berry Bush Hint
         if (!hintShown) {
+            const centerTileX = Math.floor(player.x);
+            const centerTileY = Math.floor(player.y);
             for (let dy = -2; dy <= 2; dy++) {
                 for (let dx = -2; dx <= 2; dx++) {
                     let tx = centerTileX + dx;
@@ -565,6 +785,8 @@ function checkTileEvents() {
     if (keys['e']) {
         if (!player.lastCheckTime || Date.now() - player.lastCheckTime > PLAYER_CHECK_COOLDOWN) {
             player.lastCheckTime = Date.now();
+            const centerTileX = Math.floor(player.x);
+            const centerTileY = Math.floor(player.y);
 
             // 1. Check for Artifact
             if (gameState.targetArtifactLoc &&
@@ -580,12 +802,8 @@ function checkTileEvents() {
                 return;
             } else if (!gameState.hasArtifact) {
                 // Wrong location feedback
-                // Calculate distance/direction text?
                 showToast("Nothing here...", 1000);
             }
-
         }
     }
-
-
 }

@@ -1,3 +1,8 @@
+import {
+    HEARTBEAT_MIN_INTERVAL, HEARTBEAT_MAX_INTERVAL, MAX_CLANK,
+    HEARTBEAT_MIN_VOLUME, HEARTBEAT_MAX_VOLUME
+} from '../data/config.js';
+
 // --- AUDIO ENGINE ---
 let audioCtx = null;
 
@@ -154,6 +159,44 @@ export function playScaryDing() {
         gain.connect(audioCtx.destination);
         osc.start(now);
         osc.stop(now + 1.5);
+    });
+}
+
+export function playGameOverSequence() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    // A descending, dissonant tritone/minor pattern indicating failure
+    // Notes: C4 -> F#3 -> C3 -> G2 (Low rumbles)
+    const notes = [
+        { freq: 261.63, time: 0, dur: 0.4 }, // C4
+        { freq: 185.00, time: 0.3, dur: 0.4 }, // F#3 (Tritone down)
+        { freq: 130.81, time: 0.6, dur: 0.6 }, // C3
+        { freq: 98.00, time: 1.0, dur: 1.5 }   // G2 (Low final note)
+    ];
+
+    notes.forEach(n => {
+        const startTime = now + n.time;
+
+        // 1. Oscillator (Sawtooth for harshness, mixed with Sine for depth)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = n.time > 0.8 ? 'triangle' : 'sawtooth'; // Soften the final note slightly
+        osc.frequency.setValueAtTime(n.freq, startTime);
+        // Pitch drift down (sagging pitch = dying)
+        osc.frequency.linearRampToValueAtTime(n.freq * 0.9, startTime + n.dur);
+
+        // 2. Envelope
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + n.dur);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + n.dur);
     });
 }
 
@@ -320,22 +363,19 @@ export function startHeartbeatSystem(getClankLevel) {
 
     const beat = () => {
         initAudio();
-        // Play thump
-        playHeartbeat();
+        const clank = getClankLevel();
+        const ratio = Math.min(clank, MAX_CLANK) / MAX_CLANK; // 0.0 to 1.0
 
         // Calculate next interval based on Clank
         // Higher Clank = Faster Heartbeat (Smaller Interval)
-        const clank = getClankLevel();
-        const maxClank = 100; // Cap
-        const ratio = Math.min(clank, maxClank) / maxClank; // 0.0 to 1.0
+        const nextInterval = HEARTBEAT_MAX_INTERVAL - (ratio * (HEARTBEAT_MAX_INTERVAL - HEARTBEAT_MIN_INTERVAL));
 
-        // Map 0 -> 1200ms, 100 -> 400ms
-        // Linear Interpolation: Min + (Max - Min) * (1 - ratio)
-        // No wait, fast is small interval.
-        // Interval = MAX_INTERVAL - (ratio * (MAX_INTERVAL - MIN_INTERVAL))
-        const minInterval = 400;
-        const maxInterval = 1200;
-        const nextInterval = maxInterval - (ratio * (maxInterval - minInterval));
+        // Calculate Volume based on Clank
+        // Higher Clank = Louder
+        const volume = HEARTBEAT_MIN_VOLUME + (ratio * (HEARTBEAT_MAX_VOLUME - HEARTBEAT_MIN_VOLUME));
+
+        // Play thump
+        playHeartbeat(volume);
 
         heartbeatTimer = setTimeout(beat, nextInterval);
     };
@@ -350,7 +390,7 @@ export function stopHeartbeatSystem() {
     }
 }
 
-function playHeartbeat() {
+function playHeartbeat(volume = 0.3) {
     const now = audioCtx.currentTime;
 
     // Helper for a single heart syllable
@@ -387,11 +427,11 @@ function playHeartbeat() {
     };
 
     // "Dub" - Slightly higher/sharper, first beat
-    playThud(now, 130, 80, 0.2);
+    playThud(now, 130, 80, volume * 0.7);
 
     // "Lub" - Lower, second beat
     // 150ms delay
-    playThud(now + 0.12, 90, 60, 0.3);
+    playThud(now + 0.12, 90, 60, volume);
 }
 
 // ============================================

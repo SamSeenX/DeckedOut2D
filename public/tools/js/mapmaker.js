@@ -1,6 +1,6 @@
 // js/mapmaker.js - Map Editor for Decked Out 2D
-import { BLOCK_DEFS, DEFAULT_BLOCK } from '../../public/js/data/tiles.js';
-import { loadBlockTextures, getBlockTexture, getBlockVariants, getNextVariant } from '../../public/js/world/tiles.js';
+import { BLOCK_DEFS, DEFAULT_BLOCK } from '/js/data/tiles.js';
+import { loadBlockTextures, getBlockTexture, getBlockVariants, getNextVariant } from '/js/world/tiles.js';
 
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');

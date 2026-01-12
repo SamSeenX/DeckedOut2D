@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artifact Preview Tool</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            background-color: #111;
+            color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 300px;
+            background-color: #222;
+            border-right: 1px solid #444;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        #preview-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #000, #1a1a1a);
+            position: relative;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #ffcc00;
+        }
+
+        .artifact-list-item {
+            padding: 10px;
+            background: #333;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .artifact-list-item:hover {
+            background: #444;
+            border-color: #666;
+        }
+
+        .artifact-list-item.active {
+            background: #442200;
+            border-color: #ffcc00;
+        }
+
+        .list-icon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .list-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .list-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Mocking the Victory Overlay structure for accurate preview */
+        #mock-overlay {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            /* Simulate the game look */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <h2>Artifacts</h2>
+        <div id="artifact-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <div id="preview-area">
+        <div id="mock-overlay">
+            <div id="victory-card">
+                <div class="card-header">
+                    <h1 class="victory-title">VICTORY OVERCOME</h1>
+                    <div id="victory-icon-container">
+                        <span id="victory-artifact-icon">🏆</span>
+                    </div>
+                    <h2 id="victory-artifact-name">Artifact Name</h2>
+                </div>
+
+                <div class="card-body">
+                    <p id="victory-artifact-desc">Description of the artifact goes here.</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">Value</span>
+                            <span class="stat-value" id="victory-value">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Collected</span>
+                            <span class="stat-value" id="victory-embers">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Time</span>
+                            <span class="stat-value" id="victory-duration">0m 0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="primary-btn">📸 PREVIEW CARD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ARTIFACTS } from '../js/data/artifacts.js';
+
+        const listContainer = document.getElementById('artifact-list');
+        const iconEl = document.getElementById('victory-artifact-icon');
+        const nameEl = document.getElementById('victory-artifact-name');
+        const descEl = document.getElementById('victory-artifact-desc');
+        const valueEl = document.getElementById('victory-value');
+        const embersEl = document.getElementById('victory-embers');
+
+        // Mock data
+        const MOCK_EMBERS = 12;
+        embersEl.textContent = MOCK_EMBERS;
+
+        function renderList() {
+            listContainer.innerHTML = '';
+            ARTIFACTS.forEach(art => {
+                const item = document.createElement('div');
+                item.className = 'artifact-list-item';
+                item.onclick = () => selectArtifact(art, item);
+
+                let iconDisplay = art.icon;
+                if (art.icon.trim().startsWith('<svg')) {
+                    // It's SVG
+                    iconDisplay = art.icon; // Render straight into div?
+                }
+
+                // Truncate name if too long
+                item.innerHTML = `
+                    <div class="list-icon">${art.icon.startsWith('<svg') ? '<span style="font-size:10px">SVG</span>' : art.icon}</div>
+                    <div class="list-name">${art.name}</div>
+                `;
+
+                if (art.icon.startsWith('<svg')) {
+                    item.querySelector('.list-icon').innerHTML = art.icon;
+                }
+
+                listContainer.appendChild(item);
+            });
+        }
+
+        function selectArtifact(art, itemEl) {
+            // Highlight list item
+            document.querySelectorAll('.artifact-list-item').forEach(el => el.classList.remove('active'));
+            itemEl.classList.add('active');
+
+            // Update Card
+            nameEl.textContent = art.name;
+            descEl.textContent = art.description;
+            valueEl.textContent = art.value;
+
+            if (art.icon.trim().startsWith('<svg')) {
+                iconEl.innerHTML = art.icon;
+            } else {
+                iconEl.textContent = art.icon;
+            }
+        }
+
+        // Initialize
+        renderList();
+        if (ARTIFACTS.length > 0) {
+            selectArtifact(ARTIFACTS[0], listContainer.children[0]);
+        }
+    </script>
+</body>
+
+</html>

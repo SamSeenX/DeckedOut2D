@@ -45,20 +45,44 @@
             <div class="start-subtext">Click to Retry</div>
         </div>
 
+        <!-- Victory Overlay -->
         <div id="victory-overlay" class="hidden">
-            <div class="start-text">VICTORY!</div>
-            <div id="victory-card">
-                <div id="victory-artifact-icon">👑</div>
-                <h2 id="victory-artifact-name">Crown of Souls</h2>
-                <p id="victory-artifact-desc">A jagged iron crown...</p>
-                <div class="victory-stats">
-                    <div class="stat-row">
-                        <span>🔥 Embers Collected:</span>
-                        <strong id="victory-embers">0</strong>
+            <div id="victory-container">
+                <h1 class="victory-title">VICTORY OVERCOME</h1>
+
+                <div id="victory-card">
+                    <div class="card-header">
+                        <div id="victory-icon-container">
+                            <div id="victory-artifact-icon">👑</div>
+                        </div>
+                        <h2 id="victory-artifact-name">Crown of Souls</h2>
+                    </div>
+
+                    <div class="card-body">
+                        <p id="victory-artifact-desc">Loading lore...</p>
+
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">Value</span>
+                                <span class="stat-value" id="victory-value">???</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Collected</span>
+                                <span class="stat-value" id="victory-embers">0</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Time</span>
+                                <span class="stat-value" id="victory-duration">0m 0s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button id="victory-share-btn" class="primary-btn">📸 SAVE VICTORY CARD</button>
                     </div>
                 </div>
+                <div class="start-subtext" id="victory-continue">Click to Escape</div>
             </div>
-            <div class="start-subtext">Click to Escaping</div>
         </div>
 
         <!-- Cinematic Intro Layer -->
@@ -72,7 +96,9 @@
 
         <div id="ui-layer" class="hidden">
             <div id="top-bar">
-                <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
+                <div class="hud-item hud-clank">
+                    CLANK: <div id="clank-meter-container"></div>
+                </div>
                 <div class="hud-item hud-hp">
                     <div id="hp-container"></div>
                 </div>

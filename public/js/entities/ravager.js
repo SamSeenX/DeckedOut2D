@@ -214,14 +214,46 @@ export class Ravager extends Enemy {
             this.vy += dirY * this.accel * speedMult;
         }
 
-        // Friction
-        let centerBlockId = map[Math.floor(this.y)][Math.floor(this.x)];
-        let centerBlock = BLOCK_DEFS[centerBlockId] || DEFAULT_BLOCK;
-        // Use slideFactor for consistent physics, consistent with player
-        let slideFactor = centerBlock.slideFactor || 0.80;
+        // Friction / Terrain Check
+        // Check ALL tiles the Ravager's hitbox (radius 0.4 approx) is touching
+        // If ANY is mud/slow, apply the slow factor. Priority to the slowest block.
+        const radius = 0.4;
+        const startX = Math.floor(this.x - radius);
+        const endX = Math.floor(this.x + radius);
+        const startY = Math.floor(this.y - radius);
+        const endY = Math.floor(this.y + radius);
 
-        this.vx *= slideFactor;
-        this.vy *= slideFactor;
+        let minSlideFactor = 1.0;
+        let touchedTiles = false;
+
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) continue;
+
+                let cell = map[y][x];
+                let id = (typeof cell === 'object') ? (cell.id || 0) : cell;
+                let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
+
+                // If block has a specific slideFactor, consider it
+                // Default block slideFactor is usually around 0.8 / 0.85
+                // Ice is 0.98, Mud is 0.4
+                // We want the LOWEST slideFactor to win (strongest slow)
+
+                let sf = (block.slideFactor !== undefined) ? block.slideFactor : 0.80;
+
+                if (!touchedTiles) {
+                    minSlideFactor = sf;
+                    touchedTiles = true;
+                } else {
+                    minSlideFactor = Math.min(minSlideFactor, sf);
+                }
+            }
+        }
+
+        if (!touchedTiles) minSlideFactor = 0.80; // Default if in void?
+
+        this.vx *= minSlideFactor;
+        this.vy *= minSlideFactor;
 
         // Velocity Clamping
         let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);

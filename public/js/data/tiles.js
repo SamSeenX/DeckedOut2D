@@ -7,8 +7,14 @@ export const BLOCK_DEFS = {
         "solid": false,
         "slideFactor": 0.8,
         "sheetIndex": [
-            [0, 0],
-            [1, 1]
+            [
+                6,
+                6
+            ],
+            [
+                7,
+                7
+            ]
         ]
     },
     "1": {
@@ -16,10 +22,22 @@ export const BLOCK_DEFS = {
         "color": "#9dc8cda5",
         "solid": true,
         "sheetIndex": [
-            [2, 1],
-            [3, 1],
-            [2, 0],
-            [3, 0]
+            [
+                2,
+                1
+            ],
+            [
+                3,
+                1
+            ],
+            [
+                2,
+                0
+            ],
+            [
+                3,
+                0
+            ]
         ]
     },
     "2": {
@@ -28,10 +46,22 @@ export const BLOCK_DEFS = {
         "solid": false,
         "slideFactor": 0.96,
         "sheetIndex": [
-            [4, 0],
-            [5, 0],
-            [5, 1],
-            [4, 1]
+            [
+                4,
+                0
+            ],
+            [
+                5,
+                0
+            ],
+            [
+                5,
+                1
+            ],
+            [
+                4,
+                1
+            ]
         ]
     },
     "4": {
@@ -39,8 +69,14 @@ export const BLOCK_DEFS = {
         "color": "#666",
         "solid": true,
         "sheetIndex": [
-            [0, 1],
-            [1, 0]
+            [
+                0,
+                1
+            ],
+            [
+                1,
+                0
+            ]
         ]
     },
     "5": {
@@ -48,10 +84,22 @@ export const BLOCK_DEFS = {
         "color": "#444",
         "solid": true,
         "sheetIndex": [
-            [0, 2],
-            [1, 3],
-            [1, 2],
-            [0, 3]
+            [
+                0,
+                2
+            ],
+            [
+                1,
+                3
+            ],
+            [
+                1,
+                2
+            ],
+            [
+                0,
+                3
+            ]
         ]
     },
     "6": {
@@ -61,10 +109,22 @@ export const BLOCK_DEFS = {
         "enemyBlocked": true,
         "slideFactor": 0.8,
         "sheetIndex": [
-            [7, 2],
-            [6, 2],
-            [6, 3],
-            [7, 3]
+            [
+                7,
+                2
+            ],
+            [
+                6,
+                2
+            ],
+            [
+                6,
+                3
+            ],
+            [
+                7,
+                3
+            ]
         ]
     },
     "7": {
@@ -72,14 +132,20 @@ export const BLOCK_DEFS = {
         "color": "#343",
         "solid": false,
         "slideFactor": 0.7,
-        "sheetIndex": [1, 6]
+        "sheetIndex": [
+            1,
+            6
+        ]
     },
     "8": {
         "name": "Berry",
         "color": "#f0f",
         "solid": false,
         "slideFactor": 0.7,
-        "sheetIndex": [0, 6]
+        "sheetIndex": [
+            0,
+            6
+        ]
     },
     "9": {
         "name": "Lava",
@@ -88,10 +154,22 @@ export const BLOCK_DEFS = {
         "damage": 1,
         "slideFactor": 0.8,
         "sheetIndex": [
-            [4, 4],
-            [5, 4],
-            [5, 5],
-            [4, 5]
+            [
+                4,
+                4
+            ],
+            [
+                5,
+                4
+            ],
+            [
+                5,
+                5
+            ],
+            [
+                4,
+                5
+            ]
         ]
     },
     "11": {
@@ -99,10 +177,22 @@ export const BLOCK_DEFS = {
         "color": "#111",
         "solid": true,
         "sheetIndex": [
-            [1, 5],
-            [0, 4],
-            [1, 4],
-            [0, 5]
+            [
+                1,
+                5
+            ],
+            [
+                0,
+                4
+            ],
+            [
+                1,
+                4
+            ],
+            [
+                0,
+                5
+            ]
         ]
     },
     "12": {
@@ -112,10 +202,22 @@ export const BLOCK_DEFS = {
         "slideFactor": 0.4,
         "z": -1,
         "sheetIndex": [
-            [3, 2],
-            [2, 2],
-            [2, 3],
-            [3, 3]
+            [
+                3,
+                2
+            ],
+            [
+                2,
+                2
+            ],
+            [
+                2,
+                3
+            ],
+            [
+                3,
+                3
+            ]
         ]
     },
     "13": {
@@ -125,10 +227,22 @@ export const BLOCK_DEFS = {
         "slideFactor": 0.6,
         "z": -1,
         "sheetIndex": [
-            [4, 2],
-            [4, 3],
-            [5, 3],
-            [5, 2]
+            [
+                4,
+                2
+            ],
+            [
+                4,
+                3
+            ],
+            [
+                5,
+                3
+            ],
+            [
+                5,
+                2
+            ]
         ]
     },
     "99": {
@@ -136,7 +250,10 @@ export const BLOCK_DEFS = {
         "color": "#000000",
         "solid": false,
         "slideFactor": 0.8,
-        "sheetIndex": [3, 11]
+        "sheetIndex": [
+            3,
+            11
+        ]
     }
 };
 

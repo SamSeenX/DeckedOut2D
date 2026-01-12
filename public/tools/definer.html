@@ -195,6 +195,7 @@
         <div class="sidebar-header">
             <button class="action-btn" id="add-btn">+ New Block</button>
             <button class="action-btn secondary" id="copy-btn">Copy JSON</button>
+            <button class="action-btn secondary" id="load-btn" style="background: #0288d1;">Load JSON</button>
         </div>
         <div class="block-list" id="block-list">
             <!-- Items injected here -->
@@ -287,7 +288,7 @@
 
     <!-- SCRIPT -->
     <script type="module">
-        import { BLOCK_DEFS } from '../public/js/data/tiles.js';
+        import { BLOCK_DEFS } from '/js/data/tiles.js';
 
         // --- State ---
         let currentDefs = JSON.parse(JSON.stringify(BLOCK_DEFS)); // Deep copy to edit
@@ -317,7 +318,7 @@
 
         // Load Sprite Sheet
         const spriteImage = new Image();
-        spriteImage.src = '../public/assets/sprits/tiles.webp';
+        spriteImage.src = '/assets/sprites/tiles.webp';
         spriteImage.onload = () => {
             sheetCanvas.width = spriteImage.width;
             sheetCanvas.height = spriteImage.height;
@@ -581,6 +582,30 @@
             const finalString = `export const BLOCK_DEFS = ${JSON.stringify(currentDefs, null, 4)};`;
             navigator.clipboard.writeText(finalString);
             alert('Full BLOCK_DEFS object copied to clipboard!');
+        };
+
+        // Load JSON
+        document.getElementById('load-btn').onclick = () => {
+            const input = prompt("Paste your BLOCK_DEFS JSON object (just the object part, without 'export const...'):");
+            if (input) {
+                try {
+                    // Try to parse pure JSON first
+                    let cleaned = input.trim();
+                    // If user pasted 'export const BLOCK_DEFS = { ... };', strip it
+                    if (cleaned.startsWith('export const BLOCK_DEFS =')) {
+                        cleaned = cleaned.replace('export const BLOCK_DEFS =', '').replace(/;$/, '');
+                    }
+                    currentDefs = JSON.parse(cleaned);
+                    selectedId = null;
+                    editorForm.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    renderList();
+                    alert("Definitions loaded successfully!");
+                } catch (e) {
+                    console.error(e);
+                    alert("Failed to parse JSON. Check console for error.");
+                }
+            }
         };
 
         // Initial Render

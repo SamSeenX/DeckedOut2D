@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decked Out 2D by SamSeen</title>
     <link rel="icon" href="/assets/favicon.png">
-  <script type="module" crossorigin src="/js/index-D4T8zSf_.js"></script>
-  <link rel="stylesheet" crossorigin href="/css/index-BezzYQUd.css">
+  <script type="module" crossorigin src="/js/index-BU2lgdeP.js"></script>
+  <link rel="stylesheet" crossorigin href="/css/index-Cht62Wmw.css">
 </head>
 
 <body>
@@ -68,7 +68,9 @@
 
         <div id="ui-layer" class="hidden">
             <div id="top-bar">
-                <div class="hud-item">CLANK: <span id="clank-display">0</span></div>
+                <div class="hud-item hud-clank">
+                    CLANK: <div id="clank-meter-container"></div>
+                </div>
                 <div class="hud-item hud-hp">
                     <div id="hp-container"></div>
                 </div>
@@ -309,7 +311,18 @@
                 article.classList.add('minimized');
             }
         }
+
+        // Close article on Enter key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const content = document.getElementById('article-content');
+                if (!content.classList.contains('collapsed')) {
+                    toggleArticle();
+                }
+            }
+        });
     </script>
+
 </body>
 
 </html>
