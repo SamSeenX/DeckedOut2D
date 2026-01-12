@@ -108,10 +108,8 @@
         }
 
         .scroll-down {
-            position: absolute;
-            bottom: 30px;
-            color: #aaa;
-            animation: bounce 2s infinite;
+            display: none;
+            /* Hidden - was causing visual issues */
         }
 
         @keyframes bounce {
@@ -135,8 +133,7 @@
 
         /* Adjust article for landing page layout */
         .landing-article {
-            margin-top: -50px;
-            /* Overlap hero slightly */
+            margin-top: 0;
             position: relative;
             z-index: 10;
         }
