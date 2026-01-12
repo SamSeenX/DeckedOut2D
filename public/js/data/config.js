@@ -10,7 +10,7 @@ export const PLAYER_RADIUS = 0.3;
 export const PLAYER_MAX_HP = 10;
 export const PLAYER_JUMP_VELOCITY = 4;
 export const PLAYER_EAT_COOLDOWN = 500; // ms
-export const PLAYER_EAT_HEAL_AMOUNT = 2;
+export const PLAYER_EAT_HEAL_AMOUNT = 1;
 export const PLAYER_CHECK_COOLDOWN = 1000; // ms
 export const PLAYER_ANIMATION_SPEED = 10; // Ticks per frame
 
@@ -61,6 +61,9 @@ export const HEARTBEAT_MAX_INTERVAL = 1200; // ms (Slowest) - Low Clank
 export const MAX_CLANK = 100; // Assumed max for scaling heartbeat
 export const HAZARD_DAMAGE_CHANCE = 0.05;
 export const ARTIFACT_CLANK_PENALTY = 20;
+
+export const COMPASS_UPDATE_INTERVAL = 100; // ms
+export const COMPASS_ROTATION_STEP = 30; // degrees
 
 // === Entities ===
 // Projectiles

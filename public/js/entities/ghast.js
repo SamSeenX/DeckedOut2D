@@ -3,6 +3,7 @@ import { Projectile } from './projectile.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { GHAST_SPEED, GHAST_DETECTION_RANGE, GHAST_ATTACK_COOLDOWN } from '../data/config.js';
+import { SPRITES } from '../data/assets.js';
 
 const STATES = {
     IDLE: 'IDLE',
@@ -13,17 +14,16 @@ const DETECTION_RANGE = GHAST_DETECTION_RANGE;
 const ATTACK_COOLDOWN = GHAST_ATTACK_COOLDOWN;
 const FLOAT_SPEED = GHAST_SPEED;
 
-const GHAST_SPRITE_SRC = 'assets/sprits/gast.webp';
 const SPRITE_IMAGE = new Image();
-SPRITE_IMAGE.src = GHAST_SPRITE_SRC;
+SPRITE_IMAGE.src = SPRITES.ghast;
 
-const ANIMAGES_FPS = 4;
-const ANIM_FRAME_TIME = 1000 / ANIMAGES_FPS;
+
 
 const ANIMATIONS = {
     walk_down: {
         rows: [0],
         frames: 4,
+        fps: 4,          // Animation speed for this action
         width: 128,
         height: 128,
         scaleW: 1.5,
@@ -32,6 +32,7 @@ const ANIMATIONS = {
     walk_up: {
         rows: [1],
         frames: 4,
+        fps: 4,
         width: 128,
         height: 128,
         scaleW: 1.5,
@@ -40,6 +41,7 @@ const ANIMATIONS = {
     walk_right: {
         rows: [2],
         frames: 4,
+        fps: 4,
         width: 128,
         height: 128,
         scaleW: 1.5,
@@ -161,10 +163,13 @@ export class Ghast extends Enemy {
     }
 
     updateAnimation(timeNow) {
+        const currentAnimData = this.animations[this.anim];
+        const targetFPS = currentAnimData.fps || 4;
+        const frameTime = 1000 / targetFPS;
+
         // Cycle Frames
-        if (timeNow - this.animTimer > ANIM_FRAME_TIME) {
+        if (timeNow - this.animTimer > frameTime) {
             this.frame++;
-            const currentAnimData = this.animations[this.anim];
             if (currentAnimData && this.frame >= currentAnimData.frames) {
                 this.frame = 0;
             }

@@ -1,4 +1,5 @@
 import { SHEET_TILE_SIZE, BLOCK_DEFS, DEFAULT_BLOCK } from '../data/tiles.js';
+import { SPRITES } from '../data/assets.js';
 
 export { SHEET_TILE_SIZE, BLOCK_DEFS, DEFAULT_BLOCK };
 
@@ -9,16 +10,15 @@ let texturesLoaded = false;
 export function loadBlockTextures(callback, basePath = '') {
     tileSheet.onload = () => {
         texturesLoaded = true;
-        console.log("Sprite sheet loaded.");
+        // console.log("Sprite sheet loaded.");
         if (callback) callback();
     };
     tileSheet.onerror = () => {
         console.error("Failed to load sprite sheet.");
         if (callback) callback();
     };
-    // Correct path considering the public folder structure used in game
-    // basePath allows tools in other folders (like ../tools) to resolve assets correctly
-    tileSheet.src = (basePath ? basePath + '/' : '') + 'assets/sprits/tiles.webp';
+    // Use centralized path, with optional basePath override for tools
+    tileSheet.src = (basePath ? basePath + '/' : '') + SPRITES.tiles;
 }
 
 // Get render info for a block

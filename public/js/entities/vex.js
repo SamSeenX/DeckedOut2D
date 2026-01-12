@@ -2,6 +2,41 @@
 import { Enemy } from './enemy.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { VEX_ORBIT_SPEED, VEX_SWOOP_SPEED, VEX_SWOOP_COOLDOWN } from '../data/config.js';
+import { SPRITES } from '../data/assets.js';
+
+const SPRITE_IMAGE = new Image();
+SPRITE_IMAGE.src = SPRITES.vex;
+
+// Standardized Animation Config (matches Ravager format)
+const ANIMATIONS = {
+    fly_right: {
+        rows: [0],       // Row 1 - Flying right (flip for left)
+        frames: 4,       // 4 frames per row
+        fps: 8,          // Animation speed for this action
+        width: 128,      // Frame width in pixels
+        height: 128,     // Frame height in pixels
+        scaleW: 1.2,     // Width multiplier of TILE_SIZE
+        scaleH: 1.2,     // Height multiplier of TILE_SIZE
+    },
+    fly_away: {
+        rows: [1],       // Row 2 - Flying away/up
+        frames: 4,
+        fps: 8,
+        width: 128,
+        height: 128,
+        scaleW: 1.5,
+        scaleH: 1.5,
+    },
+    attack_right: {
+        rows: [2],       // Row 3 - Attack (flip for left)
+        frames: 4,
+        fps: 12,         // Faster during attack
+        width: 128,
+        height: 128,
+        scaleW: 1.4,     // Slightly larger during attack
+        scaleH: 1.4,
+    }
+};
 
 const STATES = {
     ORBIT: 'ORBIT',
@@ -10,7 +45,7 @@ const STATES = {
 };
 
 const ORBIT_DIST = 2.5;
-const ORBIT_SPEED = VEX_ORBIT_SPEED; // Angular speed
+const ORBIT_SPEED = VEX_ORBIT_SPEED;
 const SWOOP_SPEED = VEX_SWOOP_SPEED;
 const SWOOP_COOLDOWN = VEX_SWOOP_COOLDOWN;
 
@@ -22,8 +57,8 @@ export class Vex extends Enemy {
         super(playerX + Math.cos(angle) * dist, playerY + Math.sin(angle) * dist);
 
         this.type = 'vex';
-        this.radius = 0.2; // Small
-        this.color = '#aaddff'; // Light blue
+        this.radius = 0.3;
+        this.color = '#aaddff'; // Fallback color
 
         this.hp = 5;
         this.state = STATES.ORBIT;
@@ -31,11 +66,27 @@ export class Vex extends Enemy {
         this.lastSwoopTime = 0;
 
         this.swoopTarget = { x: 0, y: 0 };
+
+        // Standardized Animation State (matches Ravager)
+        this.sprite = SPRITE_IMAGE;
+        this.animations = ANIMATIONS;
+        this.anim = 'fly_right';
+        this.frame = 0;
+        this.animTimer = 0;
+        this.facing = 1; // 1 = Right, -1 = Left
     }
 
     update(player, map, timeNow) {
+        // Determine facing based on relative position to player
+        if (player.x > this.x) {
+            this.facing = 1; // Face right
+        } else {
+            this.facing = -1; // Face left
+        }
+
         switch (this.state) {
             case STATES.ORBIT:
+                this.anim = 'fly_right';
                 this.orbitAngle += ORBIT_SPEED;
 
                 // Calculate desired orbit position
@@ -48,17 +99,17 @@ export class Vex extends Enemy {
 
                 // Check for swoop
                 if (timeNow - this.lastSwoopTime > SWOOP_COOLDOWN) {
-                    // Check Line of Sight before swooping
                     if (checkLineOfSight(this.x, this.y, player.x, player.y)) {
                         this.state = STATES.SWOOP;
                         this.swoopTarget = { x: player.x, y: player.y };
                         this.lastSwoopTime = timeNow;
-                        this.color = '#fff'; // Bright flash
                     }
                 }
                 break;
 
             case STATES.SWOOP:
+                this.anim = 'attack_right';
+
                 // Fly fast towards target
                 let dx = this.swoopTarget.x - this.x;
                 let dy = this.swoopTarget.y - this.y;
@@ -70,32 +121,56 @@ export class Vex extends Enemy {
                     this.y += (dy / distToTarget) * SWOOP_SPEED;
                 }
 
-                // Check Player Collision (Continuous)
+                // Check Player Collision
                 let distToPlayer = Math.sqrt((player.x - this.x) ** 2 + (player.y - this.y) ** 2);
-                if (distToPlayer < this.radius + 0.3) { // 0.2 + 0.3 = 0.5 contact
-                    // Hit!
+
+                // Debug Collision Registration
+                if (distToPlayer < this.radius + 0.3 && player.activeCollisions) {
+                    player.activeCollisions.push({ type: 'entity', x: this.x, y: this.y, radius: this.radius, color: 'rgba(255, 0, 255, 0.6)' });
+                }
+
+                if (distToPlayer < this.radius + 0.3) {
                     player.takeDamage(1);
                     this.hp -= 1;
                     this.state = STATES.RECOVER;
                     this.lastSwoopTime = timeNow;
-                    return; // Done
+                    return;
                 }
 
-                // Check if we reached target (Missed player)
+                // Missed player
                 if (distToTarget <= 0.2) {
-                    this.hp -= 1; // Vex takes damage from effort
+                    this.hp -= 1;
                     this.state = STATES.RECOVER;
                     this.lastSwoopTime = timeNow;
                 }
                 break;
 
             case STATES.RECOVER:
-                // Pause briefly before orbiting again
+                this.anim = 'fly_away';
+
                 if (timeNow - this.lastSwoopTime > 1000) {
                     this.state = STATES.ORBIT;
-                    this.color = '#aaddff';
                 }
                 break;
         }
+
+        this.updateAnimation(timeNow);
     }
+
+    updateAnimation(timeNow) {
+        const currentAnimData = ANIMATIONS[this.anim];
+        const targetFPS = currentAnimData.fps || 8;
+        const frameTime = 1000 / targetFPS;
+
+        // Cycle Frames
+        if (timeNow - this.animTimer > frameTime) {
+            this.frame++;
+            if (this.frame >= currentAnimData.frames) {
+                this.frame = 0;
+            }
+            this.animTimer = timeNow;
+        }
+    }
+
+    // Uses base Enemy.draw() which supports standardized animation system
 }

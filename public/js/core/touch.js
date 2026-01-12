@@ -51,8 +51,8 @@ export function initTouchControls() {
         }
     }
 
-    // Detect Mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+    // Detect Mobile (User Agent Only - no width check)
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Load saved preference?
     const saved = localStorage.getItem('deckedout_touch_enabled');

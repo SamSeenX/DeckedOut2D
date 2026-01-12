@@ -9,12 +9,17 @@
     <link rel="stylesheet" href="css/toast.css">
     <link rel="stylesheet" href="css/touch.css">
     <link rel="stylesheet" href="css/mobile.css">
-    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="css/ui.css">
+    <link rel="stylesheet" href="css/article.css">
+    <link rel="icon" href="assets/favicon.png">
 </head>
 
 <body>
 
     <div id="game-container">
+
+        <!-- Fullscreen Toggle -->
+        <button id="fullscreen-btn" title="Toggle Fullscreen" tabindex="-1">⛶</button>
 
         <!-- Orientation Warning Overlay -->
         <div id="rotate-warning" class="hidden">
@@ -56,7 +61,7 @@
             <div class="start-subtext">Click to Escaping</div>
         </div>
 
-        <!-- NEW: Cinematic Intro Layer -->
+        <!-- Cinematic Intro Layer -->
         <div id="cinematic-overlay" class="hidden">
             <canvas id="intro-particles"></canvas>
             <div id="door-container">
@@ -98,7 +103,7 @@
             </div>
         </div>
 
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
 
         <!-- Touch Controls -->
         <div id="touch-controls" class="hidden">
@@ -130,7 +135,197 @@
         </div>
     </div>
 
+    <!-- SEO Article Section -->
+    <article id="game-info" class="game-article">
+        <header class="article-header" onclick="toggleArticle()">
+            <h1>Decked Out 2D – Free Browser Dungeon Crawler Game</h1>
+            <button id="collapse-btn" aria-label="Toggle article visibility">X</button>
+        </header>
+
+        <div id="article-content" class="article-body">
+            <section>
+                <h2>About Decked Out 2D</h2>
+                <p><strong>Decked Out 2D</strong> is a free-to-play browser-based dungeon crawler game inspired by the
+                    popular Hermitcraft season 9 minigame "Decked Out 2" created by Mr. Tango Tek. Navigate through
+                    dark,
+                    treacherous
+                    dungeons, avoid deadly monsters, collect valuable artifacts, and escape before your clank meter
+                    attracts too many enemies!</p>
+                <p>This 2D adaptation brings the thrilling stealth-action gameplay to your browser with no downloads
+                    required. Experience the tension of sneaking through dungeons, the excitement of finding rare
+                    artifacts, and the panic of being chased by relentless creatures.</p>
+            </section>
+
+            <section>
+                <h2>How to Play – Game Controls</h2>
+                <p>Master these controls to survive the dungeon:</p>
+                <ul class="controls-list">
+                    <li><strong>WASD / Arrow Keys</strong> – Move your character through the dungeon</li>
+                    <li><strong>SHIFT (Hold)</strong> – Sneak mode for silent movement (reduces clank)</li>
+                    <li><strong>SPACEBAR</strong> – Jump over obstacles and gaps</li>
+                    <li><strong>F Key</strong> – Harvest berries from bushes or eat from inventory</li>
+                    <li><strong>E Key</strong> – Search for artifacts at marked locations</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Game Features</h2>
+                <ul>
+                    <li>🏃 <strong>Stealth Gameplay</strong> – Your movements create "clank" that attracts enemies</li>
+                    <li>👹 <strong>Dangerous Enemies</strong> – Ravagers patrol corridors, Ghasts shoot fireballs, and
+                        Vexes spawn when clank is high</li>
+                    <li>🔥 <strong>Ember Collection</strong> – Gather embers scattered throughout the dungeon for points
+                    </li>
+                    <li>🍒 <strong>Survival Mechanics</strong> – Find and eat berries to restore health</li>
+                    <li>🧭 <strong>Compass Navigation</strong> – Follow your compass to locate artifacts and exits</li>
+                    <li>👑 <strong>Rare Artifacts</strong> – Discover unique treasures with different values</li>
+                    <li>📱 <strong>Mobile Friendly</strong> – Touch controls available for mobile devices</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Tips for Beginners</h2>
+                <ol>
+                    <li><strong>Sneak Often</strong> – Hold SHIFT when moving to reduce clank and avoid detection</li>
+                    <li><strong>Watch Your Clank</strong> – Keep the clank meter low to prevent Vex spawns</li>
+                    <li><strong>Collect Berries</strong> – Stock up on food before venturing deep into the dungeon</li>
+                    <li><strong>Use the Compass</strong> – The red needle points toward your objective</li>
+                    <li><strong>Time Your Jumps</strong> – Use SPACEBAR to hop over hazards and climb elevated terrain
+                    </li>
+                    <li><strong>Find the Exit</strong> – After grabbing an artifact, follow your compass to escape!</li>
+                </ol>
+            </section>
+
+            <section class="roadmap-section">
+                <h2>🗺️ Roadmap & Upcoming Features</h2>
+                <p>Decked Out 2D is actively being developed with exciting new features planned! Unlike survival
+                    Minecraft, we're not limited to existing mechanics – we can expand in new directions:</p>
+
+                <div class="roadmap-grid">
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">🃏</span>
+                        <h3>Player Decks</h3>
+                        <p>Build and customize your deck with unique cards that grant abilities, buffs, and special
+                            powers during runs.</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">🏆</span>
+                        <h3>Global Leaderboard</h3>
+                        <p>Compete with players worldwide! Track your best runs, ember counts, and speedrun times.</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">🗺️</span>
+                        <h3>More Maps & Dungeons</h3>
+                        <p>Explore new themed dungeons with unique layouts, traps, and challenges beyond the original
+                            crypt.</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">👾</span>
+                        <h3>New Enemy Types</h3>
+                        <p>Face off against new creatures with unique behaviors, attack patterns, and weaknesses to
+                            exploit.</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">⚔️</span>
+                        <h3>Combat Mechanics</h3>
+                        <p>Fight back! New weapons and abilities to defend yourself against the dungeon's horrors.</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
+                        <span class="roadmap-icon">🎭</span>
+                        <h3>Character Skins</h3>
+                        <p>Unlock and equip different character appearances as you progress and achieve milestones.</p>
+                    </div>
+                </div>
+
+                <div class="feedback-cta">
+                    <h3>💬 Your Feedback Shapes the Game!</h3>
+                    <p>I highly value community input! Have ideas for new features, mechanics, or improvements? Let us
+                        know!</p>
+                    <a href="https://www.youtube.com/@SamSeen" target="_blank" class="feedback-btn">
+                        <span>📺</span> Leave Feedback on YouTube
+                    </a>
+                    <p class="feedback-note">Drop a comment on our development video with your suggestions – every idea
+                        helps make Decked Out 2D better!</p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Frequently Asked Questions</h2>
+                <details>
+                    <summary>Is Decked Out 2D free to play?</summary>
+                    <p>Yes! Decked Out 2D is completely free to play in your browser with no downloads or accounts
+                        required.</p>
+                </details>
+                <details>
+                    <summary>Does the game work on mobile?</summary>
+                    <p>Yes, enable "Touch Controls" on the start screen to play on smartphones and tablets.</p>
+                </details>
+                <details>
+                    <summary>What is "clank" in the game?</summary>
+                    <p>Clank is a noise meter that increases when you run, jump, or move quickly. High clank attracts
+                        dangerous Vex enemies, so sneak to stay safe!</p>
+                </details>
+                <details>
+                    <summary>How do I win the game?</summary>
+                    <p>Find the hidden artifact by pressing E at marked locations, then escape through the exit before
+                        the monsters get you!</p>
+                </details>
+            </section>
+
+            <footer class="article-footer">
+                <div class="disclaimer">
+                    <p>⚠️ <strong>Developer's Note:</strong> Decked Out 2D is my debut indie web game, developed as
+                        a passion project in my spare time. While development may be gradual, I am fully dedicated to
+                        making this game as enjoyable as possible for everyone. Thank you for your patience and support!
+                        ☕️💙</p>
+                </div>
+                <p>Created by <strong><a href="https://www.buymeacoffee.com/samseen" target="_blank"
+                            alt="Buy Me a Coffee">SamSeen</a></strong> • Inspired by <strong><a
+                            href="https://www.youtube.com/@TangoTekLP">Mr. Tango Tek</a>'s</strong> Decked Out 2
+                    minigame
+                    from Hermitcraft Season 9
+                </p>
+                <p><em>Keep in touch to follow development updates!</em></p>
+            </footer>
+        </div>
+    </article>
+
     <script type="module" src="js/main.js"></script>
+
+    <script>
+        // Article Collapse Toggle
+        function toggleArticle() {
+            const content = document.getElementById('article-content');
+            const btn = document.getElementById('collapse-btn');
+            const article = document.getElementById('game-info');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                btn.textContent = '▲';
+                article.classList.remove('minimized');
+            } else {
+                content.classList.add('collapsed');
+                btn.textContent = '▼';
+                article.classList.add('minimized');
+            }
+        }
+
+        // Close article on Enter key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const content = document.getElementById('article-content');
+                if (!content.classList.contains('collapsed')) {
+                    toggleArticle();
+                }
+            }
+        });
+    </script>
+
 </body>
 
 </html>

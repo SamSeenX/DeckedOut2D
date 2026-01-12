@@ -8,19 +8,21 @@ import { checkWallCollision } from '../utils/collision.js';
 import { gameState } from '../core/state.js';
 import { updateUI, showToast, showVictory } from '../core/ui.js';
 
-import { spawnEmber, queueRegrowth } from '../core/game.js';
-import { playBingBing, playVictoryTone, playBerryCollect } from '../core/audio.js';
+import { spawnEmber, queueRegrowth, spawnBerry } from '../core/game.js';
+import { playBingBing, playVictoryTone, playBerryCollect, playEatBerry, playJson } from '../core/audio.js';
+import { SPRITES } from '../data/assets.js';
 
 const sprite = new Image();
-sprite.src = 'assets/sprits/player.webp';
+sprite.src = SPRITES.player;
 
 // Standardized Animation Config
 const ANIMATIONS = {
-    idle: { row: 0, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    idle: { row: 5, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
     walk_down: { row: 0, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
     walk_left: { row: 1, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
     walk_right: { row: 2, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
     walk_up: { row: 3, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
+    eat: { row: 4, frames: 3, width: 64, height: 92, scaleW: 1, scaleH: 1 * (92 / 64) },
 };
 
 export const player = {
@@ -36,6 +38,7 @@ export const player = {
     ticksPerFrame: PLAYER_ANIMATION_SPEED,
     anim: 'idle',
     lastDamageTime: 0,
+    activeCollisions: [], // Debug: Track what we are touching
 
     // Jump/Elevation State
     z: 0,
@@ -78,23 +81,13 @@ export const player = {
                 this.anim = (this.vx > 0) ? 'walk_right' : 'walk_left';
             }
         } else {
-            // If we want idle to face the last direction, we'd need to track it.
-            // But existing code just set frame to 1 (center) and didn't change row (direction). 
-            // Actually, old code: "this.direction" PERSISTED when not moving?
-            // "if (moving) ... direction = ..." 
-            // "else frameIndex = 1" -> it kept the old direction row!
-
-            // My logic sets anim = 'idle'. 
-            // To preserve "Idle in last direction", I need multiple idle states or logic override.
-            // For strict standardization, let's just stick to 'idle' -> row 0 (down) for now, 
-            // OR improve the logic to have idle_down, idle_up etc.
-
-            // To match previous behavior "frameIndex = 1" (Center frame) on the LAST direction row:
-            // I'll need 'lastAnim' or just don't reset anim to 'idle' but switch to 'idle_X'.
-
-            // Let's Keep it Simple: 'idle' maps to Down (row 0) as defined in ANIMATIONS above.
-            // User can improve later if they want directional idle.
-            this.anim = 'idle';
+            // Check if eating
+            const isEating = Date.now() - this.lastEatTime < 400; // Show eat animation for 400ms
+            if (isEating) {
+                this.anim = 'eat';
+            } else {
+                this.anim = 'idle';
+            }
         }
 
         // Cycle Frames
@@ -105,7 +98,12 @@ export const player = {
                 this.frameIndex++;
             }
         } else {
-            this.frameIndex = 1; // Idle frame (Middle)
+            // If idle, cycle checking as well (since we have idle anim now)
+            this.tickCount++;
+            if (this.tickCount > this.ticksPerFrame) {
+                this.tickCount = 0;
+                this.frameIndex++;
+            }
         }
 
         const animData = ANIMATIONS[this.anim];
@@ -170,6 +168,31 @@ export const player = {
             let drawX = (this.x - this.radius - camX) * tileSize;
             let drawY = (this.y - this.radius - camY) * tileSize;
             ctx.strokeRect(drawX, drawY, this.radius * 2 * tileSize, this.radius * 2 * tileSize);
+
+            // Draw Active Collisions (Tiles/Entities that hurt us this frame)
+            if (this.activeCollisions && this.activeCollisions.length > 0) {
+                this.activeCollisions.forEach(col => {
+                    ctx.fillStyle = col.color || 'rgba(255, 0, 0, 0.5)';
+
+                    if (col.type === 'tile') {
+                        let tx = (col.x - camX) * tileSize;
+                        let ty = (col.y - camY) * tileSize;
+                        ctx.fillRect(tx, ty, tileSize, tileSize);
+                        ctx.strokeStyle = "white";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(tx, ty, tileSize, tileSize);
+                    } else if (col.type === 'entity') {
+                        // Entity collision (radius based)
+                        // Assume col has x, y (center) and radius (or default 0.4)
+                        let r = col.radius || 0.5;
+                        let ex = (col.x - r - camX) * tileSize;
+                        let ey = (col.y - r - camY) * tileSize;
+                        ctx.fillRect(ex, ey, r * 2 * tileSize, r * 2 * tileSize);
+                        ctx.strokeStyle = "yellow";
+                        ctx.strokeRect(ex, ey, r * 2 * tileSize, r * 2 * tileSize);
+                    }
+                });
+            }
         }
     }
 };
@@ -303,6 +326,7 @@ export function updatePlayer() {
         // Jump Clank
         gameState.clank += CLANK_JUMP_INC;
         updateUI(gameState, player);
+        playJson('assets/sounds/player_jump.json');
     }
 
     if (player.isJumping) {
@@ -333,8 +357,15 @@ export function updatePlayer() {
         const stepInterval = PLAYER_ANIMATION_SPEED * 3; // Approx 1 step per cycle
         if (player.stepTimer >= stepInterval) {
             player.stepTimer = 0;
-            // Add Clank
-            let inc = (isRunning) ? CLANK_RUN_INC : CLANK_WALK_INC;
+            // Add Clank & Play Sound
+            let inc = CLANK_WALK_INC;
+            if (isRunning) {
+                inc = CLANK_RUN_INC;
+                playJson('assets/sounds/player_step_run.json');
+            } else {
+                playJson('assets/sounds/player_step_walk.json');
+            }
+
             gameState.clank += inc;
             updateUI(gameState, player);
         }
@@ -342,59 +373,190 @@ export function updatePlayer() {
         player.stepTimer = 0; // Reset if stopped or sneaking
     }
 
-    checkTileEvents(Math.floor(player.x), Math.floor(player.y));
+    checkTileEvents();
 }
 
-function checkTileEvents(tileX, tileY) {
-    if (tileY < 0 || tileY >= map.length || tileX < 0 || tileX >= map[0].length) return;
+function checkTileEvents() {
+    player.activeCollisions = []; // Reset debug list
 
-    let cell = map[tileY][tileX];
-    let id = (typeof cell === 'object') ? (cell.id || 0) : cell;
-    let block = BLOCK_DEFS[id];
-    if (!block) return;
+    // 1. Passive Checks (Hazards / Bush Damage) - Check all tiles touching player hitbox
+    // Use slightly smaller radius for "standing on" feel to avoid damaging just by grazing pixels?
+    // User requested "hit box colide with the tile ... start to get damage". 
+    // So we use full radius.
 
-    // (Old Random Clank Logic Removed)
+    // Bounds
+    const startX = Math.floor(player.x - player.radius);
+    const endX = Math.floor(player.x + player.radius);
+    const startY = Math.floor(player.y - player.radius);
+    const endY = Math.floor(player.y + player.radius);
 
-    // Hazards
-    if (block.damage && Math.random() < HAZARD_DAMAGE_CHANCE) {
-        player.takeDamage(block.damage);
-    }
+    let standingOnHazard = false;
+    let hazardDamage = 0;
+    let touchingBush = false;
 
-    // Berry Bushes (Harvest)
-    if (block.heal) {
-        // Sound
-        playBerryCollect();
+    // Scan bounding box for hazards
+    for (let y = startY; y <= endY; y++) {
+        for (let x = startX; x <= endX; x++) {
+            if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) continue;
 
-        // Add to inventory instead of auto-eat
-        let amount = Math.floor(Math.random() * 3) + 1; // 1-3 berries
-        gameState.inventory.food += amount;
-        showToast(`Found ${amount} Berries`, 2000);
+            let cell = map[y][x];
+            let id = (typeof cell === 'object') ? (cell.id || 0) : cell;
+            let block = BLOCK_DEFS[id];
 
-        // Consume the berry block (change to 7: Bush)
-        if (typeof map[tileY][tileX] === 'object') {
-            map[tileY][tileX].id = 7;
-        } else {
-            map[tileY][tileX] = 7;
+            if (block && block.damage) {
+                standingOnHazard = true;
+                hazardDamage = Math.max(hazardDamage, block.damage);
+                player.activeCollisions.push({ type: 'tile', x, y, color: 'rgba(255, 69, 0, 0.6)' }); // Orange-Red for Hazard
+            }
+
+            // ID 7 = Empty Bush, ID 8 = Full Berry Bush
+            if (id === 7 || id === 8) {
+                touchingBush = true;
+                player.activeCollisions.push({ type: 'tile', x, y, color: 'rgba(50, 205, 50, 0.6)' }); // Green for Bush
+            }
         }
-
-        queueRegrowth(tileX, tileY);
-
-        updateUI(gameState, player);
     }
 
-    // Input: Eat Food ('F')
+    // Apply Hazard Damage
+    if (standingOnHazard && Math.random() < HAZARD_DAMAGE_CHANCE) {
+        player.takeDamage(hazardDamage);
+    }
+
+    // Apply Bush Damage
+    if (touchingBush) {
+        if (player.hp > 0 && Math.random() < 0.1) {
+            if (Date.now() - player.lastDamageTime > 1000) {
+                player.takeDamage(1);
+            }
+        }
+    }
+
+    // 2. Active Interactions (E Key / Exit) - Require strictly being "at" the location (Center Tile)
+    const centerTileX = Math.floor(player.x);
+    const centerTileY = Math.floor(player.y);
+
+    if (centerTileY < 0 || centerTileY >= map.length || centerTileX < 0 || centerTileX >= map[0].length) return;
+
+    let centerCell = map[centerTileY][centerTileX];
+    let centerId = (typeof centerCell === 'object') ? (centerCell.id || 0) : centerCell;
+
+    // Auto-trigger: Check for Exit (Win) - Must be fully ON the exit
+    let isExit = (typeof centerCell === 'object' && centerCell.isExit);
+    if (isExit) {
+        if (gameState.hasArtifact) {
+            if (!gameState.gameWon) {
+                gameState.gameWon = true;
+                playVictoryTone();
+                showVictory(gameState.targetArtifactItem, gameState.embersCollected);
+            }
+        }
+    }
     if (keys['f']) {
         if (!player.lastEatTime || Date.now() - player.lastEatTime > PLAYER_EAT_COOLDOWN) {
-            if (gameState.inventory.food > 0 && player.hp < PLAYER_MAX_HP) {
-                gameState.inventory.food--;
-                player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_EAT_HEAL_AMOUNT);
-                player.lastEatTime = Date.now();
-                updateUI(gameState, player);
-                showToast("Ate a Berry", 1000);
-            } else if (gameState.inventory.food <= 0) {
-                // showToast("No Food!", 1000); 
-            } else if (player.hp >= PLAYER_MAX_HP) {
-                // Full HP
+
+            let tileX = Math.floor(player.x); // Use center for F interaction
+            let tileY = Math.floor(player.y);
+            // 1. Check for nearby Berry Bushes (Harvest)
+            let bushFound = false;
+            // Scan radius
+            const searchRadius = 2; // Check 2 tiles out to catch 1.5 distance
+            for (let dy = -searchRadius; dy <= searchRadius; dy++) {
+                for (let dx = -searchRadius; dx <= searchRadius; dx++) {
+                    let tx = tileX + dx;
+                    let ty = tileY + dy;
+
+                    if (ty < 0 || ty >= map.length || tx < 0 || tx >= map[0].length) continue;
+
+                    // Check Distance to center of tile
+                    let dist = Math.sqrt((player.x - (tx + 0.5)) ** 2 + (player.y - (ty + 0.5)) ** 2);
+
+                    if (dist <= 1.5) {
+                        let cell = map[ty][tx];
+                        let tid = (typeof cell === 'object') ? (cell.id || 0) : cell;
+
+                        if (tid === 8) { // Pull Berry Bush
+                            bushFound = true;
+
+                            // Harvest Logic
+                            playBerryCollect();
+
+                            // Spawn 1-3 Berries
+                            let count = Math.floor(Math.random() * 3) + 1;
+                            for (let i = 0; i < count; i++) {
+                                spawnBerry(tx + 0.5, ty + 0.5);
+                            }
+
+                            // Change to Empty Bush
+                            if (typeof map[ty][tx] === 'object') {
+                                map[ty][tx].id = 7;
+                            } else {
+                                map[ty][tx] = 7;
+                            }
+
+                            queueRegrowth(tx, ty);
+
+                            // Cooldown
+                            player.lastEatTime = Date.now();
+                            // Only harvest one bush per press?
+                            break;
+                        }
+                    }
+                }
+                if (bushFound) break;
+            }
+
+            // 2. If no bush harvested, Try to Eat (Low Priority)
+            if (!bushFound) {
+                if (gameState.inventory.food > 0 && player.hp < PLAYER_MAX_HP) {
+                    gameState.inventory.food--;
+                    player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_EAT_HEAL_AMOUNT);
+                    player.lastEatTime = Date.now();
+                    updateUI(gameState, player);
+
+                    playEatBerry();
+                    // showToast("Ate a Berry", 1000); // Visuals replaced by sound
+                } else if (gameState.inventory.food <= 0) {
+                    // NO OP
+                }
+            }
+        }
+    }
+
+    // Proximity Hint for Bushes & Artifacts
+    if (!player.lastHintTime || Date.now() - player.lastHintTime > 2000) {
+        let hintShown = false;
+
+        // 1. Artifact Hint (High Priority)
+        // User requested: "enter the 2 tile radius... give a toast message press e to check for artifect"
+        if (gameState.targetArtifactLoc && !gameState.hasArtifact) {
+            let dist = Math.sqrt((player.x - gameState.targetArtifactLoc.x) ** 2 + (player.y - gameState.targetArtifactLoc.y) ** 2);
+            if (dist <= 2.5) { // 2.5 covers the "entered" feeling better than strict 2.0
+                showToast("Artifact Nearby! Press 'E' to Search", 2000);
+                player.lastHintTime = Date.now();
+                hintShown = true;
+            }
+        }
+
+        // 2. Berry Bush Hint (Lower Priority)
+        if (!hintShown) {
+            for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++) {
+                    let tx = centerTileX + dx;
+                    let ty = centerTileY + dy;
+                    if (ty >= 0 && ty < map.length && tx >= 0 && tx < map[0].length) {
+                        let cell = map[ty][tx];
+                        let tid = (typeof cell === 'object') ? (cell.id || 0) : cell;
+                        if (tid === 8) {
+                            let dist = Math.sqrt((player.x - (tx + 0.5)) ** 2 + (player.y - (ty + 0.5)) ** 2);
+                            if (dist <= 2.0) {
+                                showToast("Press 'F' to Harvest", 1000);
+                                player.lastHintTime = Date.now();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (player.lastHintTime > Date.now() - 100) break;
             }
         }
     }
@@ -406,8 +568,8 @@ function checkTileEvents(tileX, tileY) {
 
             // 1. Check for Artifact
             if (gameState.targetArtifactLoc &&
-                gameState.targetArtifactLoc.x === tileX &&
-                gameState.targetArtifactLoc.y === tileY &&
+                gameState.targetArtifactLoc.x === centerTileX &&
+                gameState.targetArtifactLoc.y === centerTileY &&
                 !gameState.hasArtifact) {
 
                 gameState.hasArtifact = true;
@@ -425,19 +587,5 @@ function checkTileEvents(tileX, tileY) {
         }
     }
 
-    // Auto-trigger: Check for Exit (Win)
-    let isExit = (typeof cell === 'object' && cell.isExit);
-    if (isExit) {
-        if (gameState.hasArtifact) {
-            if (!gameState.gameWon) { // Prevent double trigger
-                gameState.gameWon = true;
-                playVictoryTone();
-                showVictory(gameState.targetArtifactItem, gameState.embersCollected);
-            }
-        } else {
-            // Optionally prompt user? 'Exit Locked'
-            // showToast("You need the Artifact!", 1000); 
-            // (Too spammy if auto-trigger, better to leave silent until they try 'E' or just visual)
-        }
-    }
+
 }

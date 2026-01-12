@@ -15,15 +15,17 @@ import { Ravager } from '../entities/ravager.js';
 import { Ghast } from '../entities/ghast.js';
 import { Vex } from '../entities/vex.js';
 import { Ember } from '../entities/ember.js';
+import { Berry } from '../entities/berry.js';
 import { getRandomArtifact } from '../data/artifacts.js';
 import { gameState } from './state.js';
 
-import { initInput, mouse } from './input.js';
+import { initInput, mouse, setGameActive } from './input.js';
 import { initTouchControls, updateTouchVisibility } from './touch.js';
-import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem } from './audio.js';
+import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem, stopHeartbeatSystem, startAmbientAudio, stopAmbientAudio, playEmberCollect } from './audio.js';
 import { getCamera } from './camera.js'; // Restored import
 import { checkLineOfSight, getFocusPoint } from '../world/lighting.js'; // Restored import
 import { updateUI, showToast } from './ui.js';
+import { AUDIO_ASSETS } from '../data/assets.js';
 
 // Setup
 const canvas = document.getElementById('gameCanvas');
@@ -32,7 +34,7 @@ ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
 
 // --- Device Detection & Config Application ---
 function applyDeviceConfig() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (isMobile) {
         // Mobile Settings: Fullscreen Dynamic
@@ -43,20 +45,20 @@ function applyDeviceConfig() {
         let viewH = Math.ceil(canvas.height / TILE_SIZE);
 
         updateViewDimensions(viewW, viewH);
-        console.log(`Applied Mobile Config: ${canvas.width}x${canvas.height} (View: ${viewW}x${viewH})`);
+        // console.log(`Applied Mobile Config: ${canvas.width}x${canvas.height} (View: ${viewW}x${viewH})`);
     } else {
         // Desktop Settings
         canvas.width = DESKTOP_WIDTH;
         canvas.height = DESKTOP_HEIGHT;
         updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
-        console.log("Applied Desktop Config: 800x600");
+        // console.log("Applied Desktop Config: 800x600");
     }
 }
 
 function checkOrientation() {
     const warning = document.getElementById('rotate-warning');
     // Show warning only if on mobile AND in portrait mode
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isPortrait = window.innerHeight > window.innerWidth;
 
     if (isMobile && isPortrait) {
@@ -78,6 +80,7 @@ window.addEventListener('resize', () => {
 let enemies = [];
 let projectiles = [];
 let embers = [];
+let berries = [];
 let regrowingBushes = []; // {x, y, readyTime}
 let treasureSpots = []; // [{x, y}]
 
@@ -96,6 +99,7 @@ function setupLevel() {
     enemies = [];
     projectiles = [];
     embers = [];
+    berries = [];
     regrowingBushes = [];
     treasureSpots = [];
     gameState.clank = 0;
@@ -114,7 +118,7 @@ function setupLevel() {
 
             // Check if cell is an object (contains metadata)
             if (typeof cell === 'object' && cell !== null) {
-                console.log("Found Spawn Object:", cell); // DEBUG LOG
+                // console.log("Found Spawn Object:", cell); // DEBUG LOG
                 // 1. Handle Spawns
                 if (cell.spawn === 'player') {
                     player.x = x + 0.5; // Center in tile
@@ -181,18 +185,16 @@ function setupLevel() {
         let spot = artifactSpots[Math.floor(Math.random() * artifactSpots.length)];
         gameState.targetArtifactLoc = spot;
         gameState.targetArtifactItem = getRandomArtifact();
-        console.log("Target Artifact at:", spot); // Debug
+        // console.log("Target Artifact at:", spot); // Debug
     } else {
         console.warn("No Artifact Spots found on map!");
     }
 }
 
 // --- MAIN LOOP ---
-// --- MAIN LOOP ---
 function gameLoop(timestamp) {
     if (!isGameRunning) return;
 
-    // Check Death
     // Check Death
     if (player.hp <= 0) {
         handleGameOver();
@@ -263,8 +265,26 @@ function gameLoop(timestamp) {
                 gameState.embersCollected++;
                 updateUI(gameState, player);
                 // Sound effect here?
+                playEmberCollect();
             }
             embers.splice(i, 1);
+        }
+    }
+
+    // Update Berries
+    for (let i = berries.length - 1; i >= 0; i--) {
+        const b = berries[i];
+        const wasCollected = b.update(player);
+
+        if (b.collected) {
+            if (wasCollected) {
+                gameState.inventory.food++;
+                showToast("Picked up a Berry", 1000);
+                updateUI(gameState, player);
+                // Sound effect
+                playDing();
+            }
+            berries.splice(i, 1);
         }
     }
 
@@ -291,6 +311,9 @@ function gameLoop(timestamp) {
     }
 
     updateSpawners();
+
+    // Update UI every frame for smooth compass
+    updateUI(gameState, player);
 
     draw();
     requestAnimationFrame(gameLoop);
@@ -428,6 +451,13 @@ function draw() {
         }
     });
 
+    // 6d. Draw Berries
+    berries.forEach(b => {
+        if (checkLineOfSight(player.x, player.y, b.x, b.y)) {
+            b.draw(ctx, camX, camY, TILE_SIZE);
+        }
+    });
+
     // 7. Damage Flash Overlay
     if (Date.now() - player.lastDamageTime < 200) {
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
@@ -457,8 +487,13 @@ function draw() {
         // Enemies (Pink)
         ctx.strokeStyle = "hotpink";
         enemies.forEach(e => {
-            let drawX = (e.x - camX) * TILE_SIZE;
-            let drawY = (e.y - camY) * TILE_SIZE;
+            // Entities spawn at x.5, y.5 (center of tile)
+            // Debug box should be centered around the entity
+            // Using a default 0.8x0.8 box (radius 0.4 approx) visualizes the "body" better than full tile
+            // But let's stick to the visual the user expected (full tile box)
+            // x - 0.5 centers a 1-unit wide box on coordinate x
+            let drawX = (e.x - 0.5 - camX) * TILE_SIZE;
+            let drawY = (e.y - 0.5 - camY) * TILE_SIZE;
             ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
         });
 
@@ -483,7 +518,7 @@ function draw() {
 // --- START / RESET GAME ---
 export function initGame() {
     loadBlockTextures(() => {
-        console.log('Textures Loaded');
+        // console.log('Textures Loaded');
     });
 
     initTouchControls(); // Initialize Touch
@@ -495,38 +530,62 @@ export function initGame() {
     // Game Over Overlay
     const retryOverlay = document.getElementById('game-over-overlay');
     retryOverlay.addEventListener('click', resetGame);
+
+    // Fullscreen Button
+    const fsBtn = document.getElementById('fullscreen-btn');
+    if (fsBtn) {
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent firing click on game container if needed
+            toggleFullscreen();
+        });
+    }
 }
 
 function startGame() {
     const overlay = document.getElementById('start-overlay');
     overlay.classList.add('hidden'); // Hide Menu immediately
 
+    // Auto-collapse Article on Start
+    const article = document.getElementById('game-info');
+    const content = document.getElementById('article-content');
+    const btn = document.getElementById('collapse-btn');
+    if (article && content) {
+        article.classList.add('minimized');
+        content.classList.add('collapsed');
+        if (btn) btn.textContent = '▼';
+    }
+
     // Start Cinematic Sequence instead of immediate game loop
     playIntroSequence();
+}
 
-    // Trigger Fullscreen
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(e => console.log('Fullscreen failed:', e));
-    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
-        document.documentElement.webkitRequestFullscreen();
-    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
-        document.documentElement.msRequestFullscreen();
+export function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(e => console.log('Fullscreen failed:', e));
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
     }
 }
 
 function launchGame() {
-    console.log("Decked Out 2D is ready for its next victim!");
+    // console.log("Decked Out 2D is ready for its next victim!");
     resetGameLogic(); // Initialize Map/Player
 
     showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
 
     // Start Audio Systems
     startHeartbeatSystem(() => gameState.clank);
+    startAmbientAudio();
 
     // Show HUD
     document.getElementById('ui-layer').classList.remove('hidden');
 
     isGameRunning = true;
+    setGameActive(true); // Prevent keyboard scroll
     updateTouchVisibility(true); // Show Touch Controls if enabled
     requestAnimationFrame(gameLoop);
 }
@@ -544,8 +603,7 @@ function playIntroSequence() {
     canvas.height = window.innerHeight;
 
     // 2. Play Audio
-    // 2. Play Audio
-    const readyVoice = new Audio('assets/voice/ready.opus');
+    const readyVoice = new Audio(AUDIO_ASSETS.voiceReady);
     readyVoice.volume = 0.8;
     readyVoice.play().catch(e => console.warn("Audio play failed:", e));
 
@@ -643,10 +701,13 @@ function playIntroSequence() {
 
 function handleGameOver() {
     isGameRunning = false;
+    setGameActive(false); // Allow normal keyboard behavior
     updateTouchVisibility(false); // Hide Touch Controls
     const overlay = document.getElementById('game-over-overlay');
     overlay.classList.remove('hidden');
     speak("Game Over");
+    stopHeartbeatSystem();
+    stopAmbientAudio();
 }
 
 function resetGame() {
@@ -662,6 +723,18 @@ function resetGameLogic() {
 
 export function spawnEmber(x, y) {
     embers.push(new Ember(x, y));
+}
+
+export function spawnBerry(x, y) {
+    // Find valid spot near x, y
+    let spawnIdx = getValidSpawnPoint(x, y, 1.5);
+    if (spawnIdx) {
+        berries.push(new Berry(spawnIdx.x, spawnIdx.y));
+    } else {
+        // Fallback: just spawn at center even if blocked (user said push to nearest non solid, getValidSpawnPoint tries that)
+        // If it failed, maybe just spawn at x,y?
+        berries.push(new Berry(x, y));
+    }
 }
 
 export function queueRegrowth(x, y) {

@@ -1,0 +1,28 @@
+{
+    "name": "Ravager Chase Bark",
+    "notes": [
+        {
+            "type": "osc",
+            "wave": "sawtooth",
+            "startTime": 0,
+            "duration": 0.3,
+            "freqStart": 150,
+            "freqEnd": 80,
+            "volPeak": 0.4,
+            "attack": 0.02,
+            "filterType": "bandpass",
+            "filterFreqStart": 400,
+            "filterFreqEnd": 200
+        },
+        {
+            "type": "noise",
+            "startTime": 0,
+            "duration": 0.2,
+            "volPeak": 0.2,
+            "attack": 0.01,
+            "filterType": "lowpass",
+            "filterFreqStart": 800,
+            "filterFreqEnd": 200
+        }
+    ]
+}

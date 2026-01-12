@@ -78,7 +78,6 @@ export const BLOCK_DEFS = {
         "name": "Berry",
         "color": "#f0f",
         "solid": false,
-        "heal": 2,
         "slideFactor": 0.7,
         "sheetIndex": [0, 6]
     },

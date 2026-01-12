@@ -1,23 +1,43 @@
 /* Toast Message */
 #toast-message {
-    position: absolute;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
+    position: fixed;
+    top: 60px;
+    /* Below top bar (adjust if needed) */
+    right: 20px;
+
+    background: rgba(0, 0, 0, 0.85);
     color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 18px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
     pointer-events: none;
+
+    text-align: right;
+    /* Aligned right since it comes from right */
+    border-right: 4px solid #ff4444;
+    /* Accent */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    /* Above UI */
+
+    /* Animation State: Default (Hidden Right) */
     opacity: 0;
-    transition: opacity 0.5s;
-    text-align: center;
-    border: 1px solid #444;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+    /* Bouncy entry */
 }
 
+/* State: Visible (Slide In) */
 #toast-message.visible {
     opacity: 1;
+    transform: translateX(0);
+}
+
+/* State: Exiting (Slide Out Top) */
+#toast-message.exiting {
+    transform: translateY(-200%);
+    /* Fly up */
+    opacity: 0;
+    transition: transform 0.5s ease-in, opacity 0.5s;
 }

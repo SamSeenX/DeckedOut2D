@@ -3,14 +3,19 @@ body {
     color: white;
     font-family: monospace;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    padding: 20px 0;
+    box-sizing: border-box;
 }
 
 #game-container {
     position: relative;
+    width: 800px;
+    height: 600px;
     border: 2px solid #444;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
     overflow: hidden;
@@ -417,3 +422,69 @@ canvas {
 }
 
 /* Optional: If we want half hearts later, we can use gradients on the text or SVG */
+
+/* === Retro Pixel Art Compass === */
+#compass-container {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #555;
+    /* Thick border */
+    border-radius: 4px;
+    /* Slight rounding, not full circle */
+    background: #222;
+    position: relative;
+    box-shadow: 4px 4px 0px #000;
+    /* Hard shadow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: border-color 0.2s;
+}
+
+#compass-needle {
+    font-size: 32px;
+    line-height: 32px;
+    /* color set in JS */
+    transform-origin: center center;
+    transition: transform 0.1s steps(8);
+    /* Snappy 8-direction movement */
+    text-shadow: 2px 2px 0 #000;
+}
+
+/* === Retro Toast Message === */
+#toast-message {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    background: #000;
+    color: #fff;
+    padding: 12px 24px;
+    border: 4px solid #fff;
+    border-radius: 0;
+    /* Square corners */
+    font-family: 'Courier New', Courier, monospace;
+    /* Retro font */
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: none;
+    text-align: right;
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+    /* Hard shadow */
+    z-index: 2000;
+
+    opacity: 0;
+    transform: translateX(120%);
+    transition: transform 0.4s steps(5), opacity 0.4s steps(5);
+    /* Retro snappy transition */
+}
+
+#toast-message.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#toast-message.exiting {
+    transform: translateY(-200%);
+    opacity: 0;
+    transition: transform 0.5s ease-in, opacity 0.5s;
+}

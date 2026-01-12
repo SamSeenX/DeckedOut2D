@@ -4,9 +4,9 @@
   "description": "**Repository:** Private **Status:** Pre-Alpha / Core Loop Prototype",
   "main": "index.js",
   "scripts": {
-    "dev": "vite public",
-    "build": "vite build public --outDir ../dist --emptyOutDir && cp -r public/assets/* dist/assets/",
-    "preview": "vite preview --outDir dist"
+    "dev": "vite",
+    "build": "vite build && cp -r public/assets dist/",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",

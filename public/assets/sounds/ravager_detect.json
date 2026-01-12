@@ -1,0 +1,28 @@
+{
+    "name": "Ravager Detect",
+    "notes": [
+        {
+            "type": "osc",
+            "wave": "sawtooth",
+            "startTime": 0,
+            "duration": 0.8,
+            "freqStart": 60,
+            "freqEnd": 200,
+            "volPeak": 0.4,
+            "attack": 0.05,
+            "filterType": "lowpass",
+            "filterFreqStart": 300,
+            "filterFreqEnd": 800
+        },
+        {
+            "type": "noise",
+            "startTime": 0,
+            "duration": 0.8,
+            "volPeak": 0.3,
+            "attack": 0.1,
+            "filterType": "highpass",
+            "filterFreqStart": 500,
+            "filterFreqEnd": 1000
+        }
+    ]
+}
