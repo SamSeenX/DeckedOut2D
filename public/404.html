@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Lost in the Dungeon</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #0b0b14;
+            color: #d1c4e9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        h1 {
+            font-size: 100px;
+            margin: 0;
+            color: #ff6b6b;
+            text-shadow: 4px 4px 0px #330000;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        #joke-text {
+            font-size: 18px;
+            font-style: italic;
+            min-height: 30px;
+            margin: 20px 0 40px;
+            color: #aaa;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4fc3f7;
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>404</h1>
+        <div class="subtitle">You have lost your way.</div>
+
+        <p id="joke-text">Loading witty dungeon humor...</p>
+
+        <a href="/" class="btn">Return to Safety (Home)</a>
+    </div>
+
+    <script>
+        const jokes = [
+            "The Ravager heard you clicking... and ate this page.",
+            "You stumbled into the Void. There is nothing here but code.",
+            "This page is behind a Level 4 door. You don't have the key.",
+            "You generated too much 'Clank'. The server got scared and hid this page.",
+            "This artifact has not been discovered yet.",
+            "Looks like a Witch threw a splash potion of Invisibility on this content.",
+            "404: Dungeon Not Found.",
+            "You fell through a hole in the map. Good job.",
+            "The Deck is shuffled, and this card was not drawn.",
+            "Even the Compass can't find what you are looking for."
+        ];
+
+        function setRandomJoke() {
+            const joke = jokes[Math.floor(Math.random() * jokes.length)];
+            document.getElementById('joke-text').textContent = `"${joke}"`;
+        }
+
+        setRandomJoke();
+    </script>
+
+</body>
+
+</html>

@@ -9,7 +9,8 @@ export default defineConfig({
             input: {
                 main: 'public/index.html',
                 guide: 'public/guide.html',
-                devlog: 'public/devlog.html'
+                devlog: 'public/devlog.html',
+                notFound: 'public/404.html'
             },
             output: {
                 assetFileNames: (assetInfo) => {
