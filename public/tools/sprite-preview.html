@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Preview Tool</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        header {
+            background: #1e1e1e;
+            padding: 10px 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #00bcd4;
+        }
+
+        .back-btn {
+            background: #333;
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #181818;
+            border-right: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: width 0.3s ease, padding 0.3s ease;
+        }
+
+        .sidebar.collapsed,
+        .sidebar-right.collapsed {
+            width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+
+        .sidebar-right {
+            width: 280px;
+            background: #181818;
+            border-left: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: width 0.3s ease, padding 0.3s ease;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        input[type="number"],
+        input[type="file"] {
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #00bcd4;
+            color: #121212;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #00acc1;
+        }
+
+        button.secondary {
+            background: #444;
+            color: white;
+        }
+
+        .sheet-preview-container {
+            margin-top: 15px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            /* Fixed height for mini-map in right bar */
+            height: 200px;
+            flex-shrink: 0;
+        }
+
+        .sheet-canvas-wrapper {
+            flex: 1;
+            overflow: auto;
+            background: #111;
+            border: 1px solid #333;
+            margin-top: 5px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .tool-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .tool-btn:hover {
+            background: #444;
+        }
+
+        .tool-btn.active {
+            background: #00bcd4;
+            color: #121212;
+            border-color: #00bcd4;
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        /* Custom scrollbar for preview */
+        .sheet-canvas-wrapper::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .sheet-canvas-wrapper::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        .sheet-canvas-wrapper::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        .preview-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background 0.2s ease;
+        }
+
+        canvas {
+            border: 1px solid #555;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            image-rendering: pixelated;
+            /* Essential for retro feel */
+        }
+
+        .info-panel {
+            margin-top: auto;
+            padding: 10px;
+            background: #222;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Background color selector */
+        .bg-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .bg-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 2px solid #444;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+            padding: 0;
+            margin: 0;
+        }
+
+        .bg-btn:hover {
+            transform: scale(1.1);
+            border-color: #666;
+        }
+
+        .bg-btn.active {
+            border-color: #00bcd4;
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+        }
+
+        .bg-btn.checkered {
+            background-image:
+                linear-gradient(45deg, #666 25%, transparent 25%),
+                linear-gradient(-45deg, #666 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #666 75%),
+                linear-gradient(-45deg, transparent 75%, #666 75%);
+            background-size: 8px 8px;
+            background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+            background-color: #999;
+        }
+
+        .bg-btn.black {
+            background-color: #000000;
+        }
+
+        .bg-btn.white {
+            background-color: #ffffff;
+        }
+
+        .bg-btn.gray {
+            background-color: #808080;
+        }
+
+        .bg-btn.red {
+            background-color: #ff0000;
+        }
+
+        .bg-btn.green {
+            background-color: #00ff00;
+        }
+
+        .bg-btn.blue {
+            background-color: #0000ff;
+        }
+
+        /* Preview area background states */
+        .preview-area.bg-checkered {
+            background-image:
+                linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+                linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+                linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #2a2a2a;
+        }
+
+        .preview-area.bg-black {
+            background: #000000;
+        }
+
+        .preview-area.bg-white {
+            background: #ffffff;
+        }
+
+        .preview-area.bg-gray {
+            background: #808080;
+        }
+
+        .preview-area.bg-red {
+            background: #ff0000;
+        }
+
+        .frame-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+            /* Enable clicks */
+        }
+
+        .frame-controls button {
+            background: #444;
+            border: 1px solid #666;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin: 0;
+            /* Override generic button margin */
+        }
+
+        .frame-controls button:hover {
+            background: #00bcd4;
+            border-color: #00bcd4;
+            color: #121212;
+        }
+
+        .frame-controls span {
+            color: #fff;
+            font-family: monospace;
+            font-size: 0.9rem;
+            padding: 0 5px;
+            min-width: 70px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .preview-area.bg-green {
+            background: #00ff00;
+        }
+
+        .preview-area.bg-blue {
+            background: #0000ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>👾 Sprite Previewer</h1>
+        <a href="index.html" class="back-btn">Back to Tools</a>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="control-group">
+                <label>Sprite Sheet</label>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+
+            <div class="control-group">
+                <label>Cell Width (px)</label>
+                <input type="number" id="cell-width" value="32">
+            </div>
+
+            <div class="control-group">
+                <label>Cell Height (px)</label>
+                <input type="number" id="cell-height" value="32">
+            </div>
+
+            <div class="control-group">
+                <label>Row (0-indexed)</label>
+                <input type="number" id="anim-row" value="0" min="0">
+            </div>
+
+            <div class="control-group">
+                <label>Start Padding X (px)</label>
+                <input type="number" id="pad-x" value="0" min="0">
+            </div>
+
+            <div class="control-group">
+                <label>Start Padding Y (px)</label>
+                <input type="number" id="pad-y" value="0" min="0">
+            </div>
+
+            <div class="control-group">
+                <label>Frame Count (0 = Auto)</label>
+                <input type="number" id="frame-count" value="0" min="0">
+            </div>
+
+            <div class="control-group">
+                <label>Animation Rows (1 = Single Line)</label>
+                <input type="number" id="anim-rows" value="1" min="1">
+            </div>
+
+            <div class="control-group">
+                <label>Speed (FPS)</label>
+                <input type="number" id="fps" value="8" min="1" max="60">
+            </div>
+
+            <div class="control-group">
+                <label>Preview Scale (x)</label>
+                <input type="number" id="scale" value="4" min="1" max="10">
+            </div>
+
+            <button id="update-btn">🔄 Refresh Animation</button>
+            <button id="play-pause-btn" class="secondary">⏸ Pause</button>
+
+            <div class="info-panel" id="debug-info">
+                No image loaded.
+            </div>
+        </div>
+
+        <div class="preview-area bg-checkered" id="preview-area">
+            <canvas id="preview-canvas"></canvas>
+            <div id="frame-controls" class="frame-controls">
+                <button id="overlay-prev-btn" title="Previous Frame">⏮</button>
+                <button id="overlay-play-btn" title="Play/Pause">⏸</button>
+                <button id="overlay-next-btn" title="Next Frame">⏭</button>
+                <span id="frame-counter">Frame: 0</span>
+            </div>
+        </div>
+
+        <div class="sidebar-right">
+            <div class="control-group">
+                <label>Tools</label>
+                <div class="tools-grid">
+                    <button class="tool-btn active" id="tool-paint" title="Paint (B)">✏️</button>
+                    <button class="tool-btn" id="tool-eraser" title="Eraser (E)">🧹</button>
+                    <button class="tool-btn" id="tool-picker" title="Color Picker (I)">💉</button>
+                    <button class="tool-btn" id="tool-onion" title="Onion Skin (O)">🧅</button>
+                    <!-- Maybe more later -->
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="color-picker" value="#ffffff">
+                    <span id="color-hex">#ffffff</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Background Preview</label>
+                <div class="bg-selector">
+                    <button class="bg-btn checkered active" data-bg="checkered" title="Checkered (1)"></button>
+                    <button class="bg-btn black" data-bg="black" title="Black (2)"></button>
+                    <button class="bg-btn white" data-bg="white" title="White (3)"></button>
+                    <button class="bg-btn gray" data-bg="gray" title="Gray (4)"></button>
+                    <button class="bg-btn red" data-bg="red" title="Red (5)"></button>
+                    <button class="bg-btn green" data-bg="green" title="Green (6)"></button>
+                    <button class="bg-btn blue" data-bg="blue" title="Blue (7)"></button>
+                </div>
+            </div>
+
+            <div class="sheet-preview-container">
+                <label>Sheet Map</label>
+                <div class="sheet-canvas-wrapper">
+                    <canvas id="sheet-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="control-group" style="margin-top: auto;">
+                <label>Export/Save</label>
+                <button id="save-png">💾 Save PNG</button>
+                <button id="save-webp" class="secondary">💾 Save WebP</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sprite-preview.js"></script>
+</body>
+
+</html>

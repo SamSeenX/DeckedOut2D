@@ -1,0 +1,19 @@
+{
+    "name": "Ravager Roam Growl",
+    "notes": [
+        {
+            "type": "osc",
+            "wave": "sawtooth",
+            "startTime": 0,
+            "duration": 1.5,
+            "freqStart": 40,
+            "freqEnd": 35,
+            "volPeak": 0.15,
+            "attack": 0.5,
+            "volEnd": 0,
+            "filterType": "lowpass",
+            "filterFreqStart": 150,
+            "filterFreqEnd": 100
+        }
+    ]
+}

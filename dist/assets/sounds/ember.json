@@ -1,0 +1,25 @@
+{
+    "name": "Ember Collect",
+    "notes": [
+        {
+            "type": "osc",
+            "wave": "sine",
+            "startTime": 0,
+            "duration": 0.5,
+            "freqStart": 880,
+            "freqEnd": 1760,
+            "volPeak": 0.3,
+            "attack": 0.02
+        },
+        {
+            "type": "osc",
+            "wave": "triangle",
+            "startTime": 0,
+            "duration": 0.3,
+            "freqStart": 1200,
+            "freqEnd": 2400,
+            "volPeak": 0.1,
+            "attack": 0.02
+        }
+    ]
+}

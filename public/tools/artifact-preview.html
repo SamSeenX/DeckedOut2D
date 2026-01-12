@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artifact Preview Tool</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            background-color: #111;
+            color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #controls {
+            height: 60px;
+            background-color: #222;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 0 20px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        button.nav-btn {
+            background: #ffcc00;
+            border: none;
+            color: #000;
+            padding: 8px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button.nav-btn:hover {
+            background: #ffdb4d;
+        }
+
+        button.nav-btn:disabled {
+            background: #444;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .counter {
+            font-family: monospace;
+            font-size: 18px;
+            color: #888;
+        }
+
+        #preview-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #000, #1a1a1a);
+            position: relative;
+        }
+
+        /* Mocking the Victory Overlay structure for accurate preview */
+        #mock-overlay {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Override styles for preview - horizontal header */
+        .card-header {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+            padding: 20px !important;
+        }
+
+        #victory-icon-container {
+            width: 80px !important;
+            height: 80px !important;
+            margin: 0 !important;
+            flex-shrink: 0;
+        }
+
+        #victory-artifact-name {
+            text-align: left !important;
+            font-size: 24px !important;
+        }
+
+        /* Ensure img in icon container is sized correctly */
+        #victory-artifact-icon img {
+            width: 64px;
+            height: 64px;
+            display: block;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        #victory-artifact-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="controls">
+        <button class="nav-btn" id="prev-btn">← Previous</button>
+        <div class="counter" id="counter">1 / 10</div>
+        <button class="nav-btn" id="next-btn">Next →</button>
+    </div>
+
+    <div id="preview-area">
+        <div id="mock-overlay">
+            <div id="victory-card">
+                <div class="card-header">
+                    <div id="victory-icon-container">
+                        <span id="victory-artifact-icon">🏆</span>
+                    </div>
+                    <h2 id="victory-artifact-name">Artifact Name</h2>
+                </div>
+
+                <div class="card-body">
+                    <p id="victory-artifact-desc">Description of the artifact goes here.</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">Value</span>
+                            <span class="stat-value" id="victory-value">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Collected</span>
+                            <span class="stat-value" id="victory-embers">12</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Time</span>
+                            <span class="stat-value" id="victory-duration">4m 20s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="primary-btn">📸 SAVE VICTORY CARD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ARTIFACTS } from '../js/data/artifacts.js';
+
+        const iconEl = document.getElementById('victory-artifact-icon');
+        const nameEl = document.getElementById('victory-artifact-name');
+        const descEl = document.getElementById('victory-artifact-desc');
+        const valueEl = document.getElementById('victory-value');
+        const counterEl = document.getElementById('counter');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        let currentIndex = 0;
+
+        function renderArtifact(index) {
+            const art = ARTIFACTS[index];
+            if (!art) return;
+
+            nameEl.textContent = art.name;
+            descEl.textContent = art.description;
+            valueEl.textContent = art.value;
+
+            // Handle Icon - now always a WebP filename
+            if (art.icon) {
+                iconEl.innerHTML = `<img src="/assets/artifacts/${art.icon}" alt="${art.name}">`;
+            } else {
+                iconEl.textContent = '🏆';
+            }
+
+            // Update Counter
+            counterEl.textContent = `${index + 1} / ${ARTIFACTS.length}`;
+
+            // Button States
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === ARTIFACTS.length - 1;
+        }
+
+        // Navigation
+        prevBtn.onclick = () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderArtifact(currentIndex);
+            }
+        };
+
+        nextBtn.onclick = () => {
+            if (currentIndex < ARTIFACTS.length - 1) {
+                currentIndex++;
+                renderArtifact(currentIndex);
+            }
+        };
+
+        // Keyboard Nav
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            if (e.key === 'ArrowRight') nextBtn.click();
+        });
+
+        // Initialize
+        if (ARTIFACTS.length > 0) {
+            renderArtifact(currentIndex);
+        }
+    </script>
+</body>
+
+</html>

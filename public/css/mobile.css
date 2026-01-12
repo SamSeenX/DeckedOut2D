@@ -1,0 +1,108 @@
+/* === Retro Toggle Button === */
+.retro-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 18px;
+    color: #aaa;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.retro-toggle-container:hover {
+    color: #fff;
+}
+
+.retro-toggle-btn {
+    width: 60px;
+    height: 30px;
+    background-color: #222;
+    border: 2px solid #555;
+    position: relative;
+    box-shadow: 4px 4px 0px #000;
+    /* Pixel shadow */
+    transition: transform 0.1s;
+}
+
+/* The "Knob" */
+.retro-toggle-btn::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 18px;
+    height: 18px;
+    background-color: #888;
+    box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.5), inset 2px 2px 0 rgba(255, 255, 255, 0.5);
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+}
+
+/* Active State (Checked) */
+input[type="checkbox"]:checked+.retro-toggle-btn {
+    background-color: #004400;
+    border-color: #00cc00;
+}
+
+input[type="checkbox"]:checked+.retro-toggle-btn::after {
+    left: 34px;
+    /* Move to right */
+    background-color: #00ff00;
+    box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.5), inset 2px 2px 0 rgba(255, 255, 255, 0.8), 0 0 10px #00ff00;
+}
+
+.retro-toggle-container:active .retro-toggle-btn {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* === Orientation Warning === */
+#rotate-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #111;
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#rotate-warning-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: rotate-phone 2s infinite ease-in-out;
+}
+
+#rotate-warning-text {
+    font-size: 24px;
+    color: gold;
+    font-family: monospace;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes rotate-phone {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(-90deg);
+    }
+}
+
+/* Show warning on portrait mode (height > width) on mobile-ish devices */
+@media screen and (orientation: portrait) and (max-width: 1024px) {
+    #rotate-warning {
+        display: flex;
+    }
+}

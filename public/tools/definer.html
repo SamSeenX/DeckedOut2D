@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decked Out 2D - Block Definitions Editor</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --primary: #00bcd4;
+            --text-main: #e0e0e0;
+            --border: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Block List */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            background-color: #252525;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background-color: var(--primary);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .action-btn.secondary {
+            background-color: #444;
+            color: white;
+        }
+
+        .block-list {
+            flex: 1;
+        }
+
+        .block-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .block-item:hover {
+            background-color: #2a2a2a;
+        }
+
+        .block-item.active {
+            background-color: #333;
+            border-left: 4px solid var(--primary);
+        }
+
+        .mini-preview {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #444;
+            image-rendering: pixelated;
+        }
+
+        /* Main Editor Area */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .editor-panel {
+            flex: 1;
+            background-color: var(--bg-panel);
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+
+        /* Sprite Picker */
+        .sprite-picker-panel {
+            width: 400px;
+            background-color: var(--bg-panel);
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-container {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid #444;
+            background-color: #1a1a1a;
+            position: relative;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            cursor: crosshair;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="color"] {
+            width: 100%;
+            padding: 8px;
+            background-color: #121212;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .code-output {
+            margin-top: 24px;
+            width: 100%;
+            height: 150px;
+            background-color: #121212;
+            color: #0f0;
+            border: 1px solid #444;
+            font-family: monospace;
+            padding: 12px;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .selection-highlight {
+            position: absolute;
+            border: 2px solid var(--primary);
+            pointer-events: none;
+            box-sizing: border-box;
+            background-color: rgba(0, 188, 212, 0.2);
+        }
+
+        #tile-coords-display {
+            margin-top: 8px;
+            font-family: monospace;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="action-btn" id="add-btn">+ New Block</button>
+            <button class="action-btn secondary" id="copy-btn">Copy JSON</button>
+            <button class="action-btn secondary" id="load-btn" style="background: #0288d1;">Load JSON</button>
+        </div>
+        <div class="block-list" id="block-list">
+            <!-- Items injected here -->
+        </div>
+    </div>
+
+    <!-- MAIN EDITOR -->
+    <div class="main-content">
+
+        <!-- Form Panel -->
+        <div class="editor-panel">
+            <h2>Block Editor</h2>
+            <div id="editor-form" style="display: none;">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="number" id="inp-id" readonly style="background: #252525;">
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="inp-name">
+                </div>
+                <div class="form-group">
+                    <label>Color (Fallback)</label>
+                    <input type="color" id="inp-color" style="height: 40px;">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="inp-solid"> Solid (Wall)
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Slide Factor (Friction)</label>
+                    <input type="number" id="inp-slide" step="0.01" value="0.80">
+                </div>
+
+                <div class="form-group">
+                    <label>Texture Variants (Click on sheet to add)</label>
+                    <div id="variants-list" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                        <!-- Variants injected here -->
+                    </div>
+                    <button class="action-btn secondary" id="clear-variants-btn"
+                        style="background: #e65100; font-size: 0.8em; padding: 4px;">Clear All Variants</button>
+                    <small style="color: #666; display: block; margin-top: 4px;">Click a variant to remove it. First
+                        variant is default (Variant 1).</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="inp-blocked"> Enemy Blocked
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Damage</label>
+                    <input type="number" id="inp-damage" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Heal</label>
+                    <input type="number" id="inp-heal" value="0">
+                </div>
+
+                <div class="form-group">
+                    <button class="action-btn secondary" id="save-block-btn"
+                        style="background: #2e7d32; margin-top: 16px;">Update Block</button>
+                    <button class="action-btn secondary" id="delete-block-btn" style="background: #c62828;">Delete
+                        Block</button>
+                </div>
+
+                <textarea class="code-output" id="json-output" readonly></textarea>
+            </div>
+            <div id="empty-state" style="color: #666; text-align: center; margin-top: 100px;">
+                Select a block to edit or create a new one.
+            </div>
+        </div>
+
+        <!-- Sprite Picker Panel -->
+        <div class="sprite-picker-panel">
+            <h3>Sprite Sheet</h3>
+            <div class="canvas-container" id="canvas-wrapper">
+                <canvas id="sheet-canvas"></canvas>
+                <div id="selection-box" class="selection-highlight" style="display: none;"></div>
+            </div>
+            <div id="tile-coords-display">Selection: (0, 0)</div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT -->
+    <script type="module">
+        import { BLOCK_DEFS } from '/js/data/tiles.js';
+
+        // --- State ---
+        let currentDefs = JSON.parse(JSON.stringify(BLOCK_DEFS)); // Deep copy to edit
+        let selectedId = null;
+        let currentVariants = []; // Array of [x, y]
+        const TILE_SIZE = 32;
+
+        // --- Elements ---
+        const blockList = document.getElementById('block-list');
+        const editorForm = document.getElementById('editor-form');
+        const emptyState = document.getElementById('empty-state');
+        const sheetCanvas = document.getElementById('sheet-canvas');
+        const sheetCtx = sheetCanvas.getContext('2d');
+        const selectionBox = document.getElementById('selection-box');
+        const jsonOutput = document.getElementById('json-output');
+        const variantsList = document.getElementById('variants-list');
+
+        // Inputs
+        const inpId = document.getElementById('inp-id');
+        const inpName = document.getElementById('inp-name');
+        const inpColor = document.getElementById('inp-color');
+        const inpSolid = document.getElementById('inp-solid');
+        const inpSlide = document.getElementById('inp-slide');
+        const inpBlocked = document.getElementById('inp-blocked');
+        const inpDamage = document.getElementById('inp-damage');
+        const inpHeal = document.getElementById('inp-heal');
+
+        // Load Sprite Sheet
+        const spriteImage = new Image();
+        spriteImage.src = '/assets/sprites/tiles.webp';
+        spriteImage.onload = () => {
+            sheetCanvas.width = spriteImage.width;
+            sheetCanvas.height = spriteImage.height;
+            drawSheet();
+        };
+
+        function drawSheet() {
+            sheetCtx.clearRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+            sheetCtx.drawImage(spriteImage, 0, 0);
+
+            // Draw Grid
+            sheetCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            sheetCtx.beginPath();
+            for (let x = 0; x <= sheetCanvas.width; x += TILE_SIZE) {
+                sheetCtx.moveTo(x, 0);
+                sheetCtx.lineTo(x, sheetCanvas.height);
+            }
+            for (let y = 0; y <= sheetCanvas.height; y += TILE_SIZE) {
+                sheetCtx.moveTo(0, y);
+                sheetCtx.lineTo(sheetCanvas.width, y);
+            }
+            sheetCtx.stroke();
+
+            // Highlight current variants on sheet
+            if (currentVariants.length > 0) {
+                sheetCtx.fillStyle = 'rgba(0, 188, 212, 0.3)';
+                sheetCtx.strokeStyle = '#00bcd4';
+                currentVariants.forEach(([gx, gy]) => {
+                    sheetCtx.fillRect(gx * TILE_SIZE, gy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    sheetCtx.strokeRect(gx * TILE_SIZE, gy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                });
+            }
+        }
+
+        // --- Render List ---
+        function renderList() {
+            blockList.innerHTML = '';
+            const ids = Object.keys(currentDefs).map(Number).sort((a, b) => a - b);
+
+            ids.forEach(id => {
+                const block = currentDefs[id];
+                const item = document.createElement('div');
+                item.className = `block-item ${id === selectedId ? 'active' : ''}`;
+
+                // Canvas Preview
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                canvas.className = 'mini-preview';
+                const ctx = canvas.getContext('2d');
+
+                // Get primary variant
+                let gx = 0, gy = 0;
+                if (block.sheetIndex) {
+                    if (Array.isArray(block.sheetIndex[0])) {
+                        [gx, gy] = block.sheetIndex[0];
+                    } else {
+                        [gx, gy] = block.sheetIndex;
+                    }
+                }
+
+                // Draw Preview
+                if (spriteImage.complete) {
+                    ctx.drawImage(spriteImage, gx * 32, gy * 32, 32, 32, 0, 0, 32, 32);
+                } else {
+                    ctx.fillStyle = block.color;
+                    ctx.fillRect(0, 0, 32, 32);
+                }
+
+                item.innerHTML = `
+                    <span>#${id}</span>
+                `;
+                item.prepend(canvas);
+
+                const nameEnd = document.createElement('span');
+                nameEnd.innerText = block.name;
+                item.appendChild(nameEnd);
+
+                item.onclick = () => selectBlock(id);
+                blockList.appendChild(item);
+            });
+        }
+
+        function selectBlock(id) {
+            selectedId = id;
+            const block = currentDefs[id];
+
+            editorForm.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            // Populate Form
+            inpId.value = id;
+            inpName.value = block.name || '';
+            inpColor.value = block.color || '#000000';
+            inpSolid.checked = !!block.solid;
+            inpSlide.value = block.slideFactor || 0.8;
+            inpBlocked.checked = !!block.enemyBlocked;
+            inpDamage.value = block.damage || 0;
+            inpHeal.value = block.heal || 0;
+
+            // Handle Variants
+            currentVariants = [];
+            if (block.sheetIndex) {
+                if (Array.isArray(block.sheetIndex[0])) {
+                    currentVariants = [...block.sheetIndex];
+                } else {
+                    currentVariants = [block.sheetIndex];
+                }
+            }
+
+            renderVariants();
+            drawSheet(); // Update highlights
+            updateJsonOutput();
+            renderList();
+        }
+
+        function renderVariants() {
+            variantsList.innerHTML = '';
+            currentVariants.forEach((v, index) => {
+                const [gx, gy] = v;
+                const div = document.createElement('div');
+                div.style.border = '1px solid #444';
+                div.style.cursor = 'pointer';
+                div.title = 'Click to remove';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(spriteImage, gx * 32, gy * 32, 32, 32, 0, 0, 32, 32);
+                div.appendChild(canvas);
+
+                div.onclick = () => {
+                    currentVariants.splice(index, 1);
+                    updateBlockData();
+                    renderVariants();
+                    drawSheet();
+                };
+
+                variantsList.appendChild(div);
+            });
+        }
+
+        function updateBlockData() {
+            if (selectedId === null) return;
+
+            // Normalize variants: if only 1, stick to array of arrays for consistency in new system, OR simplify. 
+            // User requested to "use different version", so array format is best.
+            // However, to keep file clean, maybe we can simplify if len=1. 
+            // Let's stick to array of arrays if > 1, else single array for backward compat? 
+            // No, consistency is key for code that consumes it. 
+            // tiles.js now handles both. Let's output array of arrays generally if we have multiple.
+
+            let finalSheetIndex;
+            if (currentVariants.length === 0) {
+                finalSheetIndex = [0, 0];
+            } else if (currentVariants.length === 1) {
+                finalSheetIndex = currentVariants[0]; // Simple [x, y]
+            } else {
+                finalSheetIndex = currentVariants; // [[x,y], [x,y]]
+            }
+
+            currentDefs[selectedId].sheetIndex = finalSheetIndex;
+            updateJsonOutput();
+        }
+
+        function updateJsonOutput() {
+            const block = currentDefs[selectedId];
+            jsonOutput.value = JSON.stringify(block, null, 2);
+        }
+
+        // --- Event Listeners ---
+
+        // Sprite Picker Click -> Toggle Variant
+        sheetCanvas.addEventListener('mousedown', (e) => {
+            if (selectedId === null) return;
+
+            const rect = sheetCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const gx = Math.floor(x / TILE_SIZE);
+            const gy = Math.floor(y / TILE_SIZE);
+
+            // Check existence for Toggle
+            const existingIndex = currentVariants.findIndex(v => v[0] === gx && v[1] === gy);
+
+            if (existingIndex !== -1) {
+                // Remove if exists (Toggle OFF)
+                currentVariants.splice(existingIndex, 1);
+            } else {
+                // Add if new (Toggle ON)
+                currentVariants.push([gx, gy]);
+            }
+
+            updateBlockData();
+            renderVariants();
+            drawSheet();
+        });
+
+        document.getElementById('clear-variants-btn').onclick = () => {
+            currentVariants = [];
+            updateBlockData();
+            renderVariants();
+            drawSheet();
+        }
+
+        // Add New
+        document.getElementById('add-btn').onclick = () => {
+            const ids = Object.keys(currentDefs).map(Number).sort((a, b) => a - b);
+            const nextId = (ids[ids.length - 1] || 0) + 1;
+
+            currentDefs[nextId] = {
+                name: "New Block",
+                color: "#ffffff",
+                solid: true,
+                sheetIndex: [0, 0]
+            };
+            selectBlock(nextId);
+        };
+
+        // Save (Update Object properties)
+        document.getElementById('save-block-btn').onclick = () => {
+            if (selectedId === null) return;
+
+            // Update fields
+            const block = currentDefs[selectedId];
+            block.name = inpName.value;
+            block.color = inpColor.value;
+            block.solid = inpSolid.checked;
+            block.slideFactor = parseFloat(inpSlide.value);
+            block.enemyBlocked = inpBlocked.checked ? true : undefined;
+            block.damage = parseInt(inpDamage.value) || 0;
+            block.heal = parseInt(inpHeal.value) || 0;
+
+            // Clean up
+            if (!block.damage) delete block.damage;
+            if (!block.heal) delete block.heal;
+            if (!block.enemyBlocked) delete block.enemyBlocked;
+
+            // sheetIndex is already updated via updateBlockData on interaction
+
+            renderList();
+            updateJsonOutput();
+            alert('Block updated in memory! Click Copy JSON to get the code.');
+        };
+
+        // Delete
+        document.getElementById('delete-block-btn').onclick = () => {
+            if (confirm('Delete this block definition?')) {
+                delete currentDefs[selectedId];
+                selectedId = null;
+                editorForm.style.display = 'none';
+                emptyState.style.display = 'block';
+                renderList();
+            }
+        };
+
+        // Copy Final JSON
+        document.getElementById('copy-btn').onclick = () => {
+            const finalString = `export const BLOCK_DEFS = ${JSON.stringify(currentDefs, null, 4)};`;
+            navigator.clipboard.writeText(finalString);
+            alert('Full BLOCK_DEFS object copied to clipboard!');
+        };
+
+        // Load JSON
+        document.getElementById('load-btn').onclick = () => {
+            const input = prompt("Paste your BLOCK_DEFS JSON object (just the object part, without 'export const...'):");
+            if (input) {
+                try {
+                    // Try to parse pure JSON first
+                    let cleaned = input.trim();
+                    // If user pasted 'export const BLOCK_DEFS = { ... };', strip it
+                    if (cleaned.startsWith('export const BLOCK_DEFS =')) {
+                        cleaned = cleaned.replace('export const BLOCK_DEFS =', '').replace(/;$/, '');
+                    }
+                    currentDefs = JSON.parse(cleaned);
+                    selectedId = null;
+                    editorForm.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    renderList();
+                    alert("Definitions loaded successfully!");
+                } catch (e) {
+                    console.error(e);
+                    alert("Failed to parse JSON. Check console for error.");
+                }
+            }
+        };
+
+        // Initial Render
+        setTimeout(renderList, 100);
+
+    </script>
+</body>
+
+</html>

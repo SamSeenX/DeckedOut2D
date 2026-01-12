@@ -1,9 +1,44 @@
-
 import { Enemy } from './enemy.js';
-import { TILE_SIZE } from '../utils/constants.js';
+import { TILE_SIZE, RAVAGER_SPEED, RAVAGER_ACCEL, RAVAGER_CHASE_SPEED_MULT, RAVAGER_DETECTION_RANGE, RAVAGER_IDLE_FPS, RAVAGER_CHASE_FPS } from '../data/config.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
+import { SPRITES } from '../data/assets.js';
+import { playJson } from '../core/audio.js';
+
+const SPRITE_IMAGE = new Image();
+SPRITE_IMAGE.src = SPRITES.ravager;
+
+const ANIMATIONS = {
+    walk_down: {
+        rows: [0],       // Row 1
+        frames: 6,
+        fps: 6,          // Idle animation speed
+        width: 128,
+        height: 212,
+        scaleW: 1.0 * 1.2,
+        scaleH: 1.5 * 1.2,
+    },
+    walk_up: {
+        rows: [1],       // Row 2
+        frames: 6,
+        fps: 6,
+        width: 128,
+        height: 212,
+        scaleW: 1.0 * 1.4,
+        scaleH: 1.5 * 1.4,
+    },
+    walk_right: {
+        rows: [2, 3],    // Multi-row
+        frames: 6,
+        fps: 6,          // Will be overridden to 12 during chase
+        width: 256,
+        height: 212,
+        framesPerRow: 3,
+        scaleW: 2.0 * 1,
+        scaleH: 1.65 * 1,
+    }
+};
 
 const STATES = {
     IDLE: 'IDLE',
@@ -11,7 +46,7 @@ const STATES = {
     SEARCHING: 'SEARCHING'
 };
 
-const VIEW_RANGE = 7;
+const DETECTION_RANGE = RAVAGER_DETECTION_RANGE;
 const SEARCH_DURATION = 3000;
 const IDLE_MOVE_INTERVAL = 2000;
 
@@ -19,10 +54,24 @@ export class Ravager extends Enemy {
     constructor(x, y) {
         super(x, y);
         this.type = 'ravager';
-        this.accel = 0.002;
-        this.maxSpeed = 0.05;
+        this.accel = RAVAGER_ACCEL;
+        this.maxSpeed = RAVAGER_SPEED;
+
+        // Ensure color is set, though we will use sprite
         this.color = 'red';
         this.lastAttackTime = 0;
+
+        // Animation State
+        this.sprite = SPRITE_IMAGE;
+        this.animations = ANIMATIONS;
+        this.anim = 'walk_down';
+        this.frame = 0;
+        this.animTimer = 0;
+        this.facing = 1; // 1 = Right, -1 = Left
+
+        // Audio State
+        this.lastVocalTime = 0;
+        this.lastStepTime = 0;
     }
 
     update(player, map, timeNow) {
@@ -33,11 +82,15 @@ export class Ravager extends Enemy {
         if (distToPlayer < 0.8 && timeNow - this.lastAttackTime > 1000) {
             player.takeDamage(2);
             this.lastAttackTime = timeNow;
-            // console.log("Ravager Chomp! HP:", player.hp);
+        }
+
+        // Debug Collision Registration (Continuous if close enough to bite)
+        if (distToPlayer < 0.8 && player.activeCollisions) {
+            player.activeCollisions.push({ type: 'entity', x: this.x, y: this.y, radius: 0.6, color: 'rgba(255, 0, 0, 0.6)' });
         }
 
         // Visibility
-        let canSeePlayer = (distToPlayer < VIEW_RANGE) && checkLineOfSight(this.x, this.y, player.x, player.y);
+        let canSeePlayer = (distToPlayer < DETECTION_RANGE) && checkLineOfSight(this.x, this.y, player.x, player.y);
 
         // --- STATE MACHINE ---
         switch (this.state) {
@@ -45,12 +98,19 @@ export class Ravager extends Enemy {
                 if (canSeePlayer) {
                     this.state = STATES.CHASE;
                     this.color = '#ff0000';
+                    playJson('assets/sounds/ravager_detect.json');
                 } else if (timeNow - this.lastMoveTime > IDLE_MOVE_INTERVAL) {
                     let angle = Math.random() * Math.PI * 2;
                     let dist = Math.random() * 3;
                     this.targetX = this.spawnX + Math.cos(angle) * dist;
                     this.targetY = this.spawnY + Math.sin(angle) * dist;
                     this.lastMoveTime = timeNow;
+                }
+
+                // Roam Vocal (Randomly)
+                if (Math.random() < 0.005 && timeNow - this.lastVocalTime > 5000) {
+                    playJson('assets/sounds/ravager_roam.json');
+                    this.lastVocalTime = timeNow;
                 }
                 break;
 
@@ -66,12 +126,19 @@ export class Ravager extends Enemy {
                     this.targetX = this.lastSeenPlayerPos.x;
                     this.targetY = this.lastSeenPlayerPos.y;
                 }
+
+                // Chase Bark (Randomly)
+                if (Math.random() < 0.02 && timeNow - this.lastVocalTime > 2000) {
+                    playJson('assets/sounds/ravager_chase.json');
+                    this.lastVocalTime = timeNow;
+                }
                 break;
 
             case STATES.SEARCHING:
                 if (canSeePlayer) {
                     this.state = STATES.CHASE;
                     this.color = '#ff0000';
+                    playJson('assets/sounds/ravager_detect.json');
                 } else {
                     let distToTarget = Math.sqrt((this.targetX - this.x) ** 2 + (this.targetY - this.y) ** 2);
                     if (distToTarget < 0.5) {
@@ -87,17 +154,52 @@ export class Ravager extends Enemy {
                     if (timeNow - this.stateTimer > SEARCH_DURATION) {
                         this.state = STATES.IDLE;
                         this.color = 'red';
-                        this.targetX = this.spawnX;
-                        this.targetY = this.spawnY;
+                        // Roam around CURRENT location instead of returning to spawn
+                        this.spawnX = this.x;
+                        this.spawnY = this.y;
+                        this.targetX = this.x;
+                        this.targetY = this.y;
                     }
                 }
                 break;
         }
 
-        this.applyPhysics(map);
+        this.applyPhysics(map, timeNow);
+        this.updateAnimation(timeNow);
     }
 
-    applyPhysics(map) {
+    updateAnimation(timeNow) {
+        // Determine Direction
+        if (Math.abs(this.vx) > Math.abs(this.vy)) {
+            if (Math.abs(this.vx) > 0.001) {
+                this.anim = 'walk_right';
+                this.facing = (this.vx > 0) ? 1 : -1;
+            }
+        } else {
+            if (Math.abs(this.vy) > 0.001) {
+                this.anim = (this.vy > 0) ? 'walk_down' : 'walk_up';
+            }
+        }
+
+        // Get FPS from animation config, boost during chase
+        const currentAnimData = ANIMATIONS[this.anim];
+        let targetFPS = currentAnimData.fps || RAVAGER_IDLE_FPS;
+        if (this.state === STATES.CHASE) {
+            targetFPS = RAVAGER_CHASE_FPS;
+        }
+        const frameTime = 1000 / targetFPS;
+
+        // Cycle Frames
+        if (timeNow - this.animTimer > frameTime) {
+            this.frame++;
+            if (this.frame >= currentAnimData.frames) {
+                this.frame = 0;
+            }
+            this.animTimer = timeNow;
+        }
+    }
+
+    applyPhysics(map, timeNow) {
         let dx = this.targetX - this.x;
         let dy = this.targetY - this.y;
         let dist = Math.sqrt(dx * dx + dy * dy);
@@ -106,28 +208,74 @@ export class Ravager extends Enemy {
         if (dist > 0.1) {
             let dirX = dx / dist;
             let dirY = dy / dist;
-            let speedMult = (this.state === STATES.CHASE) ? 2.0 : 1.0;
+            let speedMult = (this.state === STATES.CHASE) ? RAVAGER_CHASE_SPEED_MULT : 1.0;
 
             this.vx += dirX * this.accel * speedMult;
             this.vy += dirY * this.accel * speedMult;
         }
 
-        // Friction
-        let centerBlockId = map[Math.floor(this.y)][Math.floor(this.x)];
-        let centerBlock = BLOCK_DEFS[centerBlockId] || DEFAULT_BLOCK;
-        let friction = centerBlock.friction || 0.80;
+        // Friction / Terrain Check
+        // Check ALL tiles the Ravager's hitbox (radius 0.4 approx) is touching
+        // If ANY is mud/slow, apply the slow factor. Priority to the slowest block.
+        const radius = 0.4;
+        const startX = Math.floor(this.x - radius);
+        const endX = Math.floor(this.x + radius);
+        const startY = Math.floor(this.y - radius);
+        const endY = Math.floor(this.y + radius);
 
-        this.vx *= friction;
-        this.vy *= friction;
+        let minSlideFactor = 1.0;
+        let touchedTiles = false;
+
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) continue;
+
+                let cell = map[y][x];
+                let id = (typeof cell === 'object') ? (cell.id || 0) : cell;
+                let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
+
+                // If block has a specific slideFactor, consider it
+                // Default block slideFactor is usually around 0.8 / 0.85
+                // Ice is 0.98, Mud is 0.4
+                // We want the LOWEST slideFactor to win (strongest slow)
+
+                let sf = (block.slideFactor !== undefined) ? block.slideFactor : 0.80;
+
+                if (!touchedTiles) {
+                    minSlideFactor = sf;
+                    touchedTiles = true;
+                } else {
+                    minSlideFactor = Math.min(minSlideFactor, sf);
+                }
+            }
+        }
+
+        if (!touchedTiles) minSlideFactor = 0.80; // Default if in void?
+
+        this.vx *= minSlideFactor;
+        this.vy *= minSlideFactor;
 
         // Velocity Clamping
         let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * 1.5 : this.maxSpeed;
+        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * RAVAGER_CHASE_SPEED_MULT : this.maxSpeed;
 
         if (speed > actualMaxSpeed) {
             let ratio = actualMaxSpeed / speed;
             this.vx *= ratio;
             this.vy *= ratio;
+        }
+
+        // Footstep Sounds
+        if (speed > 0.02) {
+            let stepInterval = (this.state === STATES.CHASE) ? 250 : 500; // Run vs Walk
+            if (timeNow - this.lastStepTime > stepInterval) {
+                if (this.state === STATES.CHASE) {
+                    playJson('assets/sounds/ravager_step_run.json');
+                } else {
+                    playJson('assets/sounds/ravager_step_walk.json');
+                }
+                this.lastStepTime = timeNow;
+            }
         }
 
         // Collision & Movement

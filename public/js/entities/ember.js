@@ -1,42 +1,14 @@
-import { PLAYER_RADIUS } from '../utils/constants.js';
+import { Drop } from './drop.js';
+import { EMBER_LIFESPAN } from '../data/config.js';
 
-export class Ember {
+export class Ember extends Drop {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.z = 0; // Ground level by default, but could check map
-        this.creationTime = Date.now();
-        this.lifespan = 45000; // 45 seconds
-        this.collected = false;
-
-        // Animation
-        this.bobOffset = 0;
+        super(x, y, EMBER_LIFESPAN);
+        this.bobSpeed = 200;
+        this.bobHeight = 0.1;
     }
 
-    update(player, mapZ) {
-        if (this.collected) return;
-
-        // Bobbing animation
-        this.bobOffset = Math.sin((Date.now() - this.creationTime) / 200) * 0.1;
-
-        // Check collision with player
-        const dx = player.x - this.x;
-        const dy = player.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < PLAYER_RADIUS + 0.3) {
-            this.collected = true;
-            return true; // Return true to signal collection
-        }
-
-        // Check lifespan
-        if (Date.now() - this.creationTime > this.lifespan) {
-            this.collected = true; // Despawn
-            return false; // Despawn without collection
-        }
-
-        return false;
-    }
+    // Update handled by Parent Class (Drop)
 
     draw(ctx, camX, camY, tileSize) {
         if (this.collected) return;

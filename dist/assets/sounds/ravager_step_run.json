@@ -1,0 +1,26 @@
+{
+    "name": "Ravager Step Run",
+    "notes": [
+        {
+            "type": "noise",
+            "startTime": 0,
+            "duration": 0.12,
+            "volPeak": 0.4,
+            "attack": 0.01,
+            "filterType": "lowpass",
+            "filterFreqStart": 500,
+            "filterFreqEnd": 50,
+            "Q": 2
+        },
+        {
+            "type": "osc",
+            "wave": "square",
+            "startTime": 0,
+            "duration": 0.1,
+            "freqStart": 80,
+            "freqEnd": 40,
+            "volPeak": 0.2,
+            "attack": 0.01
+        }
+    ]
+}

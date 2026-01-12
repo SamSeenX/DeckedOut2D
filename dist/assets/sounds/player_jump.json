@@ -1,0 +1,26 @@
+{
+    "name": "Player Jump",
+    "notes": [
+        {
+            "type": "noise",
+            "startTime": 0,
+            "duration": 0.1,
+            "volPeak": 0.06,
+            "attack": 0.01,
+            "filterType": "highpass",
+            "filterFreqStart": 200,
+            "filterFreqEnd": 800,
+            "Q": 1
+        },
+        {
+            "type": "osc",
+            "wave": "sine",
+            "startTime": 0,
+            "duration": 0.15,
+            "freqStart": 150,
+            "freqEnd": 300,
+            "volPeak": 0.03,
+            "attack": 0.01
+        }
+    ]
+}

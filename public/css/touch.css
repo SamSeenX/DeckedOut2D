@@ -1,0 +1,147 @@
+/* === Touch Toggle Container (Bottom Right) === */
+#touch-toggle-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+}
+
+#touch-toggle-container .retro-toggle-container {
+    font-size: 14px;
+    gap: 10px;
+}
+
+#touch-toggle-container .retro-toggle-btn {
+    width: 50px;
+    height: 24px;
+}
+
+#touch-toggle-container .retro-toggle-btn::after {
+    width: 14px;
+    height: 14px;
+}
+
+#touch-toggle-container input[type="checkbox"]:checked+.retro-toggle-btn::after {
+    left: 30px;
+}
+
+/* === Touch Controls === */
+#touch-controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 90;
+    /* Below HUD (assuming HUD is checked later or higher) - HUD in HTML is above canvas but below overlays */
+    /* HUD elements don't have z-index explicitly set but are later in DOM than canvas. Top bar/Bottom bar might overlap. */
+    /* Let's make sure it doesn't block critical UI */
+    pointer-events: none;
+    /* Allow touches to pass through empty areas */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px 20px 100px 20px;
+    box-sizing: border-box;
+}
+
+#touch-controls.hidden {
+    display: none !important;
+}
+
+/* D-Pad */
+#dpad-container {
+    pointer-events: auto;
+    width: 150px;
+    height: 150px;
+    position: relative;
+    margin-bottom: 20px;
+    margin-left: 20px;
+}
+
+#dpad-base {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    position: relative;
+    touch-action: none;
+    /* Prevent scroll */
+}
+
+#dpad-stick {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    /* Drag the container/base, stick follows */
+}
+
+/* Action Buttons */
+#action-buttons {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+}
+
+.action-row {
+    display: flex;
+    gap: 15px;
+}
+
+.touch-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    transition: background 0.1s;
+}
+
+.touch-btn:active,
+.touch-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: white;
+}
+
+#btn-jump {
+    margin-right: 20px;
+    /* Offset to form a somewhat diamond/arc shape */
+    background: rgba(50, 100, 200, 0.5);
+}
+
+#btn-eat {
+    background: rgba(200, 50, 50, 0.5);
+}
+
+#btn-check {
+    background: rgba(200, 200, 50, 0.5);
+}
+
+#btn-sneak {
+    background: rgba(100, 100, 100, 0.5);
+}

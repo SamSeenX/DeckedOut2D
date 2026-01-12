@@ -1,14 +1,14 @@
 
-import { TILE_SIZE } from '../utils/constants.js';
+import { TILE_SIZE, PROJECTILE_SPEED, PROJECTILE_RADIUS } from '../data/config.js';
 import { checkWallCollision } from '../utils/collision.js';
 
 export class Projectile {
     constructor(x, y, targetX, targetY) {
         this.x = x;
         this.y = y;
-        this.speed = 0.15;
+        this.speed = PROJECTILE_SPEED;
         this.active = true;
-        this.radius = 0.2;
+        this.radius = PROJECTILE_RADIUS;
 
         // Calculate direction
         const dx = targetX - x;

@@ -1,37 +1,94 @@
 
-import { TILE_SIZE, VIEW_W, VIEW_H, SIGHT_RADIUS, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE } from '../utils/constants.js';
+import {
+    TILE_SIZE,
+    VIEW_W, VIEW_H, updateViewDimensions,
+    DESKTOP_WIDTH, DESKTOP_HEIGHT, DESKTOP_VIEW_W, DESKTOP_VIEW_H,
+    MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H,
+    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, VEX_SPAWN_CHANCE, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
+    CLANK_DECAY_AMOUNT, CLANK_DECAY_INTERVAL
+} from '../data/config.js';
 
-import { map } from '../world/map.js';
+import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
 import { player, updatePlayer } from '../entities/player.js';
 import { Ravager } from '../entities/ravager.js';
 import { Ghast } from '../entities/ghast.js';
 import { Vex } from '../entities/vex.js';
 import { Ember } from '../entities/ember.js';
+import { Berry } from '../entities/berry.js';
 import { getRandomArtifact } from '../data/artifacts.js';
 import { gameState } from './state.js';
 
-import { initInput, mouse } from './input.js';
-import { playGong, speak } from './audio.js';
+import { initInput, mouse, setGameActive } from './input.js';
+import { initTouchControls, updateTouchVisibility } from './touch.js';
+import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem, stopHeartbeatSystem, startAmbientAudio, stopAmbientAudio, playEmberCollect } from './audio.js';
 import { getCamera } from './camera.js'; // Restored import
 import { checkLineOfSight, getFocusPoint } from '../world/lighting.js'; // Restored import
-
 import { updateUI, showToast } from './ui.js';
+import { AUDIO_ASSETS } from '../data/assets.js';
 
 // Setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
+
+// --- Device Detection & Config Application ---
+function applyDeviceConfig() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // Mobile Settings: Fullscreen Dynamic
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let viewW = Math.ceil(canvas.width / TILE_SIZE);
+        let viewH = Math.ceil(canvas.height / TILE_SIZE);
+
+        updateViewDimensions(viewW, viewH);
+        // console.log(`Applied Mobile Config: ${canvas.width}x${canvas.height} (View: ${viewW}x${viewH})`);
+    } else {
+        // Desktop Settings
+        canvas.width = DESKTOP_WIDTH;
+        canvas.height = DESKTOP_HEIGHT;
+        updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
+        // console.log("Applied Desktop Config: 800x600");
+    }
+}
+
+function checkOrientation() {
+    const warning = document.getElementById('rotate-warning');
+    // Show warning only if on mobile AND in portrait mode
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isPortrait = window.innerHeight > window.innerWidth;
+
+    if (isMobile && isPortrait) {
+        warning.classList.remove('hidden');
+        // Optional: Pause game?
+    } else {
+        warning.classList.add('hidden');
+    }
+}
+
+applyDeviceConfig();
+checkOrientation();
+window.addEventListener('resize', () => {
+    applyDeviceConfig(); // Update resolution if window changes
+    checkOrientation();  // Check orientation
+});
+// ---------------------------------------------
 
 let enemies = [];
 let projectiles = [];
 let embers = [];
+let berries = [];
 let regrowingBushes = []; // {x, y, readyTime}
 let treasureSpots = []; // [{x, y}]
 
 
+
 let lastVexSpawnClank = 0;
-const VEX_START_CLANK = 60; // Start spawning Vexes after 60 Clank
-const VEX_SPAWN_INTERVAL = 10; // Then spawn a Vex every 10 Clank
+let lastClankDecayTime = 0;
+
 let isGameRunning = false;
 
 // Initialize Input
@@ -42,9 +99,11 @@ function setupLevel() {
     enemies = [];
     projectiles = [];
     embers = [];
+    berries = [];
     regrowingBushes = [];
     treasureSpots = [];
     gameState.clank = 0;
+    lastClankDecayTime = 0;
 
 
     gameState.hasArtifact = false;
@@ -59,7 +118,7 @@ function setupLevel() {
 
             // Check if cell is an object (contains metadata)
             if (typeof cell === 'object' && cell !== null) {
-                console.log("Found Spawn Object:", cell); // DEBUG LOG
+                // console.log("Found Spawn Object:", cell); // DEBUG LOG
                 // 1. Handle Spawns
                 if (cell.spawn === 'player') {
                     player.x = x + 0.5; // Center in tile
@@ -72,11 +131,21 @@ function setupLevel() {
                 }
 
                 // 2. Normalize Map
-                if (cell.z !== undefined) {
-                    // Preserve object for elevation
-                    map[y][x] = { id: (cell.id !== undefined) ? cell.id : 0, z: cell.z };
+                // We must preserve 'variant' and 'z' if they exist.
+                // If it has important metadata (z, variant), keep it as an object.
+                // Otherwise, we can simplify it to a number IF we want to optimization, 
+                // BUT current logic suggests we should just keep the object structure if it was already an object to be safe.
+
+                // Construct the normalized cell
+                let newCell = { id: (cell.id !== undefined) ? cell.id : 0 };
+                if (cell.z !== undefined) newCell.z = cell.z;
+                if (cell.variant !== undefined) newCell.variant = cell.variant;
+
+                // If the only thing is ID, revert to number (optional optimization, matches previous logic style)
+                if (newCell.z === undefined && newCell.variant === undefined) {
+                    map[y][x] = newCell.id;
                 } else {
-                    map[y][x] = (cell.id !== undefined) ? cell.id : 0;
+                    map[y][x] = newCell;
                 }
             }
             // Preserve Attributes if switching to object
@@ -116,13 +185,12 @@ function setupLevel() {
         let spot = artifactSpots[Math.floor(Math.random() * artifactSpots.length)];
         gameState.targetArtifactLoc = spot;
         gameState.targetArtifactItem = getRandomArtifact();
-        console.log("Target Artifact at:", spot); // Debug
+        // console.log("Target Artifact at:", spot); // Debug
     } else {
         console.warn("No Artifact Spots found on map!");
     }
 }
 
-// --- MAIN LOOP ---
 // --- MAIN LOOP ---
 function gameLoop(timestamp) {
     if (!isGameRunning) return;
@@ -133,15 +201,37 @@ function gameLoop(timestamp) {
         return;
     }
 
+    // Check Victory (Pause Game)
+    if (gameState.gameWon) {
+        return;
+    }
+
+    // Clank Decay Logic
+    if (timestamp - lastClankDecayTime > CLANK_DECAY_INTERVAL) {
+        if (gameState.clank > 0) {
+            gameState.clank = Math.max(0, gameState.clank - CLANK_DECAY_AMOUNT);
+            updateUI(gameState, player);
+            // Optional: Toast "Clank reduced..."? No, keep it subtle.
+        }
+        lastClankDecayTime = timestamp;
+    }
+
     updatePlayer();
 
     // Vex Spawning Logic
     if (gameState.clank >= VEX_START_CLANK) {
         if (gameState.clank >= lastVexSpawnClank + VEX_SPAWN_INTERVAL) {
-            enemies.push(new Vex(player.x, player.y));
-            // Ensure we don't double-spawn if Clank jumps by multiple, but align to grid
+            // Update tracking to consume this interval check regardless of success
+            // This prevents checking every frame once past the threshold.
+            // Alignment to grid ensures we check at 60, 70, 80...
             lastVexSpawnClank = Math.floor(gameState.clank / VEX_SPAWN_INTERVAL) * VEX_SPAWN_INTERVAL;
-            speak("A Vex has been summoned!");
+
+            // Probability Check
+            if (Math.random() < VEX_SPAWN_CHANCE) {
+                enemies.push(new Vex(player.x, player.y));
+                playScaryDing();
+                showToast("A Vex has been summoned!", 2000);
+            }
         }
     } else {
         // Keeps 'lastVexSpawn' updated so the first spawn happens immediately at 60
@@ -181,8 +271,26 @@ function gameLoop(timestamp) {
                 gameState.embersCollected++;
                 updateUI(gameState, player);
                 // Sound effect here?
+                playEmberCollect();
             }
             embers.splice(i, 1);
+        }
+    }
+
+    // Update Berries
+    for (let i = berries.length - 1; i >= 0; i--) {
+        const b = berries[i];
+        const wasCollected = b.update(player);
+
+        if (b.collected) {
+            if (wasCollected) {
+                gameState.inventory.food++;
+                showToast("Picked up a Berry", 1000);
+                updateUI(gameState, player);
+                // Sound effect
+                playDing();
+            }
+            berries.splice(i, 1);
         }
     }
 
@@ -193,7 +301,7 @@ function gameLoop(timestamp) {
         // Check Distance (10 blocks)
         const dist = Math.sqrt((player.x - b.x) ** 2 + (player.y - b.y) ** 2);
 
-        if (dist <= 10) {
+        if (dist <= SPAWNER_ACTIVATION_RANGE) {
             // Random Chance (from constants)
             if (Math.random() < BERRY_REGROW_CHANCE) {
                 // Restore to Berry Bush (ID 8)
@@ -209,6 +317,9 @@ function gameLoop(timestamp) {
     }
 
     updateSpawners();
+
+    // Update UI every frame for smooth compass
+    updateUI(gameState, player);
 
     draw();
     requestAnimationFrame(gameLoop);
@@ -227,15 +338,57 @@ function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Draw Blocks (Layer 1)
+    // 3. First pass: Determine which tiles are "lit" (in flashlight)
+    let litTiles = new Set();
+
+    for (let y = Math.floor(camY); y < camY + VIEW_H + 1; y++) {
+        for (let x = Math.floor(camX); x < camX + VIEW_W + 1; x++) {
+            if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
+
+            let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
+            let isFlashlight = (distToFocus <= FLASHLIGHT_RADIUS) && checkLineOfSight(player.x, player.y, x, y);
+
+            if (isFlashlight) {
+                litTiles.add(`${x},${y}`);
+            }
+        }
+    }
+
+    // Helper: Check if a tile has an adjacent lit tile
+    function hasAdjacentLitTile(x, y) {
+        const neighbors = [
+            `${x - 1},${y}`, `${x + 1},${y}`,
+            `${x},${y - 1}`, `${x},${y + 1}`
+        ];
+        for (let n of neighbors) {
+            if (litTiles.has(n)) return true;
+        }
+        return false;
+    }
+
+    // 4. Draw Blocks (Layer 1)
     for (let y = Math.floor(camY); y < camY + VIEW_H + 1; y++) {
         for (let x = Math.floor(camX); x < camX + VIEW_W + 1; x++) {
 
-            if (y >= map.length || x >= map[0].length) continue;
+            if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
 
-            let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
-            if (distToFocus > SIGHT_RADIUS + 2) continue;
-            if (!checkLineOfSight(player.x, player.y, x, y)) continue;
+            let distToPlayer = Math.sqrt((player.x - x) ** 2 + (player.y - y) ** 2);
+            let isLit = litTiles.has(`${x},${y}`);
+            let isDim = distToPlayer <= DIM_VIEW_RADIUS;
+
+            if (!isLit && !isDim) continue;
+
+            // Set Brightness based on visibility
+            if (isLit) {
+                ctx.globalAlpha = 1.0;
+            } else {
+                // Shadow tile - check if adjacent to lit tile
+                if (hasAdjacentLitTile(x, y)) {
+                    ctx.globalAlpha = SHADOW_EDGE_OPACITY;  // Edge tile (60%)
+                } else {
+                    ctx.globalAlpha = SHADOW_INNER_OPACITY; // Inner tile (30%)
+                }
+            }
 
             let drawX = (x - camX) * TILE_SIZE;
             let drawY = (y - camY) * TILE_SIZE;
@@ -243,9 +396,10 @@ function draw() {
             let tile = map[y][x];
             let id = (typeof tile === 'object') ? tile.id : tile;
             let z = (typeof tile === 'object') ? (tile.z || 0) : 0;
+            let variant = (typeof tile === 'object') ? (tile.variant || 1) : 1;
 
             let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
-            let texture = getBlockTexture(id, 1);
+            let texture = getBlockTexture(id, variant);
 
             if (texture) {
                 // Draw Texture from Sprite Sheet
@@ -276,46 +430,104 @@ function draw() {
         }
     }
 
-    // 4. Draw Player (Layer 2)
+    ctx.globalAlpha = 1.0;
+
+    // 5. Draw Player (Layer 2)
     player.draw(ctx, camX, camY, TILE_SIZE);
 
-    // 5. Draw Enemies
-    enemies.forEach(enemy => enemy.draw(ctx, camX, camY));
+    // 6. Draw Enemies - Only if in line of sight AND within range
+    enemies.forEach(enemy => {
+        const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
+        if (dist <= DIM_VIEW_RADIUS && checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
+            enemy.draw(ctx, camX, camY);
+        }
+    });
 
-    // 5b. Draw Projectiles
-    projectiles.forEach(p => p.draw(ctx, camX, camY));
+    // 6b. Draw Projectiles - Only if in line of sight
+    projectiles.forEach(p => {
+        if (checkLineOfSight(player.x, player.y, p.x, p.y)) {
+            p.draw(ctx, camX, camY);
+        }
+    });
 
-    // 5c. Draw Embers
-    embers.forEach(e => e.draw(ctx, camX, camY, TILE_SIZE));
+    // 6c. Draw Embers - Only if in line of sight
+    embers.forEach(e => {
+        if (checkLineOfSight(player.x, player.y, e.x, e.y)) {
+            e.draw(ctx, camX, camY, TILE_SIZE);
+        }
+    });
 
-    // 6. Damage Flash Overlay
+    // 6d. Draw Berries
+    berries.forEach(b => {
+        if (checkLineOfSight(player.x, player.y, b.x, b.y)) {
+            b.draw(ctx, camX, camY, TILE_SIZE);
+        }
+    });
+
+    // 7. Damage Flash Overlay
     if (Date.now() - player.lastDamageTime < 200) {
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // 7. Lighting Gradient (Layer 3)
+    // 8. Lighting Gradient (Layer 3) - Subtle atmosphere
     let lightX = (focus.x - camX) * TILE_SIZE;
     let lightY = (focus.y - camY) * TILE_SIZE;
 
     let gradient = ctx.createRadialGradient(
         lightX, lightY, TILE_SIZE * 1,
-        lightX, lightY, TILE_SIZE * SIGHT_RADIUS
+        lightX, lightY, TILE_SIZE * FLASHLIGHT_RADIUS
     );
 
     gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(0.6, "rgba(0, 0, 0, 0.1)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+    gradient.addColorStop(0.8, "rgba(0, 0, 0, 0.2)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.5)");
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 9. DEBUG OVERLAY
+    if (window.debugMode) {
+        ctx.lineWidth = 2;
+
+        // Enemies (Pink)
+        ctx.strokeStyle = "hotpink";
+        enemies.forEach(e => {
+            // Entities spawn at x.5, y.5 (center of tile)
+            // Debug box should be centered around the entity
+            // Using a default 0.8x0.8 box (radius 0.4 approx) visualizes the "body" better than full tile
+            // But let's stick to the visual the user expected (full tile box)
+            // x - 0.5 centers a 1-unit wide box on coordinate x
+            let drawX = (e.x - 0.5 - camX) * TILE_SIZE;
+            let drawY = (e.y - 0.5 - camY) * TILE_SIZE;
+            ctx.strokeRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
+        });
+
+        // Artifact Target (Red)
+        if (gameState.targetArtifactLoc) {
+            ctx.strokeStyle = "red";
+            let tx = (gameState.targetArtifactLoc.x - camX) * TILE_SIZE;
+            let ty = (gameState.targetArtifactLoc.y - camY) * TILE_SIZE;
+            ctx.strokeRect(tx, ty, TILE_SIZE, TILE_SIZE);
+        }
+
+        // Ember Spawn Locations (Yellow)
+        ctx.strokeStyle = "yellow";
+        treasureSpots.forEach(spot => {
+            let sx = (spot.x - 0.5 - camX) * TILE_SIZE;
+            let sy = (spot.y - 0.5 - camY) * TILE_SIZE;
+            ctx.strokeRect(sx, sy, TILE_SIZE, TILE_SIZE);
+        });
+    }
 }
 
 // --- START / RESET GAME ---
 export function initGame() {
     loadBlockTextures(() => {
-        console.log('Textures Loaded');
+        // console.log('Textures Loaded');
     });
+
+    initTouchControls(); // Initialize Touch
 
     // Start Overlay
     const overlay = document.getElementById('start-overlay');
@@ -324,28 +536,185 @@ export function initGame() {
     // Game Over Overlay
     const retryOverlay = document.getElementById('game-over-overlay');
     retryOverlay.addEventListener('click', resetGame);
+
+    // Fullscreen Button
+    const fsBtn = document.getElementById('fullscreen-btn');
+    if (fsBtn) {
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent firing click on game container if needed
+            toggleFullscreen();
+        });
+    }
 }
 
 function startGame() {
     const overlay = document.getElementById('start-overlay');
-    overlay.classList.add('hidden');
+    overlay.classList.add('hidden'); // Hide Menu immediately
 
-    console.log("Decked Out 2D is ready for its next victim!");
-    resetGameLogic();
-    showToast("WASD to Move, Hold SHIFT to Sneak", 5000); // Updated Tutorial
-    playGong(() => {
-        speak("Decked Out 2D is ready for its next victim!");
-    });
+    // Auto-collapse Article on Start
+    const article = document.getElementById('game-info');
+    const content = document.getElementById('article-content');
+    const btn = document.getElementById('collapse-btn');
+    if (article && content) {
+        article.classList.add('minimized');
+        content.classList.add('collapsed');
+        if (btn) btn.textContent = '▼';
+    }
+
+    // Start Cinematic Sequence instead of immediate game loop
+    playIntroSequence();
+}
+
+export function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(e => console.log('Fullscreen failed:', e));
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function launchGame() {
+    // console.log("Decked Out 2D is ready for its next victim!");
+    resetGameLogic(); // Initialize Map/Player
+
+    showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
+    gameState.startTime = Date.now(); // Start timer
+
+    // Start Audio Systems
+    startHeartbeatSystem(() => gameState.clank);
+    startAmbientAudio();
+
+    // Show HUD
+    document.getElementById('ui-layer').classList.remove('hidden');
 
     isGameRunning = true;
+    setGameActive(true); // Prevent keyboard scroll
+    updateTouchVisibility(true); // Show Touch Controls if enabled
     requestAnimationFrame(gameLoop);
+}
+
+// === CINEMATIC INTRO ===
+function playIntroSequence() {
+    const cinematic = document.getElementById('cinematic-overlay');
+    const doorContainer = document.getElementById('door-container');
+    const canvas = document.getElementById('intro-particles');
+    const ctx = canvas.getContext('2d');
+
+    // 1. Show Cinematic Layer
+    cinematic.classList.remove('hidden');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // 2. Play Audio
+    const readyVoice = new Audio(AUDIO_ASSETS.voiceReady);
+    readyVoice.volume = 0.8;
+    readyVoice.play().catch(e => console.warn("Audio play failed:", e));
+
+    // 3. Particle System (Spiral)
+    let particles = [];
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 5 * 3;
+    let frame = 0;
+
+    // Create/Update Particles
+    function renderParticles() {
+        if (!cinematic.classList.contains('hidden')) requestAnimationFrame(renderParticles);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Spawn new particles
+        if (frame < 120) { // Spawn for 2 seconds
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    angle: Math.random() * Math.PI * 2,
+                    radius: 10 + Math.random() * 50, // Start relative center
+                    speed: 2 + Math.random() * 2,
+                    size: 2 + Math.random() * 3,
+                    alpha: 1,
+                    hue: 40 + Math.random() * 20 // Gold/Yellow
+                });
+            }
+        }
+
+        // Update & Draw
+        particles.forEach((p, index) => {
+            p.radius += p.speed; // Expand outward spiral
+            p.angle += 0.05; // Rotate
+            p.alpha -= 0.01; // Fade
+
+            // Draw
+            let x = centerX + Math.cos(p.angle) * p.radius;
+            let y = centerY + Math.sin(p.angle) * p.radius;
+
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = `hsl(${p.hue}, 100%, 50%)`;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            if (p.alpha <= 0) particles.splice(index, 1);
+        });
+
+        frame++;
+    }
+    renderParticles();
+
+
+    // 4. Sequence Timing
+    // A) Fade In Doors (over menu)
+    setTimeout(() => {
+        doorContainer.classList.add('visible');
+    }, 1000);
+
+    // B) Open Doors & Reveal Game
+    setTimeout(() => {
+        // Play Gong right before door opens for impact
+        playGong(() => { });
+
+        // Reveal Game behind doors (make overlay transparent)
+        cinematic.classList.add('transparent-bg');
+
+        // Open
+        doorContainer.classList.add('open');
+
+        // Fade out particles
+        canvas.style.transition = "opacity 1s";
+        canvas.style.opacity = 0;
+
+        // Start Game Rendering immediately so it's visible
+        launchGame();
+
+    }, 2700); // 2.5s + 200ms hold
+
+    // 5. Finish & Start Game
+    setTimeout(() => {
+        cinematic.classList.add('hidden');
+        // Reset styles for next time (reloads anyway, but good practice)
+        doorContainer.classList.remove('open');
+        doorContainer.classList.remove('visible');
+        cinematic.classList.remove('transparent-bg');
+        canvas.style.opacity = 1;
+
+    }, 7000); // 2.7s + 4s anim + buffer
 }
 
 function handleGameOver() {
     isGameRunning = false;
+    setGameActive(false); // Allow normal keyboard behavior
+    updateTouchVisibility(false); // Hide Touch Controls
     const overlay = document.getElementById('game-over-overlay');
     overlay.classList.remove('hidden');
-    speak("Game Over");
+    playGameOverSequence();
+    stopHeartbeatSystem();
+    stopAmbientAudio();
 }
 
 function resetGame() {
@@ -353,7 +722,7 @@ function resetGame() {
 }
 
 function resetGameLogic() {
-    player.hp = 10;
+    player.hp = PLAYER_MAX_HP;
     setupLevel(); // Reset map, enemies, player pos
     gameState.clank = 0;
     updateUI(gameState, player);
@@ -361,6 +730,18 @@ function resetGameLogic() {
 
 export function spawnEmber(x, y) {
     embers.push(new Ember(x, y));
+}
+
+export function spawnBerry(x, y) {
+    // Find valid spot near x, y
+    let spawnIdx = getValidSpawnPoint(x, y, 1.5);
+    if (spawnIdx) {
+        berries.push(new Berry(spawnIdx.x, spawnIdx.y));
+    } else {
+        // Fallback: just spawn at center even if blocked (user said push to nearest non solid, getValidSpawnPoint tries that)
+        // If it failed, maybe just spawn at x,y?
+        berries.push(new Berry(x, y));
+    }
 }
 
 export function queueRegrowth(x, y) {
@@ -372,7 +753,7 @@ function updateSpawners() {
     treasureSpots.forEach(spot => {
         // 1. Check Distance (10 blocks)
         const dist = Math.sqrt((player.x - spot.x) ** 2 + (player.y - spot.y) ** 2);
-        if (dist > 10) return;
+        if (dist > SPAWNER_ACTIVATION_RANGE) return;
 
         // 2. Random Chance (Lower chance per frame since it's active constantly, not just when moving)
         // Previous was 1% when moving. Let's try 0.5% per frame (approx 1 per 3 sec per spawner)
@@ -385,7 +766,7 @@ function updateSpawners() {
             if (spawnPos) {
                 spawnEmber(spawnPos.x, spawnPos.y);
                 // Optional: Play a distant sound? Or only if very close?
-                if (dist < 5) showToast("Ember Spawned Nearby!", 1000);
+                if (dist < 5) playDing();
             }
         }
     });

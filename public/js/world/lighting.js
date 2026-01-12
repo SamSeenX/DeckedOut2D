@@ -1,6 +1,6 @@
-import { map } from './map.js';
+import { map } from '../data/map.js';
 import { BLOCK_DEFS } from './tiles.js';
-import { MAX_LOOK_OFFSET } from '../utils/constants.js';
+import { MAX_LOOK_OFFSET } from '../data/config.js';
 
 // Internal Helper: Raycast using DDA Algorithm (Perfect Grid Traversal)
 export function castRay(x0, y0, x1, y1) {

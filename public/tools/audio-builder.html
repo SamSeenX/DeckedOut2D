@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DeckedOut2D Audio Builder</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #ccc;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-size: 14px;
+            overflow: hidden;
+            /* Prevent body scroll, handle inside #main */
+        }
+
+        /* ... scrollbars ... */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        #sidebar {
+            width: 320px;
+            min-width: 320px;
+            flex-shrink: 0;
+            background: #252526;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #1e1e1e;
+            min-width: 0;
+            /* Critical for preventing flex child overflow */
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .btn {
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background: #555;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            border-color: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            border-color: #bd2130;
+        }
+
+        .note-list-item {
+            background: #444;
+            padding: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .note-list-item.selected {
+            border-color: #007bff;
+            background: #555;
+        }
+
+        .note-list-item:hover {
+            background: #505050;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+            padding: 4px;
+        }
+
+        select {
+            width: 100%;
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+            padding: 4px;
+        }
+
+        #json-output {
+            width: 100%;
+            height: 150px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #444;
+            font-family: monospace;
+            margin-top: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .timeline {
+            height: 100px;
+            background: #111;
+            margin-bottom: 20px;
+            position: relative;
+            border: 1px solid #444;
+            overflow-x: auto;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 100%;
+            width: 2000px;
+        }
+
+        /* Arbitrary width */
+        .timeline-block {
+            position: absolute;
+            height: 80%;
+            top: 10%;
+            background: rgba(0, 123, 255, 0.5);
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .timeline-block.selected {
+            background: rgba(255, 193, 7, 0.5);
+            border-color: #ffc107;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .val-disp {
+            float: right;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <h2>Audio Builder</h2>
+        <div class="control-group">
+            <label>Sound Name</label>
+            <input type="text" id="inp-sound-name" value="New Sound" style="width: 100%; box-sizing: border-box;">
+        </div>
+        <hr style="border-color: #444;">
+        <h3>Notes</h3>
+        <div id="note-list">
+            <!-- List Items -->
+        </div>
+        <button class="btn" id="add-note-btn" style="width: 100%; margin-top: 10px;">+ Add Note</button>
+    </div>
+
+    <div id="main">
+        <div class="toolbar" style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+            <button class="btn btn-primary" id="play-btn">▶ Play Sequence</button>
+            <button class="btn" id="copy-json-btn">Copy JSON</button>
+            <div style="display:inline-block; border-left: 1px solid #555; padding-left: 10px; margin-left: 10px;">
+                <label for="file-upload" class="btn" style="display:inline-block; margin:0;">📂 Load File</label>
+                <input type="file" id="file-upload" accept=".json" style="display:none;">
+            </div>
+            <button class="btn btn-danger" id="delete-note-btn" style="display:none; float:right;">Delete Note</button>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-track" id="timeline-track">
+                <!-- Visual Blocks -->
+            </div>
+        </div>
+
+        <div id="inspector" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>Note Settings</h2>
+            </div>
+
+            <div class="controls-grid">
+                <!-- Type & Wave -->
+                <div class="control-group">
+                    <label>Type</label>
+                    <select id="inp-type">
+                        <option value="osc">Oscillator</option>
+                        <option value="noise">Noise</option>
+                    </select>
+                </div>
+                <div class="control-group" id="grp-wave">
+                    <label>Waveform</label>
+                    <select id="inp-wave">
+                        <option value="sine">Sine</option>
+                        <option value="square">Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                        <option value="triangle">Triangle</option>
+                    </select>
+                </div>
+
+                <!-- Timing -->
+                <div class="control-group">
+                    <label>Start Time (s) <span class="val-disp" id="val-startTime">0</span></label>
+                    <input type="range" id="inp-startTime" min="0" max="2" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label>Duration (s) <span class="val-disp" id="val-duration">0.1</span></label>
+                    <input type="range" id="inp-duration" min="0.01" max="2" step="0.01">
+                </div>
+
+                <!-- Frequency -->
+                <div class="control-group">
+                    <label>Frequency Start (Hz) <span class="val-disp" id="val-freqStart">440</span></label>
+                    <input type="range" id="inp-freqStart" min="20" max="2000" step="1">
+                </div>
+                <div class="control-group">
+                    <label>Frequency End (Hz) <span class="val-disp" id="val-freqEnd">440</span></label>
+                    <input type="range" id="inp-freqEnd" min="20" max="2000" step="1">
+                </div>
+
+                <!-- Envelope -->
+                <div class="control-group">
+                    <label>Volume Peak <span class="val-disp" id="val-volPeak">0.5</span></label>
+                    <input type="range" id="inp-volPeak" min="0" max="1" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label>Attack (s) <span class="val-disp" id="val-attack">0.01</span></label>
+                    <input type="range" id="inp-attack" min="0" max="0.5" step="0.01">
+                </div>
+
+                <!-- Filter Toggle -->
+                <div class="control-group full-width"
+                    style="margin-top:10px; border-top: 1px solid #333; padding-top: 10px;">
+                    <label style="font-size:14px; color:#fff;"><input type="checkbox" id="inp-useFilter"
+                            style="margin-right:8px;"> Enable Filter</label>
+                </div>
+
+                <div class="control-group full-width">
+                    <select id="inp-filterType" disabled>
+                        <option value="lowpass">Lowpass</option>
+                        <option value="highpass">Highpass</option>
+                        <option value="bandpass">Bandpass</option>
+                    </select>
+                </div>
+
+                <!-- Filter Settings -->
+                <div class="control-group" id="grp-filter-1">
+                    <label>Filter Freq Start (Hz) <span class="val-disp" id="val-filterFreqStart">1000</span></label>
+                    <input type="range" id="inp-filterFreqStart" min="20" max="5000" step="10">
+                </div>
+                <div class="control-group" id="grp-filter-2">
+                    <label>Filter Freq End (Hz) <span class="val-disp" id="val-filterFreqEnd">1000</span></label>
+                    <input type="range" id="inp-filterFreqEnd" min="20" max="5000" step="10">
+                </div>
+                <div class="control-group" id="grp-filter-3">
+                    <label>Q Factor <span class="val-disp" id="val-Q">1</span></label>
+                    <input type="range" id="inp-Q" min="0.1" max="20" step="0.1">
+                </div>
+
+            </div>
+        </div>
+
+        <div style="margin-top: auto; display: flex; flex-direction: column;">
+            <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="color:#888; font-size:0.8em;">JSON Configuration</span>
+                <button id="load-from-text-btn" class="btn" style="padding: 2px 8px; font-size: 0.8em;">Update from
+                    Text</button>
+            </div>
+            <textarea id="json-output"></textarea>
+        </div>
+    </div>
+
+    <script type="module">
+        import { playSequence } from '../js/core/audio.js';
+
+        let sequence = {
+            name: "New Sound",
+            notes: [
+                { type: 'osc', wave: 'sine', startTime: 0, duration: 0.2, freqStart: 440, freqEnd: 440, volPeak: 0.5, attack: 0.01 }
+            ]
+        };
+
+        let selectedIndex = -1;
+
+        // DOM Elements
+        const noteListEl = document.getElementById('note-list');
+        const timelineTrackEl = document.getElementById('timeline-track');
+        const inspectorEl = document.getElementById('inspector');
+        const jsonOutputEl = document.getElementById('json-output');
+
+        // Inputs
+        const inputs = {
+            type: document.getElementById('inp-type'),
+            wave: document.getElementById('inp-wave'),
+            startTime: document.getElementById('inp-startTime'),
+            duration: document.getElementById('inp-duration'),
+            freqStart: document.getElementById('inp-freqStart'),
+            freqEnd: document.getElementById('inp-freqEnd'),
+            volPeak: document.getElementById('inp-volPeak'),
+            attack: document.getElementById('inp-attack'),
+            useFilter: document.getElementById('inp-useFilter'),
+            filterType: document.getElementById('inp-filterType'),
+            filterFreqStart: document.getElementById('inp-filterFreqStart'),
+            filterFreqEnd: document.getElementById('inp-filterFreqEnd'),
+            Q: document.getElementById('inp-Q'),
+        };
+
+        // Render Logic
+        function render() {
+            // List
+            noteListEl.innerHTML = '';
+            timelineTrackEl.innerHTML = '';
+
+            sequence.notes.forEach((note, index) => {
+                // Sidebar Item
+                const li = document.createElement('div');
+                li.className = `note-list-item ${index === selectedIndex ? 'selected' : ''}`;
+                li.textContent = `${index + 1}. ${note.type} (${note.startTime.toFixed(2)}s)`;
+                li.onclick = () => selectNote(index);
+                noteListEl.appendChild(li);
+
+                // Timeline Block
+                const block = document.createElement('div');
+                block.className = `timeline-block ${index === selectedIndex ? 'selected' : ''}`;
+                block.style.left = (note.startTime * 200) + 'px'; // 200px per second
+                block.style.width = (note.duration * 200) + 'px';
+                block.title = `Note ${index + 1}`;
+                block.onclick = (e) => { e.stopPropagation(); selectNote(index); };
+                timelineTrackEl.appendChild(block);
+            });
+
+            // JSON Output
+            jsonOutputEl.value = JSON.stringify(sequence, null, 2);
+
+            // Inspector Visibility
+            if (selectedIndex >= 0) {
+                inspectorEl.style.display = 'block';
+                document.getElementById('delete-note-btn').style.display = 'inline-block';
+                populateInspector(sequence.notes[selectedIndex]);
+            } else {
+                inspectorEl.style.display = 'none';
+                document.getElementById('delete-note-btn').style.display = 'none';
+            }
+        }
+
+        function selectNote(index) {
+            selectedIndex = index;
+            render();
+        }
+
+        function populateInspector(note) {
+            // Safe access helper
+            const get = (key, def) => note[key] !== undefined ? note[key] : def;
+
+            inputs.type.value = get('type', 'osc');
+            inputs.wave.value = get('wave', 'sine');
+            inputs.startTime.value = get('startTime', 0);
+            inputs.duration.value = get('duration', 0.1);
+
+            inputs.freqStart.value = get('freqStart', 440);
+            inputs.freqEnd.value = get('freqEnd', 440);
+
+            inputs.volPeak.value = get('volPeak', 0.5);
+            inputs.attack.value = get('attack', 0.01);
+
+            // Filter
+            const hasFilter = note.filterType && note.filterType !== 'none';
+            inputs.useFilter.checked = hasFilter;
+            inputs.filterType.value = hasFilter ? note.filterType : 'lowpass';
+            inputs.filterType.disabled = !hasFilter;
+
+            ['grp-filter-1', 'grp-filter-2', 'grp-filter-3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.opacity = hasFilter ? 1 : 0.5;
+                    el.style.pointerEvents = hasFilter ? 'auto' : 'none';
+                }
+            });
+
+            inputs.filterFreqStart.value = get('filterFreqStart', 1000);
+            inputs.filterFreqEnd.value = get('filterFreqEnd', 1000);
+            inputs.Q.value = get('Q', 1);
+
+            // Update Labels
+            updateLabels(note);
+
+            // Visibility Logic (Osc vs Noise)
+            if (note.type === 'noise') {
+                document.getElementById('grp-freq').style.opacity = 0.3;
+                document.getElementById('grp-freq').style.pointerEvents = 'none';
+                document.getElementById('grp-wave').style.opacity = 0.3;
+                document.getElementById('grp-wave').style.pointerEvents = 'none';
+            } else {
+                document.getElementById('grp-freq').style.opacity = 1;
+                document.getElementById('grp-freq').style.pointerEvents = 'auto';
+                document.getElementById('grp-wave').style.opacity = 1;
+                document.getElementById('grp-wave').style.pointerEvents = 'auto';
+            }
+        }
+
+        function updateLabels(note) {
+            Object.keys(inputs).forEach(key => {
+                const labelSpan = document.getElementById('val-' + key);
+                if (labelSpan) {
+                    if (note[key] !== undefined) {
+                        labelSpan.textContent = note[key];
+                    } else if (inputs[key].value) {
+                        labelSpan.textContent = inputs[key].value;
+                    }
+                }
+            });
+        }
+
+        function updateNoteFromInputs() {
+            if (selectedIndex < 0) return;
+            const note = sequence.notes[selectedIndex];
+
+            note.type = inputs.type.value;
+            note.wave = inputs.wave.value;
+            note.startTime = parseFloat(inputs.startTime.value);
+            note.duration = parseFloat(inputs.duration.value);
+
+            note.freqStart = parseFloat(inputs.freqStart.value);
+            note.freqEnd = parseFloat(inputs.freqEnd.value);
+
+            note.volPeak = parseFloat(inputs.volPeak.value);
+            note.attack = parseFloat(inputs.attack.value);
+
+            if (inputs.useFilter.checked) {
+                note.filterType = inputs.filterType.value;
+                note.filterFreqStart = parseFloat(inputs.filterFreqStart.value);
+                note.filterFreqEnd = parseFloat(inputs.filterFreqEnd.value);
+                note.Q = parseFloat(inputs.Q.value);
+            } else {
+                delete note.filterType;
+            }
+
+            render();
+        }
+
+        // Name Input
+        const nameInput = document.getElementById('inp-sound-name');
+        nameInput.addEventListener('input', (e) => {
+            sequence.name = e.target.value;
+            render(); // Re-render JSON output
+        });
+
+        // Event Listeners for Inputs
+        Object.values(inputs).forEach(el => {
+            el.addEventListener('input', updateNoteFromInputs);
+            el.addEventListener('change', updateNoteFromInputs);
+        });
+
+        // Buttons
+        document.getElementById('add-note-btn').onclick = () => {
+            sequence.notes.push({
+                type: 'osc',
+                wave: 'sine',
+                startTime: sequence.notes.length > 0 ? sequence.notes[sequence.notes.length - 1].startTime + 0.1 : 0,
+                duration: 0.1,
+                freqStart: 440,
+                freqEnd: 440,
+                volPeak: 0.5
+            });
+            selectNote(sequence.notes.length - 1);
+        };
+
+        document.getElementById('delete-note-btn').onclick = () => {
+            if (selectedIndex >= 0) {
+                sequence.notes.splice(selectedIndex, 1);
+                selectedIndex = -1;
+                render();
+            }
+        };
+
+        document.getElementById('play-btn').onclick = () => {
+            try {
+                playSequence(sequence);
+            } catch (e) {
+                console.error(e);
+                alert("Error playing sequence. Check console.");
+            }
+        };
+
+        document.getElementById('copy-json-btn').onclick = () => {
+            jsonOutputEl.select();
+            document.execCommand('copy');
+            alert("JSON copied to clipboard!");
+        };
+
+        // File Load
+        document.getElementById('file-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const loaded = JSON.parse(evt.target.result);
+                    if (loaded && loaded.notes) {
+                        sequence = loaded;
+                        // Update Name Input
+                        document.getElementById('inp-sound-name').value = sequence.name || "Untitled";
+                        selectedIndex = -1;
+                        render();
+                    } else {
+                        alert("Invalid JSON format: Missing 'notes' array.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Error parsing JSON");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Text Load
+        document.getElementById('load-from-text-btn').onclick = () => {
+            try {
+                const text = jsonOutputEl.value;
+                const loaded = JSON.parse(text);
+                if (loaded && loaded.notes) {
+                    sequence = loaded;
+                    document.getElementById('inp-sound-name').value = sequence.name || "Untitled";
+                    selectedIndex = -1;
+                    render();
+                } else {
+                    alert("Invalid JSON format");
+                }
+            } catch (e) {
+                alert("Error parsing JSON");
+            }
+        };
+
+        // Init
+        render();
+
+    </script>
+</body>
+
+</html>

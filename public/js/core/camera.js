@@ -1,4 +1,4 @@
-import { VIEW_W, VIEW_H } from '../utils/constants.js';
+import { VIEW_W, VIEW_H } from '../data/config.js';
 
 let shakeIntensity = 0;
 

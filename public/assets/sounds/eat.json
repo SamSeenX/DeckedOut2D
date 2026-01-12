@@ -1,0 +1,27 @@
+{
+    "name": "Eat Berry",
+    "notes": [
+        {
+            "type": "noise",
+            "startTime": 0,
+            "duration": 0.1,
+            "volPeak": 0.6,
+            "attack": 0.01,
+            "filterType": "lowpass",
+            "filterFreqStart": 1500,
+            "filterFreqEnd": 300,
+            "Q": 1
+        },
+        {
+            "type": "noise",
+            "startTime": 0.08,
+            "duration": 0.07,
+            "volPeak": 0.4,
+            "attack": 0.01,
+            "filterType": "lowpass",
+            "filterFreqStart": 1500,
+            "filterFreqEnd": 300,
+            "Q": 1
+        }
+    ]
+}

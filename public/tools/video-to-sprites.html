@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video to Sprite - Decked Out 2D</title>
+    <link rel="stylesheet" href="css/video-to-sprites.css">
+    <!-- Reusing some variables if common, but standalone is safer for now -->
+</head>
+
+<body>
+    <!-- Top Control Bar -->
+    <div id="control-bar">
+        <div class="control-group">
+            <label class="control-label">
+                <input type="file" id="video-upload" accept="video/mp4,video/webm" hidden>
+                <button id="upload-btn" class="control-btn primary">📤 Load Video</button>
+            </label>
+        </div>
+
+        <div class="control-group" id="settings-group">
+            <label title="Target width of each sprite frame">W: <input type="number" id="sprite-width" value="64"
+                    min="8"></label>
+            <label title="Target height of each sprite frame">H: <input type="number" id="sprite-height" value="64"
+                    min="8"></label>
+            <span class="separator">|</span>
+            <label title="Spacing between sprites">Pad: <input type="number" id="sheet-padding" value="0"
+                    min="0"></label>
+        </div>
+
+        <div class="control-group">
+            <button id="clear-frames-btn" class="control-btn secondary" disabled>🗑️ Clear All Frames</button>
+        </div>
+
+        <div class="control-group right-aligned">
+            <label>Format: <select id="export-format" class="control-select">
+                    <option value="png">PNG</option>
+                    <option value="webp">WebP</option>
+                </select></label>
+            <button id="export-btn" class="control-btn primary" disabled>💾 Export Sheet</button>
+            <a href="index.html" class="control-btn">🔙 Back</a>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div id="workspace">
+        <!-- Left: Video Source -->
+        <div id="video-column">
+            <div class="panel-header">
+                <h3>Source Video</h3>
+                <span id="video-meta">No video loaded</span>
+            </div>
+
+            <div class="video-wrapper">
+                <video id="video-player" controls crossOrigin="anonymous"></video>
+                <div id="crop-overlay" hidden></div>
+            </div>
+
+            <div class="playback-controls">
+                <button id="step-back" class="control-btn sm" title="-1s">⏮</button>
+                <button id="step-frame-back" class="control-btn sm" title="Prev Frame">◀</button>
+
+                <button id="mark-frame-btn" class="control-btn active-green" disabled title="Mark Frame (Space)">📍
+                    MARK</button>
+
+                <button id="step-frame-fwd" class="control-btn sm" title="Next Frame">▶</button>
+                <button id="step-fwd" class="control-btn sm" title="+1s">⏭</button>
+
+                <span id="current-time">00:00.00</span>
+            </div>
+
+            <div class="timeline-container">
+                <h4>Captured Frames (<span id="frame-count">0</span>)</h4>
+                <div id="captured-frames-list">
+                    <!-- Frame items injected here -->
+                    <div class="empty-state">No frames marked yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Sheet Preview -->
+        <div id="preview-column">
+            <div class="panel-header">
+                <h3>Sprite Sheet Preview</h3>
+                <label>Cols: <input type="number" id="preview-cols" value="5" min="1" style="width:50px"></label>
+            </div>
+
+            <div class="preview-wrapper">
+                <canvas id="sheet-canvas"></canvas>
+            </div>
+
+            <div class="animation-preview-section">
+                <h3>Animation Test</h3>
+                <div class="anim-timer-controls">
+                    <label>FPS: <input type="number" id="anim-fps" value="10" min="1" max="60"></label>
+                    <button id="play-anim-btn" class="control-btn">▶ Play</button>
+                </div>
+                <div class="anim-canvas-wrapper">
+                    <canvas id="animation-canvas" width="64" height="64"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/video-to-sprites.js"></script>
+</body>
+
+</html>
