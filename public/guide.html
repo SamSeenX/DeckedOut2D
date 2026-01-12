@@ -29,10 +29,23 @@
             max-width: 800px;
             margin: 0 auto 30px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: flex-start;
             padding: 20px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 20px;
+        }
+
+        .separator {
+            color: #555;
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .page-title {
+            color: #4fc3f7;
+            font-weight: bold;
+            font-size: 18px;
         }
 
         .home-link {
@@ -146,7 +159,8 @@
 
     <header class="site-header">
         <a href="index.html" class="home-link">Back to Game</a>
-        <div style="color: #4fc3f7; font-weight: bold;">Decked Out 2D Wiki</div>
+        <span class="separator">|</span>
+        <div class="page-title">Decked Out 2D Wiki</div>
     </header>
 
     <article class="game-article">

@@ -27,10 +27,23 @@
             max-width: 800px;
             margin: 0 auto 30px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: flex-start;
             padding: 20px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 20px;
+        }
+
+        .separator {
+            color: #555;
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .page-title {
+            color: #4fc3f7;
+            font-weight: bold;
+            font-size: 18px;
         }
 
         .home-link {
@@ -135,7 +148,8 @@
 
     <header class="site-header">
         <a href="index.html" class="home-link">Back to Game</a>
-        <div style="color: #4fc3f7; font-weight: bold;">DevLog</div>
+        <span class="separator">|</span>
+        <div class="page-title">DevLog</div>
     </header>
 
     <article class="game-article">
@@ -200,22 +214,22 @@
 
             <!-- Log 1: Origin Story -->
             <div class="log-entry">
-                <div class="log-date">January 05, 2026</div>
+                <div class="log-date">January 02, 2026</div>
                 <h2 class="log-title">Origin Story: Why Decked Out?</h2>
                 <div class="log-content">
                     <p>I've always been fascinated by game development. Even though I've spent years building automation
-                        tools, complex business systems, and mobile apps (you can see some of my work on my <a
-                            href="https://samseen.dev" target="_blank">portfolio page</a>), I had never taken the plunge
-                        into building a proper game of my own.</p>
+                        <a href="https://samseen.dev" target="_blank">tools</a>, business systems, and mobile apps, I
+                        had never taken the plunge into building a proper game of my own.
+                    </p>
 
-                    <p>The spark for this project came in a way most good ideas do—completely by accident. I was deep in
-                        code for another client tool, with YouTube playing in the background to keep my focus. I often
-                        treat Hermitcraft videos like podcasts, and on this particular day, <a
+                    <p>The spark for this project came in a way most good ideas do completely by accident. I was deep in
+                        code for another tool, with YouTube playing in the background to keep my focus. I often treat
+                        Hermitcraft videos like podcasts, and on this particular day, <a
                             href="https://www.youtube.com/@EthosLab" target="_blank">EthosLab</a> was doing a dungeon
                         run in <em>Decked Out 2</em>.</p>
 
-                    <p>Listening to the soundscape—the heart-pounding music, the Ravager clanks, the sheer panic of
-                        getting lost—something clicked. I suddenly felt a massive urge to recreate that specific tension
+                    <p>Listening to the soundscape, the heart pounding music, the Ravager clanks, the sheer panic of
+                        getting lost something clicked. I suddenly felt a strong urge to recreate that specific tension
                         in a 2D format. I wanted to see if I could capture that "stealth horror" vibe in a browser game.
                     </p>
 
