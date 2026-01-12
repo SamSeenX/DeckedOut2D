@@ -24,6 +24,23 @@ let imageShiftY = 0;
 let activeAttribute = null; // null means painting tiles
 let historyStack = []; // Undo history
 
+// ===== Persistence Keys =====
+const STORAGE_KEY_MAP = 'deckedout_mapmaker_data';
+const STORAGE_KEY_SETTINGS = 'deckedout_mapmaker_settings';
+let autoSaveTimeout = null;
+
+// ===== Zoom & Pan State =====
+let zoomLevel = 1.0;
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 4.0;
+const ZOOM_STEP = 0.25;
+let isPanning = false;
+let isSpaceDown = false;
+let panStartX = 0;
+let panStartY = 0;
+let scrollStartX = 0;
+let scrollStartY = 0;
+
 
 // ===== DOM Elements =====
 const uploadBtn = document.getElementById('upload-btn');
@@ -59,14 +76,19 @@ const blockOpacityValue = document.getElementById('block-opacity-value');
 // ===== Initialization =====
 function init() {
     // Load textures first, then initialize
+    // Use empty basePath since SPRITES paths are already absolute from server root
     loadBlockTextures(() => {
-        initMap();
+        // Try to load saved map data first
+        if (!loadFromLocalStorage()) {
+            initMap();
+        }
         generateTilePalette();
         setupEventListeners();
         resizeCanvas();
         setupMinimap();
         draw();
-    }, '../public');
+        console.log('Map Maker initialized. Map data will auto-save to browser storage.');
+    }, '');
 }
 
 function initMap() {
@@ -84,6 +106,40 @@ function initMap() {
 function resizeCanvas() {
     canvas.width = gridWidth * TILE_SIZE;
     canvas.height = gridHeight * TILE_SIZE;
+    applyZoom();
+}
+
+// ===== Zoom Functions =====
+function applyZoom() {
+    canvas.style.transform = `scale(${zoomLevel})`;
+    canvas.style.transformOrigin = 'top left';
+    updateZoomDisplay();
+}
+
+function zoomIn() {
+    if (zoomLevel < MAX_ZOOM) {
+        zoomLevel = Math.min(MAX_ZOOM, zoomLevel + ZOOM_STEP);
+        applyZoom();
+    }
+}
+
+function zoomOut() {
+    if (zoomLevel > MIN_ZOOM) {
+        zoomLevel = Math.max(MIN_ZOOM, zoomLevel - ZOOM_STEP);
+        applyZoom();
+    }
+}
+
+function resetZoom() {
+    zoomLevel = 1.0;
+    applyZoom();
+}
+
+function updateZoomDisplay() {
+    const zoomDisplay = document.getElementById('zoom-level');
+    if (zoomDisplay) {
+        zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+    }
 }
 
 // ===== Tile Palette =====
@@ -371,6 +427,7 @@ function placeTile(x, y, tileId) {
                 delete tile.isExit;
                 delete tile.spawn;
                 draw();
+                scheduleAutoSave();
                 return;
             }
 
@@ -385,6 +442,7 @@ function placeTile(x, y, tileId) {
                     tile.spawn = type;
                 }
                 draw();
+                scheduleAutoSave();
                 return;
             }
 
@@ -396,6 +454,7 @@ function placeTile(x, y, tileId) {
             }
 
             draw();
+            scheduleAutoSave();
             return;
         }
 
@@ -421,6 +480,7 @@ function placeTile(x, y, tileId) {
 
         mapData[y][x] = newTile;
         draw();
+        scheduleAutoSave();
     }
 }
 // Cycle through variants for existing tile (Shift+click)
@@ -434,6 +494,7 @@ function cycleVariant(x, y) {
             saveHistory(); // Save before changing
             mapData[y][x] = { id: tile.id, variant: nextVariant };
             draw();
+            scheduleAutoSave();
         }
     }
 }
@@ -473,6 +534,109 @@ function undo() {
 
     draw();
     updateMapSizeDisplay();
+    scheduleAutoSave();
+}
+
+// ===== Persistence (localStorage) =====
+function scheduleAutoSave() {
+    // Debounce auto-save to avoid excessive writes
+    if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+    }
+    autoSaveTimeout = setTimeout(() => {
+        saveToLocalStorage();
+    }, 1000); // Save 1 second after last change
+}
+
+function saveToLocalStorage() {
+    try {
+        const saveData = {
+            version: 1,
+            timestamp: Date.now(),
+            gridWidth,
+            gridHeight,
+            mapData,
+            // Save current settings
+            settings: {
+                selectedTileId,
+                currentTool,
+                showGrid,
+                imageOpacity,
+                blockOpacity,
+                imageShiftX,
+                imageShiftY
+            }
+        };
+        localStorage.setItem(STORAGE_KEY_MAP, JSON.stringify(saveData));
+        console.log('Map auto-saved to browser storage.');
+    } catch (e) {
+        console.warn('Failed to save map to localStorage:', e);
+    }
+}
+
+function loadFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_MAP);
+        if (!saved) return false;
+
+        const data = JSON.parse(saved);
+        if (!data || !data.mapData) return false;
+
+        // Restore dimensions
+        gridWidth = data.gridWidth || 40;
+        gridHeight = data.gridHeight || 30;
+        gridWidthInput.value = gridWidth;
+        gridHeightInput.value = gridHeight;
+
+        // Restore map data with validation
+        mapData = data.mapData.map(row =>
+            row.map(tile => {
+                if (typeof tile === 'number') {
+                    return { id: tile, variant: 1 };
+                }
+                return { variant: 1, ...tile };
+            })
+        );
+
+        // Restore settings if available
+        if (data.settings) {
+            selectedTileId = data.settings.selectedTileId ?? 0;
+            currentTool = data.settings.currentTool || 'paint';
+            showGrid = data.settings.showGrid ?? true;
+            imageOpacity = data.settings.imageOpacity ?? 0.5;
+            blockOpacity = data.settings.blockOpacity ?? 0.5;
+            imageShiftX = data.settings.imageShiftX || 0;
+            imageShiftY = data.settings.imageShiftY || 0;
+
+            // Update UI elements
+            opacitySlider.value = imageOpacity * 100;
+            opacityValue.textContent = `${Math.round(imageOpacity * 100)}%`;
+            blockOpacitySlider.value = blockOpacity * 100;
+            blockOpacityValue.textContent = `${Math.round(blockOpacity * 100)}%`;
+            gridToggle.checked = showGrid;
+            shiftXInput.value = imageShiftX;
+            shiftYInput.value = imageShiftY;
+
+            // Update tool button selection
+            const tools = ['paint', 'fill', 'pick', 'erase'];
+            tools.forEach(t => {
+                const btn = document.getElementById(`tool-${t}`);
+                if (btn) btn.classList.toggle('active', t === currentTool);
+            });
+        }
+
+        const savedDate = new Date(data.timestamp);
+        console.log(`Restored map from browser storage (saved: ${savedDate.toLocaleString()})`);
+        return true;
+    } catch (e) {
+        console.warn('Failed to load map from localStorage:', e);
+        return false;
+    }
+}
+
+function clearLocalStorage() {
+    localStorage.removeItem(STORAGE_KEY_MAP);
+    console.log('Map data cleared from browser storage.');
 }
 
 // ===== Flood Fill =====
@@ -516,12 +680,24 @@ function performFloodFill(startX, startY, replacementId) {
     }
 
     draw();
+    scheduleAutoSave();
 }
 
 // ===== Event Listeners =====
 function setupEventListeners() {
     // Canvas events
     canvas.addEventListener('mousedown', (e) => {
+        // Spacebar panning mode
+        if (isSpaceDown) {
+            isPanning = true;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            scrollStartX = canvasContainer.scrollLeft;
+            scrollStartY = canvasContainer.scrollTop;
+            canvas.style.cursor = 'grabbing';
+            return;
+        }
+
         const { x, y } = getTileCoords(e);
 
         // Shift+click to cycle variants
@@ -566,10 +742,19 @@ function setupEventListeners() {
     });
 
     canvas.addEventListener('mousemove', (e) => {
+        // Handle panning
+        if (isPanning && isSpaceDown) {
+            const dx = e.clientX - panStartX;
+            const dy = e.clientY - panStartY;
+            canvasContainer.scrollLeft = scrollStartX - dx;
+            canvasContainer.scrollTop = scrollStartY - dy;
+            return;
+        }
+
         const { x, y } = getTileCoords(e);
         cursorPos.textContent = `Tile: (${x}, ${y})`;
 
-        if (isPainting && !e.shiftKey) {
+        if (isPainting && !e.shiftKey && !isSpaceDown) {
             let tileId;
             if (currentTool === 'erase' || e.ctrlKey) {
                 tileId = -1;
@@ -584,6 +769,9 @@ function setupEventListeners() {
 
     canvas.addEventListener('mouseup', () => {
         isPainting = false;
+        if (isSpaceDown) {
+            canvas.style.cursor = 'grab';
+        }
     });
 
     canvas.addEventListener('mouseleave', () => {
@@ -593,6 +781,7 @@ function setupEventListeners() {
     canvas.addEventListener('contextmenu', (e) => {
         e.preventDefault(); // Prevent right-click menu
     });
+
 
     // Upload image
     uploadBtn.addEventListener('click', () => imageUpload.click());
@@ -648,18 +837,57 @@ function setupEventListeners() {
 
     // Keyboard
     window.addEventListener('keydown', (e) => {
+        // Prevent default for zoom keys when focused on canvas area
+        if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === ' ') {
+            // Only prevent if not in an input field
+            if (document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+            }
+        }
+
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
             e.preventDefault();
             undo();
         }
+
+        // Zoom controls (+/- keys)
+        if (!e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+            if (e.key === '+' || e.key === '=') {
+                zoomIn();
+            }
+            if (e.key === '-' || e.key === '_') {
+                zoomOut();
+            }
+            // Reset zoom with 0
+            if (e.key === '0') {
+                resetZoom();
+            }
+        }
+
+        // Spacebar for panning
+        if (e.key === ' ' && !isSpaceDown && document.activeElement.tagName !== 'INPUT') {
+            isSpaceDown = true;
+            canvas.style.cursor = 'grab';
+        }
+
         // Tool Shortcuts
-        if (!e.ctrlKey && !e.metaKey) {
+        if (!e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
             if (e.key.toLowerCase() === 'p') document.getElementById('tool-paint').click();
             if (e.key.toLowerCase() === 'f') document.getElementById('tool-fill').click();
             if (e.key.toLowerCase() === 'e') document.getElementById('tool-erase').click();
             if (e.key.toLowerCase() === 'i') document.getElementById('tool-pick').click();
         }
     });
+
+    // Keyup for spacebar release
+    window.addEventListener('keyup', (e) => {
+        if (e.key === ' ') {
+            isSpaceDown = false;
+            isPanning = false;
+            canvas.style.cursor = 'crosshair';
+        }
+    });
+
 
     // Resize grid
     resizeBtn.addEventListener('click', handleResize);
@@ -689,6 +917,7 @@ function setupEventListeners() {
 
     confirmYes.addEventListener('click', () => {
         initMap();
+        clearLocalStorage(); // Clear saved data when clearing map
         draw();
         confirmModal.classList.add('hidden');
     });
@@ -805,6 +1034,7 @@ function handleResize() {
     resizeCanvas();
     updateMapSizeDisplay();
     draw();
+    scheduleAutoSave();
 }
 
 function updateMapSizeDisplay() {
@@ -946,6 +1176,7 @@ function handleLoadMap(e) {
             resizeCanvas();
             updateMapSizeDisplay();
             draw();
+            scheduleAutoSave(); // Persist loaded map to localStorage
 
             console.log('Map loaded successfully!');
 
