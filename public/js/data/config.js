@@ -24,6 +24,7 @@ export const MOBILE_WIDTH = 600;
 export const MOBILE_HEIGHT = 400;
 export const MOBILE_VIEW_W = 15;
 export const MOBILE_VIEW_H = 10;
+export const MOBILE_INITIAL_HEIGHT_VH = 0.9; // 90% view height initially
 export const TOUCH_LAYOUT = {
     dpad: { x: 20, y: 60, size: 150 },
     jump: { x: 20, y: 140, size: 70 },
@@ -46,30 +47,53 @@ export const SHADOW_INNER_OPACITY = 0.4; // Shadow tiles not adjacent to lit til
 export const MAX_LOOK_OFFSET = 6;
 
 // === Game Balance / Rules ===
-export const EMBER_SPAWN_CHANCE = 0.0002; // 0.5% per frame
-export const BERRY_REGROW_CHANCE = 0.0005; // 0.5% per frame
+export const EMBER_SPAWN_CHANCE = 0.0005; // 0.5% per frame
+export const BERRY_REGROW_CHANCE = 0.005; // 0.5% per frame
 export const SPAWNER_ACTIVATION_RANGE = 10; // Blocks
-export const HAZE_SPEED_THRESHOLD = 0.05;
-// Walk/Move Haze now handled by timer, so these standard increments might be unused or retuned
-export const HAZE_WALK_INC = 0; // Disabled in favor of time-based
-export const HAZE_RUN_INC = 0;  // Disabled in favor of time-based
-export const HAZE_MOVE_INC = 0.1; // New time-based increment
-export const HAZE_MOVE_INTERVAL = 200; // ms
-
-export const HAZE_JUMP_INC = 0.2; // Reduced from 2
-export const HAZE_DECAY_AMOUNT = 0.5; // Reduce haze by this amount
-export const HAZE_DECAY_INTERVAL = 10000; // 10 seconds
-export const HAZE_CHANCE_MULTIPLIER = 0.5; // Keeping this for random chance logic if still used
-export const HEARTBEAT_MIN_INTERVAL = 400; // ms (Fastest) - High Haze
-export const HEARTBEAT_MAX_INTERVAL = 1200; // ms (Slowest) - Low Haze
-export const MAX_HAZE = 100; // Assumed max for scaling heartbeat
-export const HEARTBEAT_MIN_VOLUME = 0.05; // Low Haze - Very quiet
-export const HEARTBEAT_MAX_VOLUME = 0.5; // High Haze - Loud
-export const HAZARD_DAMAGE_CHANCE = 0.05;
-export const ARTIFACT_HAZE_PENALTY = 20;
 
 export const COMPASS_UPDATE_INTERVAL = 100; // ms
 export const COMPASS_ROTATION_STEP = 30; // degrees
+export const HAZARD_DAMAGE_CHANCE = 0.05;
+
+// === Haze & Stress System ===
+export const MAX_HAZE = 100;
+export const STRESS_MULTI_AT_MAX_HAZE = 25; // View reduced to 25% at max haze
+
+// Haze Accumulation Sources
+export const HAZE_MOVE_INC = 0.1;           // +0.1 per interval moving
+export const HAZE_MOVE_INTERVAL = 200;      // 200ms interval
+export const HAZE_JUMP_INC = 0.2;           // +0.2 per jump
+export const HAZE_DAMAGE_PENALTY = 5;       // +5 on damage
+export const HAZE_AGGRO_PENALTY = 5;        // +5 on enemy aggro
+export const HAZE_AGGRO_COOLDOWN = 10000;   // 10s cooldown per enemy
+export const ARTIFACT_HAZE_PENALTY = 20;    // +20 on finding artifact
+export const HAZE_MISS_PENALTY = 2;         // +2 on checking empty spot
+export const HAZE_PROXIMITY_INC = 0.05;     // +0.05 per frame near enemy
+export const PROXIMITY_RANGE = 6;           // Range for "Sixth Sense" stress
+
+// Haze Reduction
+export const HAZE_DECAY_AMOUNT = 0.5;       // -0.5 per interval
+export const HAZE_DECAY_INTERVAL = 10000;   // 10s interval
+export const HAZE_EAT_REDUCTION = 5;        // -5 on eating
+export const HAZE_EMBER_REDUCTION = 2;      // -2 on picking up ember
+
+// Haze Effect Thresholds
+export const HAZE_SPEED_THRESHOLD = 0.05;
+export const HAZE_CRITICAL_THRESHOLD = 90; // Compass Malfunction / Red Tint / Shake
+export const PHANTOM_START_HAZE = 60; // Moved here for context
+export const PHANTOM_CRITICAL_SPAWN_MULT = 1.3; // Double spawns at critical haze
+
+// Heartbeat Audio System (Scaled by Haze)
+export const HEARTBEAT_MIN_INTERVAL = 400;  // ms (Fastest) - High Haze
+export const HEARTBEAT_MAX_INTERVAL = 3000; // ms (Slowest) - Low Haze (Start)
+export const HEARTBEAT_MIN_VOLUME = 0.005;   // Low Haze - Very quiet
+export const HEARTBEAT_MAX_VOLUME = 0.6;    // High Haze - Loud
+
+// Deprecated / Unused
+export const HAZE_WALK_INC = 0;
+export const HAZE_RUN_INC = 0;
+export const HAZE_CHANCE_MULTIPLIER = 0.5;
+
 
 // === Entities ===
 // Projectiles
@@ -91,9 +115,9 @@ export const FROST_BEAST_CHASE_FPS = 12;
 export const PHANTOM_ORBIT_SPEED = 0.02;
 export const PHANTOM_SWOOP_SPEED = 0.12;
 export const PHANTOM_SWOOP_COOLDOWN = 3000;
-export const PHANTOM_START_HAZE = 60;
-export const PHANTOM_SPAWN_INTERVAL = 10;
-export const PHANTOM_SPAWN_CHANCE = 0.3; // 30% chance per interval
+
+export const PHANTOM_SPAWN_INTERVAL = 5; // Every 5 Haze points (approx 10s of walking)
+export const PHANTOM_SPAWN_CHANCE = 0.3; // 50% chance per interval
 
 // Specter
 export const SPECTER_SPEED = 0.03;

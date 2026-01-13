@@ -1,4 +1,4 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, HAZE_SPEED_THRESHOLD, HAZE_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_HAZE_PENALTY, HAZE_WALK_INC, HAZE_RUN_INC, HAZE_JUMP_INC, HAZE_MOVE_INC, HAZE_MOVE_INTERVAL } from '../data/config.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, HAZE_SPEED_THRESHOLD, HAZE_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_HAZE_PENALTY, HAZE_WALK_INC, HAZE_RUN_INC, HAZE_JUMP_INC, HAZE_MOVE_INC, HAZE_MOVE_INTERVAL, HAZE_DAMAGE_PENALTY, HAZE_EAT_REDUCTION, HAZE_MISS_PENALTY } from '../data/config.js';
 
 import { keys } from '../core/input.js';
 import { triggerShake } from '../core/camera.js';
@@ -10,6 +10,7 @@ import { updateUI, showToast, showVictory } from '../core/ui.js';
 
 import { spawnEmber, queueRegrowth, spawnBerry } from '../core/game.js';
 import { playBingBing, playVictoryTone, playBerryCollect, playEatBerry, playJson } from '../core/audio.js';
+import { triggerHaptic, HAPTIC_DAMAGE, HAPTIC_EMBER } from '../core/haptics.js';
 import { SPRITES } from '../data/assets.js';
 
 const sprite = new Image();
@@ -52,11 +53,17 @@ export const player = {
     lastEatTime: 0,
     lastCheckTime: 0,
     lastMoveHazeTime: 0,
+    lastMoveHazeTime: 0,
+    lastAggroHazeTime: 0,
+    lastActionType: 'none', // 'eat' or 'harvest'
+    lastHarvestDir: 'down',
 
     takeDamage(amount) {
         this.hp -= amount;
         this.lastDamageTime = Date.now();
         triggerShake(0.2); // Shake intensity
+        triggerHaptic(HAPTIC_DAMAGE);
+        gameState.haze += HAZE_DAMAGE_PENALTY;
         updateUI(gameState, player);
     },
 
@@ -75,20 +82,23 @@ export const player = {
     draw(ctx, camX, camY, tileSize) {
         // --- 1. Update Animation Logic ---
         // Determine Anim State
-        if (Math.abs(this.vx) > 0.001 || Math.abs(this.vy) > 0.001) {
+        const isEating = Date.now() - this.lastEatTime < PLAYER_EAT_COOLDOWN; // Use cooldown as animation duration
+
+        if (isEating) {
+            if (this.lastActionType === 'harvest') {
+                // Play Walk Animation facing the bush
+                this.anim = 'walk_' + this.lastHarvestDir;
+            } else {
+                this.anim = 'eat';
+            }
+        } else if (Math.abs(this.vx) > 0.001 || Math.abs(this.vy) > 0.001) {
             if (Math.abs(this.vy) > Math.abs(this.vx)) {
                 this.anim = (this.vy > 0) ? 'walk_down' : 'walk_up';
             } else {
                 this.anim = (this.vx > 0) ? 'walk_right' : 'walk_left';
             }
         } else {
-            // Check if eating
-            const isEating = Date.now() - this.lastEatTime < 400; // Show eat animation for 400ms
-            if (isEating) {
-                this.anim = 'eat';
-            } else {
-                this.anim = 'idle';
-            }
+            this.anim = 'idle';
         }
 
         // Cycle Frames
@@ -240,11 +250,20 @@ export function updatePlayer() {
         accel *= 0.5;
     }
 
-    // Acceleration
-    if (keys['w'] || keys['arrowup']) player.vy -= accel;
-    if (keys['s'] || keys['arrowdown']) player.vy += accel;
-    if (keys['a'] || keys['arrowleft']) player.vx -= accel;
-    if (keys['d'] || keys['arrowright']) player.vx += accel;
+    // Check for Eating Lock (Animation/Action Duration)
+    const isEating = Date.now() - player.lastEatTime < PLAYER_EAT_COOLDOWN;
+
+    if (isEating) {
+        // Stop movement immediately to perform eat action
+        player.vx = 0;
+        player.vy = 0;
+    } else {
+        // Acceleration (Normal Movement)
+        if (keys['w'] || keys['arrowup']) player.vy -= accel;
+        if (keys['s'] || keys['arrowdown']) player.vy += accel;
+        if (keys['a'] || keys['arrowleft']) player.vx -= accel;
+        if (keys['d'] || keys['arrowright']) player.vx += accel;
+    }
 
     // Environment physics
     let centerBlockId = getTileId(player.x, player.y);
@@ -702,7 +721,7 @@ function checkTileEvents() {
 
                     let dist = Math.sqrt((player.x - (tx + 0.5)) ** 2 + (player.y - (ty + 0.5)) ** 2);
 
-                    if (dist <= 1.5) {
+                    if (dist <= 2.0) {
                         let cell = map[ty][tx];
                         let tid = (typeof cell === 'object') ? (cell.id || 0) : cell;
 
@@ -724,6 +743,14 @@ function checkTileEvents() {
                             }
                             queueRegrowth(tx, ty);
                             player.lastEatTime = Date.now();
+                            player.lastActionType = 'harvest';
+
+                            // Determine Direction
+                            if (Math.abs(dx) > Math.abs(dy)) {
+                                player.lastHarvestDir = (dx > 0) ? 'right' : 'left';
+                            } else {
+                                player.lastHarvestDir = (dy > 0) ? 'down' : 'up';
+                            }
                             break;
                         }
                     }
@@ -737,8 +764,11 @@ function checkTileEvents() {
                     gameState.inventory.food--;
                     player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_EAT_HEAL_AMOUNT);
                     player.lastEatTime = Date.now();
+                    player.lastActionType = 'eat';
+                    gameState.haze = Math.max(0, gameState.haze - HAZE_EAT_REDUCTION);
                     updateUI(gameState, player);
                     playEatBerry();
+                    triggerHaptic(HAPTIC_EMBER); // Small satisfying tick
                 }
             }
         }
@@ -803,6 +833,8 @@ function checkTileEvents() {
                 return;
             } else if (!gameState.hasArtifact) {
                 // Wrong location feedback
+                gameState.haze += HAZE_MISS_PENALTY;
+                updateUI(gameState, player);
                 showToast("Nothing here...", 1000);
             }
         }

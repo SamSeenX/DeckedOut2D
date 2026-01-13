@@ -2,7 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - 2026-01-11
+## [Unreleased] - 2026-01-14
+
+### Rebranding (Dungeon Outcast)
+- **Title Change**: Rebranded game from "Decked Out 2D" to "Dungeon Outcast" across all HTML files.
+- **Lore**: Replaced references to "Nether" with "Infernal Realm" to avoid trademark issues.
+- **Guide**: Updated lore to reflect the "Frost/Ice" theme of the dungeon enemies.
+- **SEO**: Updated meta tags, titles, and descriptions for generic fantasy branding.
+
+### Added
+- **Audio Experience**: 
+    - Added procedural `playStartSequence()` (Pentatonic scale) on game start.
+    - Added `playDoorRumble()` (Low frequency rumble + noise) for the intro door animation.
+    - Added `cursor: crosshair` to the game canvas for better aim feel.
+- **Visuals**:
+    - **Frost Shards**: Specters now fire custom "Frost Shard" projectiles (rotated blue/white crystals) instead of generic orange dots.
+    - **Directional Harvest**: Player now plays the "Walk" animation facing the bush when harvesting berries, instead of a generic eat animation.
+
+### Changed
+- **Audio Tuning**:
+    - **Heartbeat**: Slowed down initial heartbeat (2000ms interval) and lowered minimum volume significantly (0.005) for a more subtle start. This scales up with Haze.
+    - Removed `ready.opus` (unused voice clip).
+- **Player Mechanics**:
+    - **Action Priority**: Interaction ('F') now prioritizes Harvesting Berries over Eating Food if a bush is nearby.
+    - **Harvest Radius**: Increased harvest detection radius to 2.0 blocks to match the UI prompt.
+    - **Eating**: Eating is still bound to 'F' fallback but properly sets the 'Eat' animation.
+
+### Fixed
+- **Audio Bug**: Fixed heartbeat volume floor issue where decay was set too high (-40dB), preventing the sound from reaching true silence / low volume.
+
 
 ### Added
 - **Sprite Editor Overhaul**:

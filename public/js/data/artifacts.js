@@ -2,7 +2,7 @@ export const ARTIFACTS = [
     {
         id: "crown_of_souls",
         name: "Crown of Souls",
-        description: "Forged in the fires of the Nether, this iron crown was once worn by the mad King Thrandor. It is said that the souls of his betrayed generals are bound to its jagged spikes.",
+        description: "Forged in the fires of the Infernal Realm, this iron crown was once worn by the mad King Thrandor. It is said that the souls of his betrayed generals are bound to its jagged spikes.",
         value: 18,
         icon: "crown_of_souls.webp",
         glow: "#ffcc00"

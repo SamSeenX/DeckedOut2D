@@ -3,10 +3,11 @@ import {
     TILE_SIZE,
     VIEW_W, VIEW_H, updateViewDimensions,
     DESKTOP_WIDTH, DESKTOP_HEIGHT, DESKTOP_VIEW_W, DESKTOP_VIEW_H,
-    MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H,
+    MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H, MOBILE_INITIAL_HEIGHT_VH,
     FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, PHANTOM_START_HAZE, PHANTOM_SPAWN_INTERVAL, PHANTOM_SPAWN_CHANCE, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
-    HAZE_DECAY_AMOUNT, HAZE_DECAY_INTERVAL
+    HAZE_DECAY_AMOUNT, HAZE_DECAY_INTERVAL, MAX_HAZE, STRESS_MULTI_AT_MAX_HAZE, MAX_LOOK_OFFSET, HAZE_PROXIMITY_INC, PROXIMITY_RANGE, HAZE_EMBER_REDUCTION, HAZE_CRITICAL_THRESHOLD, PHANTOM_CRITICAL_SPAWN_MULT
 } from '../data/config.js';
+import { triggerHaptic, HAPTIC_EMBER, HAPTIC_ARTIFACT } from '../core/haptics.js';
 
 import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
@@ -21,16 +22,18 @@ import { gameState } from './state.js';
 
 import { initInput, mouse, setGameActive } from './input.js';
 import { initTouchControls, updateTouchVisibility } from './touch.js';
-import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem, stopHeartbeatSystem, startAmbientAudio, stopAmbientAudio, playEmberCollect } from './audio.js';
-import { getCamera } from './camera.js'; // Restored import
+import { playGong, speak, playDing, playScaryDing, startHeartbeatSystem, stopHeartbeatSystem, startAmbientAudio, stopAmbientAudio, playEmberCollect, playGameOverSequence, playJson, playStartSequence, playDoorRumble } from './audio.js';
+import { getCamera, triggerShake } from './camera.js'; // Restored import
 import { checkLineOfSight, getFocusPoint } from '../world/lighting.js'; // Restored import
 import { updateUI, showToast } from './ui.js';
 import { AUDIO_ASSETS } from '../data/assets.js';
 
 // Setup
 const canvas = document.getElementById('gameCanvas');
+const container = document.getElementById('game-container'); // Need reference to container
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
+let globalScale = 1;
 
 // --- Device Detection & Config Application ---
 function applyDeviceConfig() {
@@ -38,17 +41,49 @@ function applyDeviceConfig() {
 
     if (isMobile) {
         // Mobile Settings: Fullscreen Dynamic
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 
-        let viewW = Math.ceil(canvas.width / TILE_SIZE);
-        let viewH = Math.ceil(canvas.height / TILE_SIZE);
+        // Width is always 100vw
+        canvas.width = window.innerWidth;
+
+        // Height depends on fullscreen state
+        if (isFullscreen) {
+            canvas.height = window.innerHeight; // 100vh
+        } else {
+            canvas.height = window.innerHeight * MOBILE_INITIAL_HEIGHT_VH; // 90vh
+        }
+
+        // Apply size to container
+        if (container) {
+            container.style.width = `${canvas.width}px`;
+            container.style.height = `${canvas.height}px`;
+        }
+
+        // Dynamic Scaling to fit 15x10 Grid
+        const targetW = MOBILE_VIEW_W * TILE_SIZE;
+        const targetH = MOBILE_VIEW_H * TILE_SIZE; // 15x10 as requested
+
+        // Calculate needed scale to fit target tiles into actual screen
+        const scaleX = canvas.width / targetW;
+        const scaleY = canvas.height / targetH;
+
+        globalScale = Math.min(scaleX, scaleY);
+
+        let viewW = Math.ceil(canvas.width / (TILE_SIZE * globalScale));
+        let viewH = Math.ceil(canvas.height / (TILE_SIZE * globalScale));
 
         updateViewDimensions(viewW, viewH);
     } else {
         // Desktop Settings
+        globalScale = 1;
         canvas.width = DESKTOP_WIDTH;
         canvas.height = DESKTOP_HEIGHT;
+
+        if (container) {
+            container.style.width = `${DESKTOP_WIDTH}px`;
+            container.style.height = `${DESKTOP_HEIGHT}px`;
+        }
+
         updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
     }
 }
@@ -73,6 +108,10 @@ window.addEventListener('resize', () => {
     applyDeviceConfig(); // Update resolution if window changes
     checkOrientation();  // Check orientation
 });
+
+// Listen for fullscreen changes to update layout
+document.addEventListener('fullscreenchange', applyDeviceConfig);
+document.addEventListener('webkitfullscreenchange', applyDeviceConfig);
 // ---------------------------------------------
 
 let enemies = [];
@@ -223,7 +262,13 @@ function gameLoop(timestamp) {
             lastPhantomSpawnHaze = Math.floor(gameState.haze / PHANTOM_SPAWN_INTERVAL) * PHANTOM_SPAWN_INTERVAL;
 
             // Probability Check
-            if (Math.random() < PHANTOM_SPAWN_CHANCE) {
+            let spawnChance = PHANTOM_SPAWN_CHANCE;
+            // High Haze Multiplier
+            if (gameState.haze >= HAZE_CRITICAL_THRESHOLD) {
+                spawnChance *= PHANTOM_CRITICAL_SPAWN_MULT; // More dangerous
+            }
+
+            if (Math.random() < spawnChance) {
                 enemies.push(new Phantom(player.x, player.y));
                 playScaryDing();
                 showToast("A Phantom has been summoned!", 2000);
@@ -234,9 +279,19 @@ function gameLoop(timestamp) {
         lastPhantomSpawnHaze = PHANTOM_START_HAZE - PHANTOM_SPAWN_INTERVAL;
     }
 
-    // Update Enemies
+    // Update Enemies & Proximity Stress
     enemies.forEach((enemy, index) => {
         enemy.update(player, map, timestamp, projectiles);
+
+        // Sixth Sense Logic: Build Haze if near but not (yet) seen/chasing
+        // (If they are chasing, the Aggro penalty already hit, but maybe sustained stress?)
+        // Let's stick to "Sixth Sense" - near but not yet fully engaged, OR just general proximity terror.
+        // If simply "near", it covers all cases which is good. Being chased SHOULD be stressful.
+        const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.x - enemy.y) ** 2);
+        if (dist <= PROXIMITY_RANGE) {
+            gameState.haze += HAZE_PROXIMITY_INC;
+        }
+
         // Simple death check (if phantom)
         if (enemy.type === 'phantom' && enemy.hp <= 0) {
             enemies.splice(index, 1);
@@ -265,9 +320,11 @@ function gameLoop(timestamp) {
             if (wasCollected) {
                 gameState.embers++;
                 gameState.embersCollected++;
+                gameState.haze = Math.max(0, gameState.haze - HAZE_EMBER_REDUCTION); // Relief
                 updateUI(gameState, player);
                 // Sound effect here?
                 playEmberCollect();
+                triggerHaptic(HAPTIC_EMBER); // Small tick
             }
             embers.splice(i, 1);
         }
@@ -285,6 +342,7 @@ function gameLoop(timestamp) {
                 updateUI(gameState, player);
                 // Sound effect
                 playDing();
+                triggerHaptic(HAPTIC_EMBER); // Same as generic pickup?
             }
             berries.splice(i, 1);
         }
@@ -323,16 +381,34 @@ function gameLoop(timestamp) {
 
 // --- RENDER ENGINE ---
 function draw() {
+    // 0. Calculate Stress Factors
+    let stressFactor = 1.0;
+    if (gameState.haze > MAX_HAZE / 2) {
+        let excess = gameState.haze - (MAX_HAZE / 2);
+        let maxExcess = MAX_HAZE / 2;
+        let ratio = Math.min(1, Math.max(0, excess / maxExcess)); // Cluster 0-1
+
+        let minScale = STRESS_MULTI_AT_MAX_HAZE / 100; // 0.25
+        stressFactor = 1.0 - (ratio * (1.0 - minScale));
+    }
+
+    const currentFlashlightRadius = FLASHLIGHT_RADIUS * stressFactor;
+    const currentDimViewRadius = DIM_VIEW_RADIUS * stressFactor;
+    const currentMaxLookOffset = MAX_LOOK_OFFSET * stressFactor;
+
     // 1. Camera Logic
     const cam = getCamera(player, map);
     const camX = cam.x;
     const camY = cam.y;
 
-    const focus = getFocusPoint(player, mouse);
+    const focus = getFocusPoint(player, mouse, currentMaxLookOffset);
 
     // 2. Clear
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.scale(globalScale, globalScale);
 
     // 3. First pass: Determine which tiles are "lit" (in flashlight)
     let litTiles = new Set();
@@ -342,7 +418,7 @@ function draw() {
             if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
 
             let distToFocus = Math.sqrt((focus.x - x) ** 2 + (focus.y - y) ** 2);
-            let isFlashlight = (distToFocus <= FLASHLIGHT_RADIUS) && checkLineOfSight(player.x, player.y, x, y);
+            let isFlashlight = (distToFocus <= currentFlashlightRadius) && checkLineOfSight(player.x, player.y, x, y);
 
             if (isFlashlight) {
                 litTiles.add(`${x},${y}`);
@@ -370,7 +446,7 @@ function draw() {
 
             let distToPlayer = Math.sqrt((player.x - x) ** 2 + (player.y - y) ** 2);
             let isLit = litTiles.has(`${x},${y}`);
-            let isDim = distToPlayer <= DIM_VIEW_RADIUS;
+            let isDim = distToPlayer <= currentDimViewRadius;
 
             if (!isLit && !isDim) continue;
 
@@ -434,7 +510,7 @@ function draw() {
     // 6. Draw Enemies - Only if in line of sight AND within range
     enemies.forEach(enemy => {
         const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
-        if (dist <= DIM_VIEW_RADIUS && checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
+        if (dist <= currentDimViewRadius && checkLineOfSight(player.x, player.y, enemy.x, enemy.y)) {
             enemy.draw(ctx, camX, camY);
         }
     });
@@ -472,7 +548,7 @@ function draw() {
 
     let gradient = ctx.createRadialGradient(
         lightX, lightY, TILE_SIZE * 1,
-        lightX, lightY, TILE_SIZE * FLASHLIGHT_RADIUS
+        lightX, lightY, TILE_SIZE * currentFlashlightRadius
     );
 
     gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
@@ -515,6 +591,21 @@ function draw() {
             ctx.strokeRect(sx, sy, TILE_SIZE, TILE_SIZE);
         });
     }
+
+    ctx.restore();
+
+    // Critical Haze Effects (Red Tint + Random Shake)
+    // Drawn AFTER restore() to be on top of everything including shadows
+    if (gameState.haze >= HAZE_CRITICAL_THRESHOLD) {
+        // Red Tint
+        ctx.fillStyle = `rgba(255, 0, 0, ${0.1 + Math.random() * 0.1})`; // 10-20% Alpha Pulsing
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Overlay on entire screen
+
+        // Random Micro-Shakes (Dizziness)
+        if (Math.random() < 0.1) { // 10% chance per frame
+            triggerShake(0.3);
+        }
+    }
 }
 
 // --- START / RESET GAME ---
@@ -543,8 +634,30 @@ export function initGame() {
 }
 
 function startGame() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        // Attempt to enter fullscreen on mobile start
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(e => {
+                // Fail silently, user can still play
+            });
+        }
+    }
+
     const overlay = document.getElementById('start-overlay');
     overlay.classList.add('hidden'); // Hide Menu immediately
+
+    // Hide Touch Toggle during gameplay
+    const touchToggle = document.getElementById('touch-toggle-container');
+    if (touchToggle) {
+        touchToggle.style.display = 'none';
+    }
+
+    // Hide Home Button during gameplay
+    const homeBtn = document.getElementById('home-btn');
+    if (homeBtn) {
+        homeBtn.style.display = 'none';
+    }
 
     // Auto-collapse Article on Start
     const article = document.getElementById('game-info');
@@ -604,9 +717,13 @@ function playIntroSequence() {
     canvas.height = window.innerHeight;
 
     // 2. Play Audio
-    const readyVoice = new Audio(AUDIO_ASSETS.voiceReady);
-    readyVoice.volume = 0.8;
-    readyVoice.play().catch(e => console.warn("Audio play failed:", e));
+    // const readyVoice = new Audio(AUDIO_ASSETS.voiceReady);
+    // readyVoice.volume = 0.8;
+    // 2. Play Audio
+    // const readyVoice = new Audio(AUDIO_ASSETS.voiceReady);
+    // readyVoice.volume = 0.8;
+    // readyVoice.play().catch(e => console.warn("Audio play failed:", e));
+    playStartSequence();
 
     // 3. Particle System (Spiral)
     let particles = [];
@@ -666,6 +783,8 @@ function playIntroSequence() {
     // A) Fade In Doors (over menu)
     setTimeout(() => {
         doorContainer.classList.add('visible');
+        // Play rumble as doors appear and get ready to open
+        playDoorRumble();
     }, 1000);
 
     // B) Open Doors & Reveal Game

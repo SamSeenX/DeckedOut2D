@@ -12,6 +12,21 @@ body {
     box-sizing: border-box;
 }
 
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        justify-content: flex-start;
+        /* Align to top to avoid cutting off if logic fails */
+        background-color: #000;
+    }
+
+    #game-container {
+        border: none;
+        /* Remove border to save space */
+        box-shadow: none;
+    }
+}
+
 #game-container {
     position: relative;
     width: 800px;
@@ -24,11 +39,11 @@ body {
 
 /* Orientation Warning Overlay */
 #rotate-warning {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.95);
     display: flex;
     flex-direction: column;
@@ -36,6 +51,7 @@ body {
     align-items: center;
     z-index: 10000;
     color: white;
+    /* Ensure text is visible */
 }
 
 #rotate-warning-icon {
@@ -323,6 +339,7 @@ body {
 canvas {
     display: block;
     background-color: #000;
+    cursor: crosshair;
     /* Pixel Art Scaling */
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;

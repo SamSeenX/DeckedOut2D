@@ -83,6 +83,7 @@ export class Specter extends Enemy {
         let canSee = (distToPlayer < DETECTION_RANGE) && checkLineOfSight(this.x, this.y, player.x, player.y);
 
         if (canSee) {
+            this.triggerAggro(player, timeNow);
             // Maintain optimal distance (Range 4-6)
             let idealDist = 5;
             let moveSpeed = FLOAT_SPEED;
@@ -117,7 +118,7 @@ export class Specter extends Enemy {
 
             // Attack Logic
             if (timeNow - this.lastAttackTime > ATTACK_COOLDOWN) {
-                activeProjectiles.push(new Projectile(this.x, this.y, player.x, player.y));
+                activeProjectiles.push(new Projectile(this.x, this.y, player.x, player.y, 'frost_shard'));
                 this.lastAttackTime = timeNow;
             }
 

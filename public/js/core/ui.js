@@ -1,6 +1,7 @@
 import { map } from '../data/map.js';
-import { PLAYER_MAX_HP, COMPASS_UPDATE_INTERVAL, COMPASS_ROTATION_STEP } from '../data/config.js';
+import { PLAYER_MAX_HP, COMPASS_UPDATE_INTERVAL, COMPASS_ROTATION_STEP, HAZE_CRITICAL_THRESHOLD } from '../data/config.js';
 import { stopHeartbeatSystem, stopAmbientAudio } from './audio.js';
+import { triggerHaptic, HAPTIC_MALFUNCTION } from './haptics.js';
 
 let lastCompassUpdate = 0;
 
@@ -138,21 +139,38 @@ export function updateUI(gameState, player) {
             const dy = target.y - player.y;
             let angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-            // Snap Rotation
-            if (COMPASS_ROTATION_STEP > 0) {
-                angle = Math.round(angle / COMPASS_ROTATION_STEP) * COMPASS_ROTATION_STEP;
+            // HAZE MALFUNCTION LOGIC
+            // If haze is critical, the spirit is confused/panicking.
+            if (gameState.haze >= HAZE_CRITICAL_THRESHOLD) {
+                // Random spin (Chaos)
+                angle = Math.random() * 360;
+                // Color shift to indicate error
+                needle.style.filter = "hue-rotate(45deg) drop-shadow(0 0 5px red)";
+                container.style.borderColor = "#ff0000"; // Critical Red Container
+
+                // Randomly trigger haptic glitch (don't vibrate every frame, just randomly)
+                if (Math.random() < 0.1) triggerHaptic(HAPTIC_MALFUNCTION);
+
+            } else {
+                // Normal Snap Rotation
+                needle.style.filter = "none";
+                if (COMPASS_ROTATION_STEP > 0) {
+                    angle = Math.round(angle / COMPASS_ROTATION_STEP) * COMPASS_ROTATION_STEP;
+                }
             }
 
             needle.style.transform = `rotate(${angle}deg)`;
             needle.style.opacity = '1';
 
-            // Visual indicator
-            if (!gameState.hasArtifact) {
-                container.style.borderColor = "#ffd700"; // Gold container
-                needle.style.color = "#ff0000"; // RED Arrow for Artifact (User Request)
-            } else {
-                container.style.borderColor = "#00ff00"; // Green for Exit
-                needle.style.color = "#00ff00";
+            // Visual indicator (Normal state)
+            if (gameState.haze < HAZE_CRITICAL_THRESHOLD) {
+                if (!gameState.hasArtifact) {
+                    container.style.borderColor = "#ffd700"; // Gold container
+                    needle.style.color = "#ff0000"; // RED Arrow for Artifact
+                } else {
+                    container.style.borderColor = "#00ff00"; // Green for Exit
+                    needle.style.color = "#00ff00";
+                }
             }
         } else {
             needle.style.opacity = '0.3';

@@ -33,10 +33,10 @@ export const UI_ASSETS = {
 };
 
 // === AUDIO / VOICE (imported for cache-busted hashed filenames) ===
-import voiceReadyAudio from '../../assets/voice/ready.opus';
+// import voiceReadyAudio from '../../assets/voice/ready.opus';
 
 export const AUDIO_ASSETS = {
-    voiceReady: voiceReadyAudio,
+    // voiceReady: voiceReadyAudio,
     // Add more audio files here as they're added:
     // bgMusic: '/assets/audio/bg.mp3',
     // sfxDamage: '/assets/audio/damage.wav',

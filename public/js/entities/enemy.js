@@ -1,7 +1,10 @@
 
-import { TILE_SIZE, PLAYER_RADIUS } from '../data/config.js';
+import { TILE_SIZE, PLAYER_RADIUS, HAZE_AGGRO_PENALTY, HAZE_AGGRO_COOLDOWN } from '../data/config.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { checkLineOfSight } from '../world/lighting.js';
+import { gameState } from '../core/state.js';
+import { updateUI } from '../core/ui.js';
+import { triggerHaptic, HAPTIC_AGGRO } from '../core/haptics.js';
 
 // Constants for AI
 const STATES = {
@@ -102,5 +105,14 @@ export class Enemy {
         ctx.beginPath();
         ctx.arc(drawX, drawY, TILE_SIZE * this.radius, 0, Math.PI * 2);
         ctx.fill();
+    }
+    triggerAggro(player, timeNow) {
+        if (timeNow - player.lastAggroHazeTime > HAZE_AGGRO_COOLDOWN) {
+            gameState.haze += HAZE_AGGRO_PENALTY;
+            player.lastAggroHazeTime = timeNow;
+            updateUI(gameState, player);
+            // Haptic Feedback for Aggro
+            triggerHaptic(HAPTIC_AGGRO);
+        }
     }
 }

@@ -103,6 +103,7 @@ export class Phantom extends Enemy {
                         this.state = STATES.SWOOP;
                         this.swoopTarget = { x: player.x, y: player.y };
                         this.lastSwoopTime = timeNow;
+                        this.triggerAggro(player, timeNow);
                     }
                 }
                 break;

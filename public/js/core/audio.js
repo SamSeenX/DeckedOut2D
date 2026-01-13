@@ -2,6 +2,7 @@ import {
     HEARTBEAT_MIN_INTERVAL, HEARTBEAT_MAX_INTERVAL, MAX_HAZE,
     HEARTBEAT_MIN_VOLUME, HEARTBEAT_MAX_VOLUME
 } from '../data/config.js';
+import { triggerHaptic, HAPTIC_HEARTBEAT } from './haptics.js';
 
 // --- AUDIO ENGINE ---
 let audioCtx = null;
@@ -404,7 +405,7 @@ function playHeartbeat(volume = 0.3) {
 
         gain.gain.setValueAtTime(0, startTime);
         gain.gain.linearRampToValueAtTime(vol, startTime + 0.02); // Sharp attack
-        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2); // Fast decay
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.2); // Fast decay
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -418,7 +419,7 @@ function playHeartbeat(volume = 0.3) {
         subOsc.frequency.setValueAtTime(freqStart * 0.5, startTime);
 
         subGain.gain.setValueAtTime(vol * 0.6, startTime);
-        subGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.2);
 
         subOsc.connect(subGain);
         subGain.connect(audioCtx.destination);
@@ -768,4 +769,90 @@ export async function playJson(url) {
     if (config) {
         playSequence(config);
     }
+}
+
+export function playStartSequence() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    // A nice, mysterious ascending scale (Pentatonic/Dorian vibe)
+    // D4, F4, G4, A4, C5, D5
+    const notes = [
+        { f: 293.66, t: 0 },   // D4
+        { f: 349.23, t: 0.15 }, // F4
+        { f: 392.00, t: 0.3 },  // G4
+        { f: 440.00, t: 0.45 }, // A4
+        { f: 523.25, t: 0.6 },  // C5
+        { f: 587.33, t: 0.9 }   // D5 (Longer)
+    ];
+
+    notes.forEach(n => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle'; // Soft but clear
+        osc.frequency.value = n.f;
+
+        gain.gain.setValueAtTime(0, now + n.t);
+        gain.gain.linearRampToValueAtTime(0.3, now + n.t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.8);
+
+        // Add some reverb-like release
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + n.t);
+        osc.stop(now + n.t + 1.0);
+    });
+}
+
+export function playDoorRumble() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    const duration = 2.5;
+
+    // 1. Low Frequency Rumble (Oscillators)
+    const freqs = [40, 50, 65];
+    freqs.forEach(f => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, now);
+        // Pitch drift up (opening)
+        osc.frequency.linearRampToValueAtTime(f + 10, now + duration);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.15, now + 0.2);
+        gain.gain.linearRampToValueAtTime(0.15, now + duration - 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+    });
+
+    // 2. Stone Grinding Noise
+    const bufferSize = audioCtx.sampleRate * duration;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(150, now);
+    noiseFilter.frequency.linearRampToValueAtTime(300, now + duration); // Filter opens up
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.1, now + 0.1);
+    noiseGain.gain.linearRampToValueAtTime(0.0, now + duration);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
 }

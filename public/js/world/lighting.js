@@ -1,6 +1,6 @@
 import { map } from '../data/map.js';
 import { BLOCK_DEFS } from './tiles.js';
-import { MAX_LOOK_OFFSET } from '../data/config.js';
+
 
 // Internal Helper: Raycast using DDA Algorithm (Perfect Grid Traversal)
 export function castRay(x0, y0, x1, y1) {
@@ -93,11 +93,11 @@ export function checkLineOfSight(x0, y0, x1, y1) {
 }
 
 // Helper: Clamped Flashlight
-export function getFocusPoint(player, mouse) {
+export function getFocusPoint(player, mouse, maxOffset) {
     let targetDX = mouse.x * 10;
     let targetDY = mouse.y * 10;
     let dist = Math.sqrt(targetDX * targetDX + targetDY * targetDY);
-    let currentShift = Math.min(dist, MAX_LOOK_OFFSET);
+    let currentShift = Math.min(dist, maxOffset);
     let angle = Math.atan2(targetDY, targetDX);
 
     return {

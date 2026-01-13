@@ -99,6 +99,7 @@ export class FrostBeast extends Enemy {
                     this.state = STATES.CHASE;
                     this.color = '#ff0000';
                     playJson('assets/sounds/frostbeast_detect.json');
+                    this.triggerAggro(player, timeNow);
                 } else if (timeNow - this.lastMoveTime > IDLE_MOVE_INTERVAL) {
                     let angle = Math.random() * Math.PI * 2;
                     let dist = Math.random() * 3;
