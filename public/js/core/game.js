@@ -4,16 +4,16 @@ import {
     VIEW_W, VIEW_H, updateViewDimensions,
     DESKTOP_WIDTH, DESKTOP_HEIGHT, DESKTOP_VIEW_W, DESKTOP_VIEW_H,
     MOBILE_WIDTH, MOBILE_HEIGHT, MOBILE_VIEW_W, MOBILE_VIEW_H,
-    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, VEX_START_CLANK, VEX_SPAWN_INTERVAL, VEX_SPAWN_CHANCE, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
-    CLANK_DECAY_AMOUNT, CLANK_DECAY_INTERVAL
+    FLASHLIGHT_RADIUS, DIM_VIEW_RADIUS, SHADOW_EDGE_OPACITY, SHADOW_INNER_OPACITY, EMBER_SPAWN_CHANCE, BERRY_REGROW_CHANCE, PHANTOM_START_HAZE, PHANTOM_SPAWN_INTERVAL, PHANTOM_SPAWN_CHANCE, SPAWNER_ACTIVATION_RANGE, PLAYER_MAX_HP,
+    HAZE_DECAY_AMOUNT, HAZE_DECAY_INTERVAL
 } from '../data/config.js';
 
 import { map } from '../data/map.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK, loadBlockTextures, getBlockTexture } from '../world/tiles.js';
 import { player, updatePlayer } from '../entities/player.js';
-import { Ravager } from '../entities/ravager.js';
-import { Ghast } from '../entities/ghast.js';
-import { Vex } from '../entities/vex.js';
+import { FrostBeast } from '../entities/frostbeast.js';
+import { Specter } from '../entities/specter.js';
+import { Phantom } from '../entities/phantom.js';
 import { Ember } from '../entities/ember.js';
 import { Berry } from '../entities/berry.js';
 import { getRandomArtifact } from '../data/artifacts.js';
@@ -45,13 +45,11 @@ function applyDeviceConfig() {
         let viewH = Math.ceil(canvas.height / TILE_SIZE);
 
         updateViewDimensions(viewW, viewH);
-        // console.log(`Applied Mobile Config: ${canvas.width}x${canvas.height} (View: ${viewW}x${viewH})`);
     } else {
         // Desktop Settings
         canvas.width = DESKTOP_WIDTH;
         canvas.height = DESKTOP_HEIGHT;
         updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
-        // console.log("Applied Desktop Config: 800x600");
     }
 }
 
@@ -86,8 +84,8 @@ let treasureSpots = []; // [{x, y}]
 
 
 
-let lastVexSpawnClank = 0;
-let lastClankDecayTime = 0;
+let lastPhantomSpawnHaze = 0;
+let lastHazeDecayTime = 0;
 
 let isGameRunning = false;
 
@@ -102,14 +100,14 @@ function setupLevel() {
     berries = [];
     regrowingBushes = [];
     treasureSpots = [];
-    gameState.clank = 0;
-    lastClankDecayTime = 0;
+    gameState.haze = 0;
+    lastHazeDecayTime = 0;
 
 
     gameState.hasArtifact = false;
     gameState.gameWon = false;
 
-    lastVexSpawnClank = VEX_START_CLANK - VEX_SPAWN_INTERVAL; // Ensure correct first spawn timing
+    lastPhantomSpawnHaze = PHANTOM_START_HAZE - PHANTOM_SPAWN_INTERVAL; // Ensure correct first spawn timing
 
     // Scan map for Spawn Objects
     for (let y = 0; y < map.length; y++) {
@@ -118,16 +116,15 @@ function setupLevel() {
 
             // Check if cell is an object (contains metadata)
             if (typeof cell === 'object' && cell !== null) {
-                // console.log("Found Spawn Object:", cell); // DEBUG LOG
                 // 1. Handle Spawns
                 if (cell.spawn === 'player') {
                     player.x = x + 0.5; // Center in tile
                     player.y = y + 0.5;
-                } else if (cell.spawn === 'enemy' || cell.spawn === 'ravager') {
-                    // Default to Ravager for generic 'enemy' spawn
-                    enemies.push(new Ravager(x + 0.5, y + 0.5));
-                } else if (cell.spawn === 'ghast') {
-                    enemies.push(new Ghast(x + 0.5, y + 0.5));
+                } else if (cell.spawn === 'enemy' || cell.spawn === 'frostbeast') {
+                    // Default to FrostBeast for generic 'enemy' spawn
+                    enemies.push(new FrostBeast(x + 0.5, y + 0.5));
+                } else if (cell.spawn === 'specter') {
+                    enemies.push(new Specter(x + 0.5, y + 0.5));
                 }
 
                 // 2. Normalize Map
@@ -185,7 +182,6 @@ function setupLevel() {
         let spot = artifactSpots[Math.floor(Math.random() * artifactSpots.length)];
         gameState.targetArtifactLoc = spot;
         gameState.targetArtifactItem = getRandomArtifact();
-        // console.log("Target Artifact at:", spot); // Debug
     } else {
         console.warn("No Artifact Spots found on map!");
     }
@@ -206,43 +202,43 @@ function gameLoop(timestamp) {
         return;
     }
 
-    // Clank Decay Logic
-    if (timestamp - lastClankDecayTime > CLANK_DECAY_INTERVAL) {
-        if (gameState.clank > 0) {
-            gameState.clank = Math.max(0, gameState.clank - CLANK_DECAY_AMOUNT);
+    // Haze Decay Logic
+    if (timestamp - lastHazeDecayTime > HAZE_DECAY_INTERVAL) {
+        if (gameState.haze > 0) {
+            gameState.haze = Math.max(0, gameState.haze - HAZE_DECAY_AMOUNT);
             updateUI(gameState, player);
-            // Optional: Toast "Clank reduced..."? No, keep it subtle.
+            // Optional: Toast "Haze reduced..."? No, keep it subtle.
         }
-        lastClankDecayTime = timestamp;
+        lastHazeDecayTime = timestamp;
     }
 
     updatePlayer();
 
-    // Vex Spawning Logic
-    if (gameState.clank >= VEX_START_CLANK) {
-        if (gameState.clank >= lastVexSpawnClank + VEX_SPAWN_INTERVAL) {
+    // Phantom Spawning Logic
+    if (gameState.haze >= PHANTOM_START_HAZE) {
+        if (gameState.haze >= lastPhantomSpawnHaze + PHANTOM_SPAWN_INTERVAL) {
             // Update tracking to consume this interval check regardless of success
             // This prevents checking every frame once past the threshold.
             // Alignment to grid ensures we check at 60, 70, 80...
-            lastVexSpawnClank = Math.floor(gameState.clank / VEX_SPAWN_INTERVAL) * VEX_SPAWN_INTERVAL;
+            lastPhantomSpawnHaze = Math.floor(gameState.haze / PHANTOM_SPAWN_INTERVAL) * PHANTOM_SPAWN_INTERVAL;
 
             // Probability Check
-            if (Math.random() < VEX_SPAWN_CHANCE) {
-                enemies.push(new Vex(player.x, player.y));
+            if (Math.random() < PHANTOM_SPAWN_CHANCE) {
+                enemies.push(new Phantom(player.x, player.y));
                 playScaryDing();
-                showToast("A Vex has been summoned!", 2000);
+                showToast("A Phantom has been summoned!", 2000);
             }
         }
     } else {
-        // Keeps 'lastVexSpawn' updated so the first spawn happens immediately at 60
-        lastVexSpawnClank = VEX_START_CLANK - VEX_SPAWN_INTERVAL;
+        // Keeps 'lastPhantomSpawn' updated so the first spawn happens immediately at 60
+        lastPhantomSpawnHaze = PHANTOM_START_HAZE - PHANTOM_SPAWN_INTERVAL;
     }
 
     // Update Enemies
     enemies.forEach((enemy, index) => {
         enemy.update(player, map, timestamp, projectiles);
-        // Simple death check (if vex)
-        if (enemy.type === 'vex' && enemy.hp <= 0) {
+        // Simple death check (if phantom)
+        if (enemy.type === 'phantom' && enemy.hp <= 0) {
             enemies.splice(index, 1);
         }
     });
@@ -524,7 +520,6 @@ function draw() {
 // --- START / RESET GAME ---
 export function initGame() {
     loadBlockTextures(() => {
-        // console.log('Textures Loaded');
     });
 
     initTouchControls(); // Initialize Touch
@@ -578,14 +573,13 @@ export function toggleFullscreen() {
 }
 
 function launchGame() {
-    // console.log("Decked Out 2D is ready for its next victim!");
     resetGameLogic(); // Initialize Map/Player
 
     showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
     gameState.startTime = Date.now(); // Start timer
 
     // Start Audio Systems
-    startHeartbeatSystem(() => gameState.clank);
+    startHeartbeatSystem(() => gameState.haze);
     startAmbientAudio();
 
     // Show HUD
@@ -724,7 +718,7 @@ function resetGame() {
 function resetGameLogic() {
     player.hp = PLAYER_MAX_HP;
     setupLevel(); // Reset map, enemies, player pos
-    gameState.clank = 0;
+    gameState.haze = 0;
     updateUI(gameState, player);
 }
 

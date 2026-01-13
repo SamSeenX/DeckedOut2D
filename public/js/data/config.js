@@ -49,24 +49,24 @@ export const MAX_LOOK_OFFSET = 6;
 export const EMBER_SPAWN_CHANCE = 0.0002; // 0.5% per frame
 export const BERRY_REGROW_CHANCE = 0.0005; // 0.5% per frame
 export const SPAWNER_ACTIVATION_RANGE = 10; // Blocks
-export const CLANK_SPEED_THRESHOLD = 0.05;
-// Walk/Move Clank now handled by timer, so these standard increments might be unused or retuned
-export const CLANK_WALK_INC = 0; // Disabled in favor of time-based
-export const CLANK_RUN_INC = 0;  // Disabled in favor of time-based
-export const CLANK_MOVE_INC = 0.1; // New time-based increment
-export const CLANK_MOVE_INTERVAL = 200; // ms
+export const HAZE_SPEED_THRESHOLD = 0.05;
+// Walk/Move Haze now handled by timer, so these standard increments might be unused or retuned
+export const HAZE_WALK_INC = 0; // Disabled in favor of time-based
+export const HAZE_RUN_INC = 0;  // Disabled in favor of time-based
+export const HAZE_MOVE_INC = 0.1; // New time-based increment
+export const HAZE_MOVE_INTERVAL = 200; // ms
 
-export const CLANK_JUMP_INC = 0.2; // Reduced from 2
-export const CLANK_DECAY_AMOUNT = 0.5; // Reduce clank by this amount
-export const CLANK_DECAY_INTERVAL = 10000; // 10 seconds
-export const CLANK_CHANCE_MULTIPLIER = 0.5; // Keeping this for random chance logic if still used
-export const HEARTBEAT_MIN_INTERVAL = 400; // ms (Fastest) - High Clank
-export const HEARTBEAT_MAX_INTERVAL = 1200; // ms (Slowest) - Low Clank
-export const MAX_CLANK = 100; // Assumed max for scaling heartbeat
-export const HEARTBEAT_MIN_VOLUME = 0.05; // Low Clank - Very quiet
-export const HEARTBEAT_MAX_VOLUME = 0.5; // High Clank - Loud
+export const HAZE_JUMP_INC = 0.2; // Reduced from 2
+export const HAZE_DECAY_AMOUNT = 0.5; // Reduce haze by this amount
+export const HAZE_DECAY_INTERVAL = 10000; // 10 seconds
+export const HAZE_CHANCE_MULTIPLIER = 0.5; // Keeping this for random chance logic if still used
+export const HEARTBEAT_MIN_INTERVAL = 400; // ms (Fastest) - High Haze
+export const HEARTBEAT_MAX_INTERVAL = 1200; // ms (Slowest) - Low Haze
+export const MAX_HAZE = 100; // Assumed max for scaling heartbeat
+export const HEARTBEAT_MIN_VOLUME = 0.05; // Low Haze - Very quiet
+export const HEARTBEAT_MAX_VOLUME = 0.5; // High Haze - Loud
 export const HAZARD_DAMAGE_CHANCE = 0.05;
-export const ARTIFACT_CLANK_PENALTY = 20;
+export const ARTIFACT_HAZE_PENALTY = 20;
 
 export const COMPASS_UPDATE_INTERVAL = 100; // ms
 export const COMPASS_ROTATION_STEP = 30; // degrees
@@ -79,23 +79,23 @@ export const PROJECTILE_RADIUS = 0.2;
 // Embers
 export const EMBER_LIFESPAN = 45000;
 
-// Ravager
-export const RAVAGER_SPEED = 0.02;
-export const RAVAGER_ACCEL = 0.01;
-export const RAVAGER_CHASE_SPEED_MULT = 2.8;
-export const RAVAGER_DETECTION_RANGE = 6;
-export const RAVAGER_IDLE_FPS = 6;
-export const RAVAGER_CHASE_FPS = 12;
+// Frost Beast
+export const FROST_BEAST_SPEED = 0.02;
+export const FROST_BEAST_ACCEL = 0.01;
+export const FROST_BEAST_CHASE_SPEED_MULT = 2.8;
+export const FROST_BEAST_DETECTION_RANGE = 6;
+export const FROST_BEAST_IDLE_FPS = 6;
+export const FROST_BEAST_CHASE_FPS = 12;
 
-// Vex
-export const VEX_ORBIT_SPEED = 0.02;
-export const VEX_SWOOP_SPEED = 0.12;
-export const VEX_SWOOP_COOLDOWN = 3000;
-export const VEX_START_CLANK = 60;
-export const VEX_SPAWN_INTERVAL = 10;
-export const VEX_SPAWN_CHANCE = 0.3; // 30% chance per interval
+// Phantom
+export const PHANTOM_ORBIT_SPEED = 0.02;
+export const PHANTOM_SWOOP_SPEED = 0.12;
+export const PHANTOM_SWOOP_COOLDOWN = 3000;
+export const PHANTOM_START_HAZE = 60;
+export const PHANTOM_SPAWN_INTERVAL = 10;
+export const PHANTOM_SPAWN_CHANCE = 0.3; // 30% chance per interval
 
-// Ghast
-export const GHAST_SPEED = 0.03;
-export const GHAST_DETECTION_RANGE = 10;
-export const GHAST_ATTACK_COOLDOWN = 3000;
+// Specter
+export const SPECTER_SPEED = 0.03;
+export const SPECTER_DETECTION_RANGE = 10;
+export const SPECTER_ATTACK_COOLDOWN = 3000;

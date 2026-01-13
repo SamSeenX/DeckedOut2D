@@ -1,4 +1,4 @@
-// js/mapmaker.js - Map Editor for Decked Out 2D
+// js/mapmaker.js - Map Editor for Dungeon Outcast
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '/js/data/tiles.js';
 import { loadBlockTextures, getBlockTexture, getBlockVariants, getNextVariant } from '/js/world/tiles.js';
 
@@ -25,8 +25,8 @@ let activeAttribute = null; // null means painting tiles
 let historyStack = []; // Undo history
 
 // ===== Persistence Keys =====
-const STORAGE_KEY_MAP = 'deckedout_mapmaker_data';
-const STORAGE_KEY_SETTINGS = 'deckedout_mapmaker_settings';
+const STORAGE_KEY_MAP = 'dungeonoutcast_mapmaker_data';
+const STORAGE_KEY_SETTINGS = 'dungeonoutcast_mapmaker_settings';
 let autoSaveTimeout = null;
 
 // ===== Zoom & Pan State =====
@@ -361,11 +361,11 @@ function draw() {
                     ctx.strokeStyle = '#00ffff';
                     ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
                     ctx.fillText('🟢', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);
-                } else if (tile.spawn === 'ravager') {
+                } else if (tile.spawn === 'frostbeast') {
                     ctx.strokeStyle = '#ff00ff';
                     ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
                     ctx.fillText('👿', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);
-                } else if (tile.spawn === 'ghast') {
+                } else if (tile.spawn === 'specter') {
                     ctx.strokeStyle = '#aaaaaa';
                     ctx.strokeRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
                     ctx.fillText('👻', px + TILE_SIZE / 2, py + TILE_SIZE / 1.5);

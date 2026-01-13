@@ -2,206 +2,180 @@
 <html lang="en">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-683R1S485C"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-683R1S485C');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decked Out 2D by SamSeen - Free Browser Dungeon Crawler</title>
+    <title>Dungeon Outcast by SamSeen - A Fan Tribute to Decked Out 2</title>
 
     <!-- SEO Meta Tags -->
+    <meta name="google-site-verification" content="Jvlgqswygs0MDAKFcZMMgaG5rIzTvdCEAOim1x8P-nE" />
     <meta name="description"
-        content="Play Decked Out 2D free in your browser! A stealth dungeon crawler inspired by Hermitcraft's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required.">
+        content="Play Dungeon Outcast free in your browser! A stealth dungeon crawler fan tribute inspired by Tango Tek's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required.">
     <meta name="keywords"
-        content="decked out 2d, dungeon crawler, browser game, free game, hermitcraft, tango tek, stealth game, indie game">
+        content="dungeon outcast, dungeon crawler, browser game, free game, stealth game, indie game, tango tek tribute">
     <meta name="author" content="SamSeen">
 
     <!-- Open Graph / Social Sharing -->
-    <meta property="og:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta property="og:title" content="Dungeon Outcast - A Fan Tribute to Decked Out 2">
     <meta property="og:description"
-        content="Sneak through dungeons, avoid monsters, collect artifacts. A free browser game inspired by Hermitcraft's Decked Out 2!">
+        content="Sneak through dungeons, avoid monsters, collect artifacts. A free browser game inspired by Tango Tek's Decked Out 2!">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://do.samseen.dev">
     <meta property="og:image" content="https://do.samseen.dev/assets/menu_bg.webp">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Decked Out 2D - Free Browser Dungeon Crawler">
+    <meta name="twitter:title" content="Dungeon Outcast - A Fan Tribute to Decked Out 2">
     <meta name="twitter:description"
         content="Sneak through dungeons, avoid monsters, collect artifacts. Play free in your browser!">
     <meta name="twitter:image" content="https://do.samseen.dev/assets/menu_bg.webp">
 
+    <!-- UI/Game CSS not needed here -->
     <link rel="icon" href="/assets/favicon-BAh9kyrF.png">
     <link rel="canonical" href="https://do.samseen.dev">
-  <script type="module" crossorigin src="/js/main-dNKw-bur.js"></script>
-  <link rel="stylesheet" crossorigin href="/css/main-CUlktaO0.css">
+
+    <style>
+        /* Landing Page Specific Styles */
+        body {
+            overflow-y: auto;
+            background-color: #222;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/assets/main_bg-D9bJs3oG.webp');
+            background-size: cover;
+            background-position: top;
+            background-attachment: fixed;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .hero-section {
+            height: 60vh;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 80px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 4px 4px 0 #000;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: #e0e0e0;
+            margin: 20px 0 40px;
+            max-width: 600px;
+            line-height: 1.5;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .play-btn-large {
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b6b 100%);
+            color: #000;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 4px solid #fff;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .play-btn-large:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.7);
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+            animation: bounce 2s infinite;
+            font-size: 14px;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-10px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Adjust article for landing page layout */
+        .landing-article {
+            margin-top: 0;
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/css/style-rYoa-1ED.css">
+  <link rel="stylesheet" crossorigin href="/css/article-DbFZx7pZ.css">
 </head>
 
 <body>
 
-    <div id="game-container">
+    <section class="hero-section">
+        <h1 class="hero-title">DUNGEON OUTCAST</h1>
+        <p class="hero-subtitle">Dive into the dungeon. Avoid the Frost Beasts. Find the Artifacts. Escape with your
+            life.
+        </p>
+        <a href="play.html" class="play-btn-large">▶ PLAY NOW</a>
 
-        <!-- Fullscreen Toggle -->
-        <button id="fullscreen-btn" title="Toggle Fullscreen" tabindex="-1">⛶</button>
+        <div class="scroll-down">Scroll for Game Guide & Roadmap ▼</div>
+    </section>
 
-        <!-- Orientation Warning Overlay -->
-        <div id="rotate-warning" class="hidden">
-            <div id="rotate-warning-icon">📱</div>
-            <div id="rotate-warning-text">PLEASE ROTATE YOUR DEVICE</div>
-        </div>
-
-        <div id="start-overlay">
-            <div class="start-text">DECKED OUT 2D</div>
-            <div class="start-subtext">Click to Enter</div>
-            <div class="menu-footer">do.samseen.dev</div>
-        </div>
-
-        <div id="game-over-overlay" class="hidden">
-            <div class="start-text" style="color: red;">GAME OVER</div>
-            <div class="start-subtext">Click to Retry</div>
-        </div>
-
-        <!-- Victory Overlay -->
-        <div id="victory-overlay" class="hidden">
-            <div id="victory-container">
-                <h1 class="victory-title">VICTORY OVERCOME</h1>
-
-                <div id="victory-card">
-                    <div class="card-header">
-                        <div id="victory-icon-container">
-                            <div id="victory-artifact-icon">👑</div>
-                        </div>
-                        <h2 id="victory-artifact-name">Crown of Souls</h2>
-                    </div>
-
-                    <div class="card-body">
-                        <p id="victory-artifact-desc">Loading lore...</p>
-
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <span class="stat-label">Value</span>
-                                <span class="stat-value" id="victory-value">???</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Collected</span>
-                                <span class="stat-value" id="victory-embers">0</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Time</span>
-                                <span class="stat-value" id="victory-duration">0m 0s</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <button id="victory-share-btn" class="primary-btn">📸 SAVE VICTORY CARD</button>
-                    </div>
-                </div>
-                <div class="start-subtext" id="victory-continue">Click to Escape</div>
-            </div>
-        </div>
-
-        <!-- Cinematic Intro Layer -->
-        <div id="cinematic-overlay" class="hidden">
-            <canvas id="intro-particles"></canvas>
-            <div id="door-container">
-                <img id="door-left" src="/assets/door_left-ABEFfOnQ.webp" alt="Door Left">
-                <img id="door-right" src="/assets/door_right-CwskD9A1.webp" alt="Door Right">
-            </div>
-        </div>
-
-        <div id="ui-layer" class="hidden">
-            <div id="top-bar">
-                <div class="hud-item hud-clank">
-                    CLANK: <div id="clank-meter-container"></div>
-                </div>
-                <div class="hud-item hud-hp">
-                    <div id="hp-container"></div>
-                </div>
-            </div>
-
-            <div id="bottom-bar">
-                <div class="hud-group">
-                    <div id="compass-container" title="Points to Artifact or Exit">
-                        <div id="compass-needle">➤</div>
-                    </div>
-                </div>
-
-                <div class="hud-group">
-                    <div class="hud-icon">🔥</div>
-                    <span id="ember-display">0</span>
-                </div>
-
-                <div class="hud-group">
-                    <div class="hud-icon">🍒</div>
-                    <span id="food-display">0</span>
-                    <small>F to Eat</small>
-                </div>
-
-                <div class="hud-group" id="artifact-slot">
-                    <div class="hud-label">Artifact</div>
-                    <div id="artifact-icon" class="empty">?</div>
-                </div>
-            </div>
-        </div>
-
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-        <!-- Touch Controls Toggle (Bottom Right) -->
-        <div id="touch-toggle-container">
-            <label class="retro-toggle-container">
-                <input type="checkbox" id="touch-toggle" style="display: none;">
-                <div class="retro-toggle-btn"></div>
-                <span>TOUCH</span>
-            </label>
-        </div>
-
-        <!-- Touch Controls -->
-        <div id="touch-controls" class="hidden">
-            <div id="dpad-container">
-                <div id="dpad-base">
-                    <div id="dpad-stick"></div>
-                </div>
-            </div>
-            <div id="action-buttons">
-                <!-- Jump (Space) -->
-                <button id="btn-jump" class="touch-btn" data-key=" ">
-                    <div class="btn-icon">⬆️</div>
-                </button>
-                <div class="action-row">
-                    <!-- Sneak (Shift) -->
-                    <button id="btn-sneak" class="touch-btn" data-key="shift">
-                        <div class="btn-icon">👟</div>
-                    </button>
-                    <!-- Eat (F) -->
-                    <button id="btn-eat" class="touch-btn" data-key="f">
-                        <div class="btn-icon">🍒</div>
-                    </button>
-                    <!-- Check Artifact/Compass (E) -->
-                    <button id="btn-check" class="touch-btn" data-key="e">
-                        <div class="btn-icon">🧭</div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SEO Article Section -->
-    <article id="game-info" class="game-article">
-        <header class="article-header" onclick="toggleArticle()">
-            <h1>Decked Out 2D – Free Browser Dungeon Crawler Game</h1>
-            <button id="collapse-btn" aria-label="Toggle article visibility">X</button>
+    <!-- SEO Article Section (Renamed to Landing Article) -->
+    <article class="game-article landing-article">
+        <header class="article-header">
+            <h1>Game Guide & Lore</h1>
         </header>
 
-        <div id="article-content" class="article-body">
+        <div class="article-body">
             <section>
-                <h2>About Decked Out 2D</h2>
-                <p><strong>Decked Out 2D</strong> is a free-to-play browser-based dungeon crawler game inspired by the
-                    popular Hermitcraft season 9 minigame "Decked Out 2" created by Mr. Tango Tek. Navigate through
+                <h2>About the Game</h2>
+                <p><strong>Dungeon Outcast</strong> is a free-to-play browser-based dungeon crawler game inspired by
+                    Tango Tek's "Decked Out 2" minigame from Hermitcraft Season 9. Navigate through
                     dark,
                     treacherous
-                    dungeons, avoid deadly monsters, collect valuable artifacts, and escape before your clank meter
+                    dungeons, avoid deadly monsters, collect valuable artifacts, and escape before your haze meter
                     attracts too many enemies!</p>
                 <p>This 2D adaptation brings the thrilling stealth-action gameplay to your browser with no downloads
-                    required. Experience the tension of sneaking through dungeons, the excitement of finding rare
-                    artifacts, and the panic of being chased by relentless creatures.</p>
+                    required.</p>
             </section>
 
             <section>
@@ -209,7 +183,7 @@
                 <p>Master these controls to survive the dungeon:</p>
                 <ul class="controls-list">
                     <li><strong>WASD / Arrow Keys</strong> – Move your character through the dungeon</li>
-                    <li><strong>SHIFT (Hold)</strong> – Sneak mode for silent movement (reduces clank)</li>
+                    <li><strong>SHIFT (Hold)</strong> – Sneak mode for silent movement (reduces haze)</li>
                     <li><strong>SPACEBAR</strong> – Jump over obstacles and gaps</li>
                     <li><strong>F Key</strong> – Harvest berries from bushes or eat from inventory</li>
                     <li><strong>E Key</strong> – Search for artifacts at marked locations</li>
@@ -219,9 +193,10 @@
             <section>
                 <h2>Game Features</h2>
                 <ul>
-                    <li>🏃 <strong>Stealth Gameplay</strong> – Your movements create "clank" that attracts enemies</li>
-                    <li>👹 <strong>Dangerous Enemies</strong> – Ravagers patrol corridors, Ghasts shoot fireballs, and
-                        Vexes spawn when clank is high</li>
+                    <li>🏃 <strong>Stealth Gameplay</strong> – Your movements create "haze" that attracts enemies</li>
+                    <li>👹 <strong>Dangerous Enemies</strong> – Frost Beasts patrol corridors, Specters shoot fireballs,
+                        and
+                        Phantoms spawn when haze is high</li>
                     <li>🔥 <strong>Ember Collection</strong> – Gather embers scattered throughout the dungeon for points
                     </li>
                     <li>🍒 <strong>Survival Mechanics</strong> – Find and eat berries to restore health</li>
@@ -231,62 +206,37 @@
                 </ul>
             </section>
 
-            <section>
-                <h2>Tips for Beginners</h2>
-                <ol>
-                    <li><strong>Sneak Often</strong> – Hold SHIFT when moving to reduce clank and avoid detection</li>
-                    <li><strong>Watch Your Clank</strong> – Keep the clank meter low to prevent Vex spawns</li>
-                    <li><strong>Collect Berries</strong> – Stock up on food before venturing deep into the dungeon</li>
-                    <li><strong>Use the Compass</strong> – The red needle points toward your objective</li>
-                    <li><strong>Time Your Jumps</strong> – Use SPACEBAR to hop over hazards and climb elevated terrain
-                    </li>
-                    <li><strong>Find the Exit</strong> – After grabbing an artifact, follow your compass to escape!</li>
-                </ol>
-            </section>
-
             <section class="roadmap-section">
                 <h2>🗺️ Roadmap & Upcoming Features</h2>
-                <p>Decked Out 2D is actively being developed with exciting new features planned! Unlike survival
-                    Minecraft, we're not limited to existing mechanics – we can expand in new directions:</p>
+                <p>Dungeon Outcast is actively being developed with exciting new features planned! Unlike typical
+                    browser games, we're constantly expanding in new directions:</p>
 
                 <div class="roadmap-grid">
                     <div class="roadmap-item planned">
+                        <span class="roadmap-icon">🛠️</span>
+                        <h3>Map Maker Tool</h3>
+                        <p>A full creative suite for players to build, share, and play custom dungeons. The community
+                            builds the content!</p>
+                    </div>
+
+                    <div class="roadmap-item planned">
                         <span class="roadmap-icon">🃏</span>
-                        <h3>Player Decks</h3>
-                        <p>Build and customize your deck with unique cards that grant abilities, buffs, and special
-                            powers during runs.</p>
-                    </div>
-
-                    <div class="roadmap-item planned">
-                        <span class="roadmap-icon">🏆</span>
-                        <h3>Global Leaderboard</h3>
-                        <p>Compete with players worldwide! Track your best runs, ember counts, and speedrun times.</p>
-                    </div>
-
-                    <div class="roadmap-item planned">
-                        <span class="roadmap-icon">🗺️</span>
-                        <h3>More Maps & Dungeons</h3>
-                        <p>Explore new themed dungeons with unique layouts, traps, and challenges beyond the original
-                            crypt.</p>
+                        <h3>Deck Building</h3>
+                        <p>Collect cards to modify your runs. Use "Stumble" cards for difficulty or "Ethereal" cards for
+                            buffs.</p>
                     </div>
 
                     <div class="roadmap-item planned">
                         <span class="roadmap-icon">👾</span>
-                        <h3>New Enemy Types</h3>
-                        <p>Face off against new creatures with unique behaviors, attack patterns, and weaknesses to
-                            exploit.</p>
+                        <h3>Expanded World</h3>
+                        <p>New levels, more dangerous enemy types, better graphics, and refined game balancing.</p>
                     </div>
 
                     <div class="roadmap-item planned">
-                        <span class="roadmap-icon">⚔️</span>
-                        <h3>Combat Mechanics</h3>
-                        <p>Fight back! New weapons and abilities to defend yourself against the dungeon's horrors.</p>
-                    </div>
-
-                    <div class="roadmap-item planned">
-                        <span class="roadmap-icon">🎭</span>
-                        <h3>Character Skins</h3>
-                        <p>Unlock and equip different character appearances as you progress and achieve milestones.</p>
+                        <span class="roadmap-icon">🏆</span>
+                        <h3>Global Leaderboards</h3>
+                        <p>Compete for the fastest artifact retrieval times. Plus enhanced mobile support and polish.
+                        </p>
                     </div>
                 </div>
 
@@ -298,15 +248,15 @@
                         <span>📺</span> Leave Feedback on YouTube
                     </a>
                     <p class="feedback-note">Drop a comment on our development video with your suggestions – every idea
-                        helps make Decked Out 2D better!</p>
+                        helps make Dungeon Outcast better!</p>
                 </div>
             </section>
 
             <section>
                 <h2>Frequently Asked Questions</h2>
                 <details>
-                    <summary>Is Decked Out 2D free to play?</summary>
-                    <p>Yes! Decked Out 2D is completely free to play in your browser with no downloads or accounts
+                    <summary>Is Dungeon Outcast free to play?</summary>
+                    <p>Yes! Dungeon Outcast is completely free to play in your browser with no downloads or accounts
                         required.</p>
                 </details>
                 <details>
@@ -314,9 +264,9 @@
                     <p>Yes, enable "Touch Controls" on the start screen to play on smartphones and tablets.</p>
                 </details>
                 <details>
-                    <summary>What is "clank" in the game?</summary>
-                    <p>Clank is a noise meter that increases when you run, jump, or move quickly. High clank attracts
-                        dangerous Vex enemies, so sneak to stay safe!</p>
+                    <summary>What is "haze" in the game?</summary>
+                    <p>Haze is a detection meter that increases when you run, jump, or move quickly. High haze attracts
+                        dangerous Phantom enemies, so sneak to stay safe!</p>
                 </details>
                 <details>
                     <summary>How do I win the game?</summary>
@@ -327,51 +277,38 @@
 
             <footer class="article-footer">
                 <div class="disclaimer">
-                    <p>⚠️ <strong>Developer's Note:</strong> Decked Out 2D is my debut indie web game, developed as
+                    <p>⚠️ <strong>Fan Project Disclaimer:</strong> This project is a fan work inspired by
+                        <a href="https://www.youtube.com/@TangoTekLP">Tango Tek's</a> "Decked Out 2".
+                        All assets are custom-made or AI-generated. Not affiliated with Mojang or Hermitcraft.
+                    </p>
+                    <p style="margin-top: 10px;">⚠️ <strong>Developer's Note:</strong> Dungeon Outcast is my debut indie
+                        web game, developed as
                         a passion project in my spare time. While development may be gradual, I am fully dedicated to
                         making this game as enjoyable as possible for everyone. Thank you for your patience and support!
                         ☕️💙</p>
                 </div>
-                <p>Created by <strong><a href="https://www.buymeacoffee.com/samseen" target="_blank"
+                <p style="margin-bottom: 20px; font-size: 16px;">
+                    📖 <a href="guide.html"
+                        style="color: #4fc3f7; margin-right: 20px; text-decoration: none; border-bottom: 1px dashed #4fc3f7;">Game
+                        Guide & Lore</a>
+                    🔨 <a href="devlog.html"
+                        style="color: #ffd700; text-decoration: none; border-bottom: 1px dashed #ffd700;">Developer
+                        Log</a>
+                </p>
+                <p>
+                    Developed by <strong><a href="https://www.buymeacoffee.com/samseen" target="_blank"
                             alt="Buy Me a Coffee">SamSeen</a></strong> • Inspired by <strong><a
                             href="https://www.youtube.com/@TangoTekLP">Mr. Tango Tek</a>'s</strong> Decked Out 2
                     minigame
                     from Hermitcraft Season 9
                 </p>
                 <p><em>Keep in touch to follow development updates!</em></p>
+                <p style="font-size: 11px; margin-top: 20px; text-align: center; opacity: 0.5;">
+                    <a href="sitemap.xml" style="color: #666; text-decoration: none;">Sitemap</a>
+                </p>
             </footer>
         </div>
     </article>
-
-
-    <script>
-        // Article Collapse Toggle
-        function toggleArticle() {
-            const content = document.getElementById('article-content');
-            const btn = document.getElementById('collapse-btn');
-            const article = document.getElementById('game-info');
-
-            if (content.classList.contains('collapsed')) {
-                content.classList.remove('collapsed');
-                btn.textContent = '▲';
-                article.classList.remove('minimized');
-            } else {
-                content.classList.add('collapsed');
-                btn.textContent = '▼';
-                article.classList.add('minimized');
-            }
-        }
-
-        // Close article on Enter key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const content = document.getElementById('article-content');
-                if (!content.classList.contains('collapsed')) {
-                    toggleArticle();
-                }
-            }
-        });
-    </script>
 
 </body>
 

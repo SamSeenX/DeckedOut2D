@@ -1,5 +1,5 @@
 import {
-    HEARTBEAT_MIN_INTERVAL, HEARTBEAT_MAX_INTERVAL, MAX_CLANK,
+    HEARTBEAT_MIN_INTERVAL, HEARTBEAT_MAX_INTERVAL, MAX_HAZE,
     HEARTBEAT_MIN_VOLUME, HEARTBEAT_MAX_VOLUME
 } from '../data/config.js';
 
@@ -358,20 +358,20 @@ export function playEmberCollect() {
 // Heartbeat Loop State
 let heartbeatTimer = null;
 
-export function startHeartbeatSystem(getClankLevel) {
+export function startHeartbeatSystem(getHazeLevel) {
     if (heartbeatTimer) clearTimeout(heartbeatTimer);
 
     const beat = () => {
         initAudio();
-        const clank = getClankLevel();
-        const ratio = Math.min(clank, MAX_CLANK) / MAX_CLANK; // 0.0 to 1.0
+        const haze = getHazeLevel();
+        const ratio = Math.min(haze, MAX_HAZE) / MAX_HAZE; // 0.0 to 1.0
 
-        // Calculate next interval based on Clank
-        // Higher Clank = Faster Heartbeat (Smaller Interval)
+        // Calculate next interval based on Haze
+        // Higher Haze = Faster Heartbeat (Smaller Interval)
         const nextInterval = HEARTBEAT_MAX_INTERVAL - (ratio * (HEARTBEAT_MAX_INTERVAL - HEARTBEAT_MIN_INTERVAL));
 
-        // Calculate Volume based on Clank
-        // Higher Clank = Louder
+        // Calculate Volume based on Haze
+        // Higher Haze = Louder
         const volume = HEARTBEAT_MIN_VOLUME + (ratio * (HEARTBEAT_MAX_VOLUME - HEARTBEAT_MIN_VOLUME));
 
         // Play thump

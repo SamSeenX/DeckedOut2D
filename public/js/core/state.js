@@ -1,5 +1,5 @@
 export const gameState = {
-    clank: 0,
+    haze: 0,
     running: true,
 
     // Artifact Hunt

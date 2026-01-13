@@ -6,16 +6,16 @@
 
 // === SPRITES (imported for cache-busted hashed filenames) ===
 import playerSprite from '../../assets/sprites/player.webp';
-import ravagerSprite from '../../assets/sprites/ravager.webp';
-import ghastSprite from '../../assets/sprites/ghast.webp';
-import vexSprite from '../../assets/sprites/vex.webp';
+import frostbeastSprite from '../../assets/sprites/frostbeast.webp';
+import specterSprite from '../../assets/sprites/specter.webp';
+import phantomSprite from '../../assets/sprites/phantom.webp';
 import tilesSprite from '../../assets/sprites/tiles.webp';
 
 export const SPRITES = {
     player: playerSprite,
-    ravager: ravagerSprite,
-    ghast: ghastSprite,
-    vex: vexSprite,
+    frostbeast: frostbeastSprite,
+    specter: specterSprite,
+    phantom: phantomSprite,
     tiles: tilesSprite,
 };
 

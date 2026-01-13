@@ -2,7 +2,7 @@ import { Enemy } from './enemy.js';
 import { Projectile } from './projectile.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { checkWallCollision } from '../utils/collision.js';
-import { GHAST_SPEED, GHAST_DETECTION_RANGE, GHAST_ATTACK_COOLDOWN } from '../data/config.js';
+import { SPECTER_SPEED, SPECTER_DETECTION_RANGE, SPECTER_ATTACK_COOLDOWN } from '../data/config.js';
 import { SPRITES } from '../data/assets.js';
 
 const STATES = {
@@ -10,12 +10,12 @@ const STATES = {
     ATTACK: 'ATTACK'
 };
 
-const DETECTION_RANGE = GHAST_DETECTION_RANGE;
-const ATTACK_COOLDOWN = GHAST_ATTACK_COOLDOWN;
-const FLOAT_SPEED = GHAST_SPEED;
+const DETECTION_RANGE = SPECTER_DETECTION_RANGE;
+const ATTACK_COOLDOWN = SPECTER_ATTACK_COOLDOWN;
+const FLOAT_SPEED = SPECTER_SPEED;
 
 const SPRITE_IMAGE = new Image();
-SPRITE_IMAGE.src = SPRITES.ghast;
+SPRITE_IMAGE.src = SPRITES.specter;
 
 
 
@@ -49,10 +49,10 @@ const ANIMATIONS = {
     }
 };
 
-export class Ghast extends Enemy {
+export class Specter extends Enemy {
     constructor(x, y) {
         super(x, y);
-        this.type = 'ghast';
+        this.type = 'specter';
         this.radius = 0.4;
         this.color = 'yellow'; // Fallback
 

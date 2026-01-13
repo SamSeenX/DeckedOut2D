@@ -1,4 +1,4 @@
-# DeckedOut2D - Artifact Hunt & Map Maker Design
+# Dungeon Outcast - Artifact Hunt & Map Maker Design
 
 ## 1. Feature Overview
 The goal is to implement a complete "Artifact Hunt" loop where the player must:

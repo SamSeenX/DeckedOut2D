@@ -1,25 +1,25 @@
 {
-    "name": "Ravager Step Walk",
+    "name": "Frost Beast Step Run",
     "notes": [
         {
             "type": "noise",
             "startTime": 0,
-            "duration": 0.1,
-            "volPeak": 0.2,
+            "duration": 0.12,
+            "volPeak": 0.4,
             "attack": 0.01,
             "filterType": "lowpass",
-            "filterFreqStart": 300,
+            "filterFreqStart": 500,
             "filterFreqEnd": 50,
-            "Q": 1
+            "Q": 2
         },
         {
             "type": "osc",
-            "wave": "sine",
+            "wave": "square",
             "startTime": 0,
             "duration": 0.1,
-            "freqStart": 60,
-            "freqEnd": 30,
-            "volPeak": 0.3,
+            "freqStart": 80,
+            "freqEnd": 40,
+            "volPeak": 0.2,
             "attack": 0.01
         }
     ]

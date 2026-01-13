@@ -1,4 +1,4 @@
-# 🎮 Decked Out 2D - Beta Release Checklist
+# 🎮 Dungeon Outcast - Beta Release Checklist
 ## Celebrating 2500 YouTube Subscribers! 🎉
 
 ---
@@ -14,9 +14,9 @@
 - [x] Enemy patrol routes make sense
 
 ### 👾 Enemy Functionality
-- [x] Ravager works correctly ✅ (done)
-- [x] Ghast projectiles work ✅ (done)
-- [x] Vex spawning works ✅ (done)
+- [x] Frost Beast works correctly ✅ (done)
+- [x] Specter projectiles work ✅ (done)
+- [x] Phantom spawning works ✅ (done)
 - [x] Verify enemy collision/damage ✅
 
 ### 🎮 Core Loop Complete
@@ -37,51 +37,29 @@
 ## ⚠️ IMPORTANT - Should Have
 
 ### 🎨 Visual Polish
-- [x] Vex has visible sprite (not just placeholder) ✅
+- [x] Phantom has visible sprite (not just placeholder) ✅
 - [x] Loading indicator or splash screen ✅
 - [x] Instructions toast on game start ✅
 
-### 🔊 Audio Check
-- [x] Heartbeat plays and stops correctly ✅
-- [x] Sound effects work (pickup, eat, harvest) ✅
-- [x] No audio bugs (looping after death, etc.) ✅
+# Next Session Goals: Map Maker & Card System
 
-### 📱 Mobile Testing
-- [x] Touch controls responsive ✅
-- [x] Game fits landscape orientation ✅
-- [x] Rotate warning shows in portrait ✅
+## 1. Post-Deployment Checks (Completed)
+- [x] **SEO Content**: Guide, DevLog, and Sitemap deployed.
+- [x] **Verification**: Google Verification Tag added.
+- [x] **Polish**: 404 Page and Footer Links added.
+- [ ] **Action Item**: User to verify in Google Search Console & Apply for AdSense.
 
-### 📝 Page Content
-- [x] SEO article section complete ✅
-- [x] Roadmap section ✅
-- [x] Feedback YouTube link ✅
-- [x] Developer disclaimer ✅
+## 2. Core Feature Development (In Progress)
+- [ ] **Map Maker Tool**:
+    - [ ] Create UI for saving/loading custom maps (JSON/Local Storage).
+    - [ ] Add "Play Custom Map" mode to the main game.
+- [ ] **Deck Building System**:
+    - [ ] Design the Card UI overlay.
+    - [ ] Implement "Stumble" mechanics.
 
----
-
-## 💎 NICE TO HAVE - If Time Permits
-
-- [x] Background ambient music (Optional/Future)
-- [x] More artifacts variety (21 artifacts added) ✅
-- [ ] Difficulty balancing pass (Ongoing)
-- [x] Screenshot/preview image for sharing ✅
-- [x] Open Graph meta tags for social sharing ✅
-
----
-
-## 🌐 Deployment Checklist
-
-### Hosting Setup
-- [ ] Choose hosting (Vercel, Netlify, GitHub Pages)
-- [x] Build production version ✅
-- [x] Test on live URL (Preview verified) ✅
-- [ ] Check HTTPS (Auto on hosting)
-
-### Final Verification
-- [x] Test full playthrough on desktop ✅
-- [x] Test full playthrough on mobile (Simulated) ✅
-- [ ] Share link with 1-2 testers
-- [ ] Record video footage for YT
+## 3. Improvements
+- [ ] **New Enemies**: Warden & Witch.
+- [ ] **Audio**: Expand soundscape.
 
 ---
 
@@ -92,8 +70,8 @@ Run through the game once and verify:
 2. ✅ Click starts cinematic intro
 3. ✅ Doors open, game begins
 4. ✅ Player can move (WASD)
-5. ✅ Clank increases when running
-6. ✅ Sneaking reduces clank generation
+5. ✅ Haze increases when running
+6. ✅ Sneaking reduces haze generation
 7. ✅ Jump works (Space)
 8. ✅ Can harvest berries (F near bush)
 9. ✅ Can eat berries (F with food in inventory)

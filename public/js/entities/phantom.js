@@ -1,13 +1,13 @@
 
 import { Enemy } from './enemy.js';
 import { checkLineOfSight } from '../world/lighting.js';
-import { VEX_ORBIT_SPEED, VEX_SWOOP_SPEED, VEX_SWOOP_COOLDOWN } from '../data/config.js';
+import { PHANTOM_ORBIT_SPEED, PHANTOM_SWOOP_SPEED, PHANTOM_SWOOP_COOLDOWN } from '../data/config.js';
 import { SPRITES } from '../data/assets.js';
 
 const SPRITE_IMAGE = new Image();
-SPRITE_IMAGE.src = SPRITES.vex;
+SPRITE_IMAGE.src = SPRITES.phantom;
 
-// Standardized Animation Config (matches Ravager format)
+// Standardized Animation Config (matches FrostBeast format)
 const ANIMATIONS = {
     fly_right: {
         rows: [0],       // Row 1 - Flying right (flip for left)
@@ -45,18 +45,18 @@ const STATES = {
 };
 
 const ORBIT_DIST = 2.5;
-const ORBIT_SPEED = VEX_ORBIT_SPEED;
-const SWOOP_SPEED = VEX_SWOOP_SPEED;
-const SWOOP_COOLDOWN = VEX_SWOOP_COOLDOWN;
+const ORBIT_SPEED = PHANTOM_ORBIT_SPEED;
+const SWOOP_SPEED = PHANTOM_SWOOP_SPEED;
+const SWOOP_COOLDOWN = PHANTOM_SWOOP_COOLDOWN;
 
-export class Vex extends Enemy {
+export class Phantom extends Enemy {
     constructor(playerX, playerY) {
         // Spawn near player
         let angle = Math.random() * Math.PI * 2;
         let dist = 4;
         super(playerX + Math.cos(angle) * dist, playerY + Math.sin(angle) * dist);
 
-        this.type = 'vex';
+        this.type = 'phantom';
         this.radius = 0.3;
         this.color = '#aaddff'; // Fallback color
 
@@ -67,7 +67,7 @@ export class Vex extends Enemy {
 
         this.swoopTarget = { x: 0, y: 0 };
 
-        // Standardized Animation State (matches Ravager)
+        // Standardized Animation State (matches FrostBeast)
         this.sprite = SPRITE_IMAGE;
         this.animations = ANIMATIONS;
         this.anim = 'fly_right';

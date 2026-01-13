@@ -1,4 +1,4 @@
-import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, CLANK_SPEED_THRESHOLD, CLANK_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_CLANK_PENALTY, CLANK_WALK_INC, CLANK_RUN_INC, CLANK_JUMP_INC, CLANK_MOVE_INC, CLANK_MOVE_INTERVAL } from '../data/config.js';
+import { ACCELERATION, MAX_SPEED, RUN_MULT, SNEAK_MULT, PLAYER_RADIUS, BUNNY_HOP_BOOST, PLAYER_MAX_HP, PLAYER_JUMP_VELOCITY, PLAYER_EAT_COOLDOWN, PLAYER_EAT_HEAL_AMOUNT, PLAYER_CHECK_COOLDOWN, PLAYER_ANIMATION_SPEED, HAZE_SPEED_THRESHOLD, HAZE_CHANCE_MULTIPLIER, HAZARD_DAMAGE_CHANCE, ARTIFACT_HAZE_PENALTY, HAZE_WALK_INC, HAZE_RUN_INC, HAZE_JUMP_INC, HAZE_MOVE_INC, HAZE_MOVE_INTERVAL } from '../data/config.js';
 
 import { keys } from '../core/input.js';
 import { triggerShake } from '../core/camera.js';
@@ -51,7 +51,7 @@ export const player = {
     // Timers
     lastEatTime: 0,
     lastCheckTime: 0,
-    lastMoveClankTime: 0,
+    lastMoveHazeTime: 0,
 
     takeDamage(amount) {
         this.hp -= amount;
@@ -324,8 +324,8 @@ export function updatePlayer() {
         player.jumpVelocity = PLAYER_JUMP_VELOCITY; // Start upward
         player.bumpCount = 0; // Success! Reset counter
 
-        // Jump Clank
-        gameState.clank += CLANK_JUMP_INC;
+        // Jump Haze
+        gameState.haze += HAZE_JUMP_INC;
         updateUI(gameState, player);
         playJson('assets/sounds/player_jump.json');
     }
@@ -348,11 +348,11 @@ export function updatePlayer() {
         }
     }
 
-    // --- Footstep Clank Logic (Visual/Audio) ---
-    // Note: The actual clank integer accumulation is now time-based (below), 
+    // --- Footstep Haze Logic (Visual/Audio) ---
+    // Note: The actual haze integer accumulation is now time-based (below), 
     // but we keep this for syncing the specific footstep SOUND.
     let currentSpeed = Math.sqrt(player.vx ** 2 + player.vy ** 2);
-    if (currentSpeed > CLANK_SPEED_THRESHOLD && !isSneaking && !player.isJumping) {
+    if (currentSpeed > HAZE_SPEED_THRESHOLD && !isSneaking && !player.isJumping) {
         // Increment Step Timer
         if (!player.stepTimer) player.stepTimer = 0;
         player.stepTimer++;
@@ -366,26 +366,26 @@ export function updatePlayer() {
             } else {
                 playJson('assets/sounds/player_step_walk.json');
             }
-            // Clank addition from steps is now 0 in config (CLANK_WALK_INC), handled below
+            // Haze addition from steps is now 0 in config (HAZE_WALK_INC), handled below
         }
     } else {
         player.stepTimer = 0; // Reset if stopped or sneaking
     }
 
-    // --- Time-Based Movement Clank ---
-    // "add 0.1 clank every 200ms play hold walk"
+    // --- Time-Based Movement Haze ---
+    // "add 0.1 haze every 200ms play hold walk"
     // We check if keys are held AND we have velocity (actually moving)
-    const isMoving = currentSpeed > CLANK_SPEED_THRESHOLD;
+    const isMoving = currentSpeed > HAZE_SPEED_THRESHOLD;
     if (isMoving && !isSneaking && !player.isJumping) {
-        if (!player.lastMoveClankTime) player.lastMoveClankTime = Date.now();
+        if (!player.lastMoveHazeTime) player.lastMoveHazeTime = Date.now();
 
-        if (Date.now() - player.lastMoveClankTime >= CLANK_MOVE_INTERVAL) {
-            gameState.clank += CLANK_MOVE_INC;
+        if (Date.now() - player.lastMoveHazeTime >= HAZE_MOVE_INTERVAL) {
+            gameState.haze += HAZE_MOVE_INC;
             updateUI(gameState, player);
-            player.lastMoveClankTime = Date.now();
+            player.lastMoveHazeTime = Date.now();
         }
     } else {
-        player.lastMoveClankTime = Date.now(); // Reset timer so it starts counting fresh from next move
+        player.lastMoveHazeTime = Date.now(); // Reset timer so it starts counting fresh from next move
     }
 
     checkTileEvents();
@@ -611,7 +611,7 @@ function checkTileEvents() {
                             // Footer
                             ctx.fillStyle = '#444';
                             ctx.font = '16px monospace';
-                            ctx.fillText('DECKED OUT 2D | do.samseen.dev', width / 2, height - 30);
+                            ctx.fillText('DUNGEON OUTCAST | do.samseen.dev', width / 2, height - 30);
 
                             // Download
                             const link = document.createElement('a');
@@ -798,7 +798,7 @@ function checkTileEvents() {
                 gameState.hasArtifact = true;
                 showToast("ARTIFACT FOUND! Run to the Exit!", 5000);
                 playBingBing();
-                gameState.clank += ARTIFACT_CLANK_PENALTY; // Loud noise!
+                gameState.haze += ARTIFACT_HAZE_PENALTY; // Loud noise!
                 updateUI(gameState, player);
                 return;
             } else if (!gameState.hasArtifact) {

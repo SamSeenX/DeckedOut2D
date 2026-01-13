@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-683R1S485C"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-683R1S485C');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Guide & Lore - Dungeon Outcast</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Complete guide, controls, and lore for Dungeon Outcast. Read the legend of the dungeon and discover the secrets of the 21 ancient artifacts.">
+    <meta name="keywords" content="dungeon outcast guide, game lore, artifacts list, how to play, dungeon crawler tips">
+
+    <link rel="icon" href="/assets/favicon-BAh9kyrF.png">
+
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/assets/main_bg-D9bJs3oG.webp');
+            background-size: cover;
+            background-position: top;
+            background-attachment: fixed;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Navigation Header */
+        .site-header {
+            max-width: 800px;
+            margin: 0 auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px 0 10px 20px;
+            border-bottom: none;
+            gap: 10px;
+            opacity: 0.7;
+        }
+
+        .separator {
+            color: #555;
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .page-title {
+            color: #4fc3f7;
+            font-weight: normal;
+            font-size: 13px;
+        }
+
+        .home-link {
+            color: #ffd700;
+            text-decoration: none;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: normal;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .game-article {
+            margin-top: 80px;
+        }
+
+        .home-link:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .home-link::before {
+            content: "⬅";
+        }
+
+        /* Artifact Grid */
+        .artifact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .artifact-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #334;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .artifact-card:hover {
+            transform: translateY(-2px);
+            border-color: #ffd700;
+        }
+
+        .artifact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .artifact-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #444;
+            overflow: hidden;
+        }
+
+        .artifact-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .artifact-name {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .artifact-desc {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .artifact-value {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #4fc3f7;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* Lore Text Styling */
+        .lore-text {
+            border-left: 3px solid #8e44ad;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #d1c4e9;
+            font-style: italic;
+            background: rgba(142, 68, 173, 0.1);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/css/style-rYoa-1ED.css">
+  <link rel="stylesheet" crossorigin href="/css/article-DbFZx7pZ.css">
+</head>
+
+<body>
+
+    <article class="game-article">
+        <header class="article-header" style="cursor: default;">
+            <h1>📜 The Librarian's Guide & Lore</h1>
+        </header>
+
+        <nav class="site-header">
+            <a href="index.html" class="home-link">Back to Game</a>
+            <span class="separator">|</span>
+            <div class="page-title">Dungeon Outcast Wiki</div>
+        </nav>
+
+        <div class="article-body">
+
+            <section>
+                <h2>The Legend of the Hollow</h2>
+                <div class="lore-text">
+                    <p>"You didn't mean to fall. No one ever does.</p>
+                    <p>One moment you were exploring the ancient ruins mentioned in your grandfather's journal, and the
+                        next, the ground beneath you gave way. You tumbled into darkness, landing on cold, hard stone.
+                        When you stood up, the light from above was gone.</p>
+                    <p>You are now in <strong>The Hollow</strong>, a subterranean labyrinth built by a civilization that
+                        vanished eons ago. The air is thick with the smell of frost and old magic. The walls shift, and
+                        creatures made of shadow and bone patrol the corridors.</p>
+                    <p>A whisper in your mind reveals the only escape: <strong>The Gate of Exit</strong>. But the Gate
+                        demands a toll. It hungers for the <strong>21 Cursed Artifacts</strong> hidden throughout the
+                        dungeon. Only by retrieving these relics can you buy your freedom.</p>
+                    <p>But beware... the dungeon listens. If you move too fast, if you make too much noise...
+                        <strong>HAZE</strong>... the Wardens will wake."
+                    </p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Survival Guide</h2>
+                <p>Surviving The Hollow requires more than speed; it requires cunning and silence.</p>
+
+                <h3>🤫 The Haze System</h3>
+                <p>Noise is your enemy. Every action generates "Haze."</p>
+                <ul>
+                    <li><strong>Haze Meter:</strong> Located at the top left. Keep it low!</li>
+                    <li><strong>Generating Haze:</strong> Running and Jumping generate partial noise.</li>
+                    <li><strong>The Consequences:</strong> High Haze attracts more enemies and spawns <strong
+                            style="color: #ff6b6b;">Phantoms</strong> (Phantoms) that fly through walls to hunt you.
+                    </li>
+                    <li><strong>Stealth:</strong> Hold <strong>SHIFT</strong> to Sneak. Sneaking generates 0 Haze and
+                        helps you evade detection.</li>
+                </ul>
+
+                <h3>👹 The Wardens</h3>
+                <p>You are not alone in the dark.</p>
+                <ul>
+                    <li><strong>Frost Beasts:</strong> Heavy beasts that patrol corridors. They have poor vision but
+                        excellent hearing. If they see you, run!</li>
+                    <li><strong>Specters:</strong> Floating skulls that guard open areas. They shoot fireballs if you
+                        enter their line of sight.</li>
+                    <li><strong>Phantoms:</strong> Spirits summoned by high Haze. They can phase through walls. Lower
+                        your
+                        Haze to despawn them.</li>
+                </ul>
+
+                <h3>⚡ Vitality & Embers</h3>
+                <ul>
+                    <li><strong>Health:</strong> You have 3 Hearts. Taking damage knocks you back.</li>
+                    <li><strong>Berries (Food):</strong> Find bushes to harvest berries. Press <strong>F</strong> to eat
+                        and heal 1 Heart.</li>
+                    <li><strong>Embers:</strong> Glowing blue flames scattered around. Collect them to increase your
+                        score and prove your worth.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>The 21 Artifacts</h2>
+                <p>The Gatekeeper demands these relics. Each holds a fragment of the dungeon's history.</p>
+
+                <div class="artifact-grid">
+                    <!-- Artifacts populated here -->
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Crown">
+                            </div>
+                            <span class="artifact-name">Crown of Souls</span>
+                        </div>
+                        <p class="artifact-desc">Forged in the fires of the Nether, worn by the mad King Thrandor.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Ember Heart">
+                            </div>
+                            <span class="artifact-name">Ember Heart</span>
+                        </div>
+                        <p class="artifact-desc">A pulsating core extracted from a dormant Volcanic Golem.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Frost Fang">
+                            </div>
+                            <span class="artifact-name">Frost Fang</span>
+                        </div>
+                        <p class="artifact-desc">A massive crystalline fang from the Great Wyrm of the North.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRsgEAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSDsCAAANkIVt29lIb5Kxbaxt27ZtW2PP0drGkW3btm2NPbNFtukqf9Ivi9OImAD8i1dMsjHPvaqdWms5gJt0YJ1OG+6NR+BXh1nFxqVoQRhXG7KtUx5pwSkSjL38l1lkdEcZKf4Jy1ywjqmUkGcBl2acDP/hgcjQgAlYNF2tYt3sXSXIz9QZjFvSf2cS2Eq8UUPwHtTIAPag4U42xbiTu9MlEBQqFJuRDzUbeNdqNPP5B9haqmzTtiLUdved8/nZyrA5bJlMXJWpPHhY1LZVG/cjYJ/OVHkMKPYH+3owR0sk2HVFB9gcQH7PWXc2ylfmJfJ4N90a7G72hFLux0pQPhSEe1pvg/ISVSih9/UPioQybqRapD2VlARHgbTdzNnpSmILaMG30W4lo0HcvdZJBeVB3kdIYVtFr37IdjYbekqddRpw+fqNoUl9gwYmFN56IncOWvSdmRIvx2kC4CW5/3Ve0ppg0pqIP+fCmk21sMuKISwrvBK9NTfB+s7bkd47sOvt6JkVxMwid/21gqv1yaWKCrC9kyOt/AdQGh3mTevLGUWfl87mKOmTBUXia/tQSh9EKH98aSylxYIKpqPBVelcK4Kaj5yK0XmOP7PRmqNiFlWa07wOEenyHZXurm/KI6S6pY4aobvMqSTdmCvBvtjYUE49w5XjT2Hp5wcu2c/2clKnICvMHQRNj18vDeukzrY1AmiKn2NO74S9Y0UGwwNxwxqQzugNXblp1eU2b8mFBm/nN5cxb4A2wxbK/PEBAFZQOCBmAgAAkA4AnQEqQABAAD6dPJpIpaMioS4ba4iwE4ljANH+9XYFdebj0LDv85kfL9XXEwX1A2b07Sw1/osDXkGH0Y29jtnIG7U4fTJAF2rYjUFGETk9as2zJgyfcLzaVM0bmEfSQ9cpMbpIg9Z1aE9lYBm3n1gXHk0d1kqWNAh1NoAA/v9WS+waN5rraw7/O9b3WUx7sMAhXWbzMxgj/HxxlLGudKjRlAsTwe95E7afDCJL9hKKRK7+//8hDY4g8g4T2pfOf3TWvt+3e9pwj+W0DojU38XbF0+Ms2Mpq9/UJLDcKn6lEaUkRPZ/GrLIafaYz0ZqJcSakOLKl2m6EaXJJOpFBfDRWlhbqQYLhFMwafgJArWI24xi7JnS/ZRku04UvM8hcjQzZJ5VykPQ6cTIFj6w5UVQlf295NRGoiKJPvZC1O6dbAjty/09Sud+lxzFVOz+BL1LH0wHTTA4nYGA5IR4tx0PPd+omACQ6O4JQgLwZYQMOy1yM4q8yscXGAIBA+8BCE9pLwSKnVW+hnP+9Lg3kA+lRxszIccEW0vtaXi3fxe4t5T/uqTIAp1vGMYN0wOfpiCDQYA/+lWT/5ErT6jzF0eHnRDY/8aFUStC+LQKe0IC06FRs5R1I2eliKOoiyHYVPFQYpAa1w/V8vGQ8Colr+m/P7lXjXs03rYaARjgEd7J78EQogM0tRe/uUPwtAxBBxssg661OpsfkOQ5ujC6pRmb0vqXl+tyM93ywEu4PtJU7IFWuGF32ZCPca7u4lu1Gv4DjR3pX/0InT79eQFxZ7HRsSGJlUnp3EVLn1LScXZjC6CEAAA="
+                                    alt="Shadow Compass"></div>
+                            <span class="artifact-name">Shadow Compass</span>
+                        </div>
+                        <p class="artifact-desc">Its needle spins wildly in daylight but locks onto darkness at night.
+                        </p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRnYEAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSH8CAAANkChJsmlbvfVs27Zt27Zt27Zt27Zt2zrm9d17P5371qz1PiAiJgCksdsnAxC80QJRS9UHAPXMRVG6VcOf0RbtPS1G3Kr4e8IKR8OFGGMGQJc4C4QIiRXI0CG4CTG/xIsXwOEWY7PZLsAORYyww+WT/uXjLQh6dcXoHADeT5dFyR50MpsG41Jf/3shUhdtgD/l9rnTHL/ylru4eUeEInCRTpk2HfXwlWBFMkQ5VqqJH8bpPCVciX/vlnR+MBexCsU7qaMpGGqjbx6HVPKJlyj6jAK4OGtcUhaQVl9dvyp38iWLDJJ68YGx/gRgm2DGUyuS9jt0m6QWgNeHwTranFdxlTiNN5J8TSUhHwizAUYQSDdUTQ1i+wyZ5u2yISlpfG0l0La6nWNSWZKbkSBVOhfViwWDtGTKQ5EUBdoA6UAbe93OfRQGZJCrI8vPOsXu26cSdMiT/NNrdpbzjTU6uL+D0BNX5iBB/9Xf2KUHl0V+fGGWpCAfMgxmadLxYUL0cOGUvN8tYsVZII+0MFI4gVzj3QtGGi+AZDIKRQxONseH0JFr7kJs/1b8t9++rMXF0bjsfC+KcnEH7CsWB4+f3rGLNw48mhfAXgaXzvUEnjU9Y9GFzlcJzEMfm5oxEhGtkUHpW3gW6WekIHl7FbRBX/By8+boFK/dRACiNQJphg90sZtRPNsdAXrXtdrQFUb69jfgsfsr1BzGaEUQuHQ+wpUvXYowuDYzNrgN3nwoT4UaUpT0fU8egWvrhiuxs1fPmDA6AMN89OnhM3AfuffFfc+U0gAejEcMBUJawzMCgOUOhE0c848kIUHCfDzfIgZCz0oQd2bcnsZsiBw2breiUgEAVlA4INABAACwCwCdASpAAEAAPp1CnUmlo6MhLB1ZmLATiWUA0hmUGHEHldagiDTQN0CK1v/12/bKF9OggAZESo+lWLAfRF7evnFJz62z8viwm0sd03+v8lhDzikpe9RXWzL2GiCMg4oPDK9ZagAA/v02mYkYJnaYR/0GcHXQYmXtm1PMXhQo/Vrc6SO1f6WFeoKp3gSPbiDUqd0K/zMmv3FPTgWCAPnUCLM/N5+dKVjx7atRze1L1N7QWl3ZrjHYOrvkVL99SsOGAyLc3zMRKrPqmi/oxgpAAJrXNOkbyeC2pCPPnsFO8ra0D4vE28P6lLg0Rv86BaUcZ2bL+WhV2uiS6YRBaHGmiuSNOz1R7C5ug+N0DIQK/W78uJsZP9/e/MJ4X6yA7HqBj02YE+H652HIkNOzKDSqMMpw88K5h+T0Zr9YbxudABIr83Cxkc2V5ksMdr0DsXxz+CgUlYLJ3vqy6g8xLYRLYf12K7lMU8sRCfb4osqfuAWksVg5Y/BC/M5OYInB9LF7ya2ouRfFCYBedaQKujemSgAcwhKR3yMSVdwkWwtJMpNio0xZfCiKeP/D877ugjywVang7mT31YHXIikF7Kpyae/0TkiEEdoODQqAjRlAAA==" alt="Void Lantern">
+                            </div>
+                            <span class="artifact-name">Void Lantern</span>
+                        </div>
+                        <p class="artifact-desc">Burns with a cold black flame that reveals the unseen.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Crystal Skull"></div>
+                            <span class="artifact-name">Crystal Skull</span>
+                        </div>
+                        <p class="artifact-desc">Staring into its eyes induces visions of burnt worlds.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Golden Scarab"></div>
+                            <span class="artifact-name">Golden Scarab</span>
+                        </div>
+                        <p class="artifact-desc">An ancient automaton counting down to an apocalypse.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Phoenix Feather"></div>
+                            <span class="artifact-name">Phoenix Feather</span>
+                        </div>
+                        <p class="artifact-desc">Warm to the touch. Turns to ash and reforms at dawn.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Obsidian Dagger"></div>
+                            <span class="artifact-name">Obsidian Dagger</span>
+                        </div>
+                        <p class="artifact-desc">Used by the Cult of the Deep to sever ties with the mortal realm.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRrwFAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSFUCAAANkETb2rE3zxfbtm3btm3bGdW2bXdk23Yb27adVMH3vl89iogJAOSmSqcmgNJu8kf7KcRIO7L4JlB5j7zb6BSldrYBxQv6ACT2nDo3Qw2Z0VYAYFg86XCigBIs14uypwC+zNAOMgAVzb1AzHN/LUzmT/cAJY1EgcfubS3A4FkgeOjb8Nt/7VpxNiNwKheMgF4qU14zdoMVVzkJAJNF2RV0iwEMN+BGwzG9mouLgHdbRLmmdmmxfCa+4MQqTacZBbN2fjJlhYL20SXPShlqBzDRFZd1gxFYqGSyNDwprHuHjo5vuTCQy8EMkaZ0Tdtax74g4YwVA6RiXrLt+/tQ0O+cAdQe6oJZM+RxbgMMaYO9Y/pJsxLDAcCLuEgaAf97tk6JY9E+St7r+gAs7tKQB3SA5TQgrBBlxWCoHsVhXW0MCh6hmDgezI6s7wggfSiogqyqF03z+XQC0ZeNBJovH7ocET3gA8TlS0M8kdzdD8gHsoIcENw/DBj2BMf7kXZvPeCZ5mVH0pNDgGl7yvAueRKqM5kA24GX6yTS1JnnNVqxrQ6wbrm/+5TCvMoDAf/lS2jnMbMMKHhpw37NOcrygZJvNy9TmaVwMVC0+mnULOfoqDLVyz/LAPzqWYepwqM1m1ZTFwUYiSgVjpnZfB1Hyo99GceKV2YDMQJzE14SYnpfVpR04iO0WBYWyqpOk9e7sh4X5rVAKo+p3ZIBTAStyQHwLKjFBCHxhWrYdtfpkvScG5dBz2R/Um7sA2wHUosPEer085rsGAjnAIzHS+K/eErOq/wkkA4AVlA4IEADAACwEACdASpAAEAAPp1CmUmlo6IhLBqsALATiWIAytz0oDx0Ybm3k58x4AG2f4qgS1wO8+VF2A0ldKDNH8dH1ZwHP3AaBS8x5xBxbaTH9IFgYeZfyq/9rXRBrLVAysEy7C/5jGz9DYQJSloxPn4JyMhg8f4Lp5E4TXzd3BNyXT771peFYQQH18h7w4f9UZQAAP79NnbOt+SAFoN89iU8VegdIedHtKmx6sf/ccrzM3PCT8Bd+fF2OEy8rkpqdc/kHqXKeyBukvUSwm2BkOIoU7Or9JLV71WBmJm6CGWTfaHUWu2cMybRv3ft8svbAXAZuitbfR5o6OoEC19ORxIVR5gILdE156xOMyA/8ouQ1vGra7kKTFDm46F/7Vuc2RHnM/tHqO+TgaAPwiGbY4PQ/p2L9b/7Xn9AzNw2zr1haGmnftUPUgS271Lq8GhFtv50PJ1ODJ97AoHq4MT0FbCo174hJ40GqJLZgnVGkEnCZH8Rm2CoR1iMguDiIyE1aSYbPnEEf+TP7jAI9aLDWLhU9cSWzzUIg83LGNagdcmMEbAIlh1qWh9Wf2AE3yly+pdIaMa043MYpxHymX85DnDiSkqG0iww0HHMo8tz/dszMOYFH7FQW2tfhuckmNv9w27hi8PHL7l1KgnjWYTVZM9mq+Abn0BqpPpRf+Sq5Z8POyGUUm+wwkw9wUqKwkVN3LDhOcJzoGeCc/0mJ6TTA+raXMA1dppG6kXibXWdfTBe2L8AcfRRdRYcT61e3IoP8LfNChxcLqzCdxSlWTRFbm4zrG4Omyf2aWeVeelgIq0IQBXqjtVmdqAxnZkc1JHNvg9/NmP+4kNuOat58uGLGzvzN1ahmmlDU067FDnDuzDFJeMbybI5PtbVqcrPRoSoO1RYzX4d+9Rzd+0MhJ6IKx0NuVOQBnyf8bK7CFuW9NkrYK8sb/QbbVLL3d5T1RNx/MONvnsbCS5TchNcY+PtOgMyjGrMEK/Yd778WyJS6VrQsenezk9Jocy/ecTBtaI/at5R3H5m1SgjapDMmJ9EZ4hb/9Em5dZzYnuHsS09JNGgJZflxf92d1nqRDmlAqHlw3ntzw+xrLqriQKpyk7kcbDcAAAA"
+                                    alt="Lunar Chalice"></div>
+                            <span class="artifact-name">Lunar Chalice</span>
+                        </div>
+                        <p class="artifact-desc">Water poured into it glows, granting clarity of mind.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Storm Caller">
+                            </div>
+                            <span class="artifact-name">Storm Caller</span>
+                        </div>
+                        <p class="artifact-desc">One blow summons clouds, two summons lightning, three summons the end.
+                        </p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRpQFAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSCYBAAANkAPZtmlb89m2bdu2bdt2pq/4Z7bNzLZt2+az1tnPCCJiAjDaCivx4FknFMSG9+MdoCaAP+//cSLt7pIGbHqNRJXhPVp4Q2qdIH7uurjvF5lEvLYVANSrgdK8Y58DAJk8g8cPtnXSCFeog9twDChbJn91eTcFX4wkODYdCFDOvbqXQrwI7Gr5L6Pg6WaIOOcjSzbCpwi8wLKmyB2Cif+iEM0RdspIdoSNfKvHI60GLJ/9QsH2q66RZi50YYTpiV4bYbO/n/hM0cnH0vtuirwKa4ZshE8RsK0pcmeE0eZ/GWnumOz/I8gzwhbE64+wR4piDF36SvGtrUKLnSddFJ1HNrcqs3J8PUi797cIZQsC6J4fZcbJ21UyIO58/WTlX/TfdYOT4QJWUDggSAQAAJARAJ0BKkAAQAA+nTyYSaWjIiEuG2qosBOJZgC9tYJJzhMjbgeBPlD/DGg2g2GfUs7+61PGV/2OX6+VPXD7l9VIfZN2pHY/XjHPyObbsm5Nk0qftnwk5Fr1734Kdt+hJICj+BY9ZZW4pQErIYEJ45HFcWm1XpNlYZkOULc7eh0VUnjQRc4k99SznT8mgnS9JdjmgR2AAP7+zWs6F9vBZUPVxloWlrFXMsJ0wju0cP2AjYZG0Xq7v39LElYeDviY2DFczmDfWABuPwU9VT8vs1cWO3YWTeaOb/v0t5dN/r8Fo9fC7ic4tZkoqIVqSjOG0jftt7HI/LWc3yYg+f36hBF47fgc9p7WegUShszA7Zqb1D2xOTrwZsM6HWCbeHp+SxktnTNQZ02xqt9u5fzkHSWtS0zKbYj+zsVTep/8sbSQq7nALe/0UutYT7ObyjAxHX4pL+c61SYvytiiccDeFw8UE1SclaPoqTWB35Ok6xoBnIAn7EAyOKN4EwaAwNOzwmU7CLZ09IbPz3IwCV43FcDFLPJh1/jtFP4frsrwN+gEWz0FLLz/JwKOtPfeWB/IHGgpz+JW8fuMD6hUt6EFaDgjv6pkfoe4U4N5CmNuDkfHmOW4kR+OG4uoTsfhXb1TP26YK1cTlW6v9E2N9zC1qZsa0CxR7/fqg6q2kHviy4ZXjC6uaAdD4sLRIKy8NbJ2UcKsEnNMNipLu45w8dadE1UkD3PFjmUm7BxUNAfiTgkmQ2ykDO1+NJz+PZjmfnKuD0NVuWsu/+LTRWuj4ZaOyueEJ4dWehjhTlRKYXFC2e5y6jpWpvKGyOAHmT+J8nnn/k0r9IOdVct1FZXLIsiY7t63YKcSY7g1nqO93IeEZA8U4RvOnX0Hx1b6UU/zRF/1ksTRF9/Q7YTi/hMkxOVn51rKpW2ft6Nwxu36w3XqvngDvtw9835Wk9haq2hHEcqsmqZnT8FU4YjiS+c0VO4Ednmb9Acx9F57PpFXAqK8Zi/HO0dxsaACNUlzSeadton5GqlNEr/mxSAT1rCReKAg5rakRor2R5qp1qS46/LjtPZ02+qrnXMPwnPRP9r0agDbCMcd7xixx1V+c5XzO3MJSz/sLeiQfgl5atB6rgf6ANQwNwkXVvdtT8Em7W7be3RCMxnHL5Xa8T/15u4B+/0pfRNkfLxS2fYYvpLirap0Y9U/HMGPQpYyzdt/fsFiEzT2fYFO32f4NAVDGtthL+PLp57h2laa5CDhKhxoR1TqjKp0yJvxqqydUsehrSTlX+TplPueDVQczXM0yamVGPn7r5K+HHTOGiEpf/3csMqesmJx2kNs9kGc6NCmtznMXzN7diN8B/y8gaaCp+AFVjqWP7hRE6nwWueG9CEOYUK2Wic7cN4QJwrWOzDSKHouor90qcKiwQTBftCWadUc/lVOuV00LZxj8/epP1p+SSvVrh02QhoE90pDAAA="
+                                    alt="Emerald Tablet"></div>
+                            <span class="artifact-name">Emerald Tablet</span>
+                        </div>
+                        <p class="artifact-desc">Inscribed with the dead formula for the Elixir of Life.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Cursed Coin">
+                            </div>
+                            <span class="artifact-name">Cursed Coin</span>
+                        </div>
+                        <p class="artifact-desc">Always returns to its owner, bringing misfortune with it.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Spectral Mirror"></div>
+                            <span class="artifact-name">Spectral Mirror</span>
+                        </div>
+                        <p class="artifact-desc">Shows not your reflection, but the entity standing behind you.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRrIFAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSNEBAAANkAVJsmlbvQ+ebdu2bf7Ztm3btm3btm2/Y9vn+t61ZsV53xExAWCevyISDD80gHiv2kptjsxIWOaa8K95Z8dwGnKlF6tTATmQ6OrqWu2RNsssChXmNU5h+Yckpz0DABVe8evYOA+AjKmThuTxeD7zytwFfPOvGaEKcsm5IsAJxde8XmzikT4fuBdvln2+hwNJRd/Hr8SClEeVJ5XOIhCmuxukMd079k+cMj2AUm2zTv0tTPx1W+/+KJasXaFFYkEmDwiGVG7RIn9YODuLEOSU0jgZyEFaEWQQYb3ChSOeFCVacp9oPoie3McgBDklRZCB+HLhoiTRglFKwZQQPQoSpSgWPiSn5GcRUBUg5PnHQnVsJKG3Z1nQTga/YIy9ySU6ITYP7c3prJOY2LzZ6fzC/+nDUumpXMzO6GT5QlROgbFx99AUNF79YhX+UISI1c8K3+72JmE5AOau5/VI6L+wgy2ckUCUNguHe+8GETCvknEInChXQuJ2IDl4vlnRpBsn27Wf4Br1dHfvKlxsa/+At6P3yLo8nt4G/9/6qjxug+KKwyuqJGfj2rs5JQmVakzdFukrJMlzIzQTdFeeTlVpXIbEXb70FbQ1O24HEuXPCeYAVlA4ILoDAADQEQCdASpAAEAAPp1EnEmlo6KhLhkpyLATiUAYXf62riIfRPt0ueZbtf9m8D/Jd/OMCtRli6VxnlM2PV51fzImJCChItkowJPWbxMMDNsnFKJRqzOWndNqCS4zRjy3mxiDiEQahz7Pn/xVzaZAmUoeQAAim0RPV3VcgnWKPMAKsckAYiWPprNOmAZ6/iiTg5wMTjr8jg5gAP7/OkF1tlJI8piTumqBP4KvJh/Md1EiowZHdbnGghwtKfPw10liaaxpmn/t+pFa1cIQjSP/8zviwwNUwWYzPJMl6Z6SsR4YqOAWSh0L1hK0JNtZfnh94YzmpSF/MC/Nox7i9WW2GiTIE/HPCuq7rwcIaQZi3D++CNYikB+3shpIY9dT+x7oBJho85oRSvUa4A2rs1WDUUp3X0YqipQ5+pWhGHUtLJVwmR6haU4qSlmKUMwC17JPPTpEGq9f8ZHeRmu49cqaNMCCiQDEI/Bttp89G0+LHOXt4MTIGFfxXr2NWwP/GTjlMgu4+JgKV8bcougXtwJ8KAieqKcfrwhd21AFUEZwMj8GF4f+jeKjmh4elRi347+Z0vIBY9voiC/HwAZs3uktJUSO7ZWLxJHRAha3k9LrKtKhvVc6+oB9hWx5jnyF5Uf9UjmIUb57FYz1hmCVhGkkCj0/xHgrACwdC6+8TEwl4QwEruRSm/k4juAQ11LLPnmhVjYKj9LetYzrXyUbiMlceO8bqDA/oy5cvH9Zenj78ksQ2ymeY7DjKCf6QP2806ljZ4J/2o/buI289FLFOqR4XUSylkhU6uUitOrXsUZb//99prE9w07eUBo6ftKdE3UHiNNjcD37jXsayOofdsKM8toSMlOWU6DBH2ydxjHuY0P1v6Hwp1I56tBj6CPO71ZLqxQ1PNjAtDRcZjqsCaT/Lbopr95zeuqgJ9nkSDXq1rsvL2GZ6pxAJMRLnM4Ai7eab85gfG1oeIr4eMAcG/AxOffx+WnrWUaniLv3fJTAywYQ9JW0yrYZ4ZMuDKPbhnkPqJD2hC8x+YR5vn260t0OSNMJWTysvA/hAEyzRSsOyCiGTVrocGEQZ2y6Oo+J2O4H2cerTy/iap5U7hi21B2T5QW+tBbLoYOky1RZsSbptfIEbAEjeNJzVIAQvaCfN4wl9Yw808xYi3laftfXmAChi320WcdgFZcUc54G5zstXA88+M+H2/qQPrakwg9YXrhznSWEtUAWYRfG5cBG1Zyxs+02QW5R69CVc+EItVvGjEE/sY/QK7IUL/QAAAA=" alt="Ancient Mask">
+                            </div>
+                            <span class="artifact-name">Ancient Mask</span>
+                        </div>
+                        <p class="artifact-desc">Wearing it grants strength, but you forget your own name.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Titan Gauntlet"></div>
+                            <span class="artifact-name">Titan Gauntlet</span>
+                        </div>
+                        <p class="artifact-desc">Hums with the kinetic energy of a thousand earthquakes.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Star Map"></div>
+                            <span class="artifact-name">Star Map</span>
+                        </div>
+                        <p class="artifact-desc">Charts a course to the edge of the universe.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,UklGRlIFAABXRUJQVlA4WAoAAAAQAAAAPwAAPwAAQUxQSCwCAAANkARJtmlbdc7Ft23btm3b/qNn69u2bdu2bds2773P76x9/vAPImIC+Mdb0vPSYSa95QAtbINLsWSDZl+PqUMZGHh0rWL2li1S14quSW0gY9ChNdFtWb0EfLN5/hF60+tk4T4dotRuSNS0ATt3R7HVu3HPOurdulcuIS5d7FbgBmidyxN9Zt9zS1yw7NVHe8CLTZuQtjZKBmBrXoaY8/fav9tB2Xl/3ePP2oN4k+YwHb1Oc2Kbdsiujc7hBfrnHnMN6WTV2vF3ELRpQuwzD1i5b3bm/ROeVM/9fK9TIpFbIQiNR6U+xDXZsgXrXrerMzDP20dz/kokqQm0aLOnEXG3jz204nzDOrtDUmpI/rqbKz5lM1fCyIxBJ5evmZpUQ/ZDaJogG6QwhPQe59c9Q/zlwqdtq2J0ppCdW5xi8L4uxicftW63mC2vD5LJpw+855DRW7dDNsWKuWtlupdEOof72aUSTcoin97zwkqBUqiYMetJgf//X0mRWYGX9yXWbR6SVezVAET3b+5WQuj6fF2GHQd75Bd5MT4Bwj+PLJuWSOB7fxQ8NWJyVsM+9tZUYO+KoRkMej1AR80DG7yzGfJsko6ijg2bhmU14M0AFD6yfFDaOH30R+nt8xYmicPXHih+bNrYjLF6666p5tqxcXA6LabX4ywo79x5oX+qGL4vsGJC17TjYzJF89wfk+5ZPyA98DoY027ZGpKFZxMx8dYznpYwzUzO5dMdNoQBVlA4IAADAACwDwCdASpAAEAAPp08mUiloyIhMB34ALATiWwAwRAD/rngbb27YKAd2na2RpSaDLj0pTPO8WVq1zFQQwcmGxNtPcluHklBNVRT1pSvYq0rPFw+I1cLyalIvot7iJMJtLGTbmqY9hMBLr3DasVd+pvMps4upwBQQnVRif4OPRkWnho0Tj58AAD+/FDDKELv4R4J2rjWtPefMSYzCA65b2j670+B3HcLbr072Sc1AJSNu+E64/NzO43ULJyqnSrUnLbwO7GqrJgIpGXjUyV9uH2JFP8UjoIeFfuE74mPrd///mJcFh3E2x8o3xat2yZerNBfrbZJU37LPnILgeQmAFILP7J97eoxzHFdIkDl7Mzzn2sE0V/NT8eQuzyahM+i7lrC7CGWISquH6LlW+NfG6n+/MR1GfBBKbmu4uPae050Po9Bf8IR5pBRGSqHKUN0hp7H/mGO2XLjjDQc9YgCO3r0i4j+U7XQ18Sq7u2bEQVyABsaT7PePxh9dQAQrZWE4SJ7PDQ2LkTf3HSh88/6uI20kiLsjbdSRZmaG3KZU0uwEja3euwOdYIzJMpcrgl9dt5ZlEVeDdwBMjgtwF7IquZvyzkRtJbwVbRpJWWxA9UID5EDEEqvGFFhZixm8VBviV4KTm6mM9XT80/GNIdQwNjmAvx6dtvCVeNa8jaNks6OOrVHcAQVGD8PbGId07sB+f10G5KTS/AoCN+CPSSUitvfN5R9mu3tahadyLeAY8kULwsv/ZdvJ03ozNFwY0ur3eyT4gxCzh8xAyG76NHvRyAtDfrj+tXhP+oTZ9M0SmBDN1EBmq3XQ941XtyHKFoELn5GP7+JECa3x8cbrvQqzioj2Uj3O8u/kbYTQIj3HaV43yalbCVyakHqYf2DXa2isqBCROFLLlN4Dful07k3BUyKC/QmU8oE9l8KbYOFQ4wUlh3uaLzMewC/m9nGheLu9Z4Z697yTeYatAOkirx5oyUMVkjSi3JST8JJEvBb8E/+bjB9l40QMzt+7eCal3MwAAA=" alt="Soul Gem"></div>
+                            <span class="artifact-name">Soul Gem</span>
+                        </div>
+                        <p class="artifact-desc">Swirls with trapped mists. Faint tapping comes from within.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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" alt="Dragon Egg">
+                            </div>
+                            <span class="artifact-name">Dragon Egg</span>
+                        </div>
+                        <p class="artifact-desc">Vibrates with a heartbeat that is slow, powerful, and terrifying.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Runic Hourglass"></div>
+                            <span class="artifact-name">Runic Hourglass</span>
+                        </div>
+                        <p class="artifact-desc">The sand inside flows upwards. Moves time back one minute.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                    <div class="artifact-card">
+                        <div class="artifact-header">
+                            <div class="artifact-icon"><img src="data:image/webp;base64,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"
+                                    alt="Whispering Key"></div>
+                            <span class="artifact-name">Whispering Key</span>
+                        </div>
+                        <p class="artifact-desc">Fits any lock. The door it opens always leads somewhere else.</p>
+                        <div class="artifact-value">Value: ??</div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <footer class="article-footer">
+            <div class="disclaimer"
+                style="background: rgba(255,165,0,0.1); border-left: 3px solid #ffa500; padding: 15px; margin-bottom: 20px;">
+                <p>⚠️ <strong>Fan Project Disclaimer:</strong> This project is a fan work inspired by
+                    <a href="https://www.youtube.com/@TangoTekLP">Tango Tek's</a> "Decked Out 2".
+                    All assets are custom-made or AI-generated. Not affiliated with Mojang or Hermitcraft.
+                </p>
+            </div>
+            <p style="margin-bottom: 20px; font-size: 16px;">
+                📖 <a href="guide.html"
+                    style="color: #4fc3f7; margin-right: 20px; text-decoration: none; border-bottom: 1px dashed #4fc3f7;">Game
+                    Guide & Lore</a>
+                🔨 <a href="devlog.html"
+                    style="color: #ffd700; text-decoration: none; border-bottom: 1px dashed #ffd700;">Developer
+                    Log</a>
+            </p>
+            <p>
+                Developed by <strong><a href="https://www.buymeacoffee.com/samseen" target="_blank"
+                        alt="Buy Me a Coffee">SamSeen</a></strong> • Inspired by <strong><a
+                        href="https://www.youtube.com/@TangoTekLP">Mr. Tango Tek</a>'s</strong> Decked Out 2
+                minigame
+                from Hermitcraft Season 9
+            </p>
+            <p><em>Keep in touch to follow development updates!</em></p>
+            <p style="font-size: 11px; margin-top: 20px; text-align: center; opacity: 0.5;">
+                <a href="sitemap.xml" style="color: #666; text-decoration: none;">Sitemap</a>
+            </p>
+        </footer>
+    </article>
+
+</body>
+
+</html>

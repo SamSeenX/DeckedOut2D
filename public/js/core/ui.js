@@ -6,44 +6,44 @@ let lastCompassUpdate = 0;
 
 export function updateUI(gameState, player) {
     // Basic Stats
-    // document.getElementById('clank-display').innerText = gameState.clank; // Old Text
+    // document.getElementById('haze-display').innerText = gameState.haze; // Old Text
 
-    // Clank Meter Rendering
-    const clankContainer = document.getElementById('clank-meter-container');
-    const debugDisplay = document.getElementById('clank-debug-value');
+    // Haze Meter Rendering
+    const hazeContainer = document.getElementById('haze-meter-container');
+    const debugDisplay = document.getElementById('haze-debug-value');
 
     // Debug Value Update
     if (window.debugMode) {
         if (!debugDisplay) {
             const span = document.createElement('span');
-            span.id = 'clank-debug-value';
+            span.id = 'haze-debug-value';
             span.style.fontSize = '12px';
             span.style.color = '#888';
             span.style.marginLeft = '5px';
-            // Insert after "CLANK:" text
-            const label = document.querySelector('.hud-clank');
-            if (label) label.insertBefore(span, clankContainer);
+            // Insert after "HAZE:" text
+            const label = document.querySelector('.hud-haze');
+            if (label) label.insertBefore(span, hazeContainer);
         } else {
-            debugDisplay.innerText = `(${gameState.clank.toFixed(1)})`;
+            debugDisplay.innerText = `(${gameState.haze.toFixed(1)})`;
             debugDisplay.style.display = 'inline';
         }
     } else if (debugDisplay) {
         debugDisplay.style.display = 'none';
     }
 
-    if (clankContainer) {
-        clankContainer.innerHTML = '';
-        const maxBars = 20; // 100 max clank / 5 per bar
+    if (hazeContainer) {
+        hazeContainer.innerHTML = '';
+        const maxBars = 20; // 100 max haze / 5 per bar
 
         // Calculate full bars and remainder
-        const clankPerBar = 5;
-        const totalClank = gameState.clank;
-        const fullBars = Math.floor(totalClank / clankPerBar);
-        const remainder = totalClank % clankPerBar;
+        const hazePerBar = 5;
+        const totalHaze = gameState.haze;
+        const fullBars = Math.floor(totalHaze / hazePerBar);
+        const remainder = totalHaze % hazePerBar;
 
         for (let i = 0; i < maxBars; i++) {
             const bar = document.createElement('div');
-            bar.classList.add('clank-bar');
+            bar.classList.add('haze-bar');
 
             if (i < fullBars) {
                 // Completely Full
@@ -54,14 +54,14 @@ export function updateUI(gameState, player) {
                 bar.classList.add('filled');
                 // Map remainder (0-5) to opacity (0.2 - 1.0)
                 // Start visible (0.2) so we see it charging
-                const opacity = 0.2 + (remainder / clankPerBar) * 0.8;
+                const opacity = 0.2 + (remainder / hazePerBar) * 0.8;
                 bar.style.opacity = opacity.toFixed(2);
             } else {
                 // Empty
                 bar.style.opacity = '1'; // Default empty background opacity
             }
 
-            clankContainer.appendChild(bar);
+            hazeContainer.appendChild(bar);
         }
     }
 

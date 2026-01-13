@@ -55,7 +55,7 @@ export function initTouchControls() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Load saved preference?
-    const saved = localStorage.getItem('deckedout_touch_enabled');
+    const saved = localStorage.getItem('dungeonoutcast_touch_enabled');
 
     if (saved !== null) {
         // Use user's manual preference
@@ -69,7 +69,7 @@ export function initTouchControls() {
 
     toggle.addEventListener('change', (e) => {
         isTouchEnabled = e.target.checked;
-        localStorage.setItem('deckedout_touch_enabled', isTouchEnabled);
+        localStorage.setItem('dungeonoutcast_touch_enabled', isTouchEnabled);
     });
 
     // Prevent click from bubbling to Start Overlay (which starts game)

@@ -354,7 +354,7 @@ canvas {
 
 .hud-item {
     font-size: 16px;
-    /* Smaller base font for list items like Clank */
+    /* Smaller base font for list items like Haze */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -620,13 +620,13 @@ canvas {
     transform: translateX(100%);
 }
 
-/* === HUD Hearts & Clank === */
+/* === HUD Hearts & Haze === */
 #hp-container {
     display: flex;
     gap: 4px;
 }
 
-#clank-meter-container {
+#haze-meter-container {
     display: flex;
     gap: 2px;
     background: #111;
@@ -635,7 +635,7 @@ canvas {
     /* Optional: Fixed height to hold bars */
 }
 
-.clank-bar {
+.haze-bar {
     width: 6px;
     height: 20px;
     background-color: #333;
@@ -644,9 +644,9 @@ canvas {
 }
 
 /* We will handle the 'active' orange color inline or via a single class */
-.clank-bar.filled {
+.haze-bar.filled {
     background-color: #ffae00;
-    /* Decked Out Orange */
+    /* Dungeon Outcast Orange */
     box-shadow: 0 0 4px #ffae00;
     /* Glow */
 }

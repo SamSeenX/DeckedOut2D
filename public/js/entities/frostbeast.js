@@ -1,5 +1,5 @@
 import { Enemy } from './enemy.js';
-import { TILE_SIZE, RAVAGER_SPEED, RAVAGER_ACCEL, RAVAGER_CHASE_SPEED_MULT, RAVAGER_DETECTION_RANGE, RAVAGER_IDLE_FPS, RAVAGER_CHASE_FPS } from '../data/config.js';
+import { TILE_SIZE, FROST_BEAST_SPEED, FROST_BEAST_ACCEL, FROST_BEAST_CHASE_SPEED_MULT, FROST_BEAST_DETECTION_RANGE, FROST_BEAST_IDLE_FPS, FROST_BEAST_CHASE_FPS } from '../data/config.js';
 import { checkWallCollision } from '../utils/collision.js';
 import { checkLineOfSight } from '../world/lighting.js';
 import { BLOCK_DEFS, DEFAULT_BLOCK } from '../world/tiles.js';
@@ -7,7 +7,7 @@ import { SPRITES } from '../data/assets.js';
 import { playJson } from '../core/audio.js';
 
 const SPRITE_IMAGE = new Image();
-SPRITE_IMAGE.src = SPRITES.ravager;
+SPRITE_IMAGE.src = SPRITES.frostbeast;
 
 const ANIMATIONS = {
     walk_down: {
@@ -46,16 +46,16 @@ const STATES = {
     SEARCHING: 'SEARCHING'
 };
 
-const DETECTION_RANGE = RAVAGER_DETECTION_RANGE;
+const DETECTION_RANGE = FROST_BEAST_DETECTION_RANGE;
 const SEARCH_DURATION = 3000;
 const IDLE_MOVE_INTERVAL = 2000;
 
-export class Ravager extends Enemy {
+export class FrostBeast extends Enemy {
     constructor(x, y) {
         super(x, y);
-        this.type = 'ravager';
-        this.accel = RAVAGER_ACCEL;
-        this.maxSpeed = RAVAGER_SPEED;
+        this.type = 'frostbeast';
+        this.accel = FROST_BEAST_ACCEL;
+        this.maxSpeed = FROST_BEAST_SPEED;
 
         // Ensure color is set, though we will use sprite
         this.color = 'red';
@@ -98,7 +98,7 @@ export class Ravager extends Enemy {
                 if (canSeePlayer) {
                     this.state = STATES.CHASE;
                     this.color = '#ff0000';
-                    playJson('assets/sounds/ravager_detect.json');
+                    playJson('assets/sounds/frostbeast_detect.json');
                 } else if (timeNow - this.lastMoveTime > IDLE_MOVE_INTERVAL) {
                     let angle = Math.random() * Math.PI * 2;
                     let dist = Math.random() * 3;
@@ -109,7 +109,7 @@ export class Ravager extends Enemy {
 
                 // Roam Vocal (Randomly)
                 if (Math.random() < 0.005 && timeNow - this.lastVocalTime > 5000) {
-                    playJson('assets/sounds/ravager_roam.json');
+                    playJson('assets/sounds/frostbeast_roam.json');
                     this.lastVocalTime = timeNow;
                 }
                 break;
@@ -129,7 +129,7 @@ export class Ravager extends Enemy {
 
                 // Chase Bark (Randomly)
                 if (Math.random() < 0.02 && timeNow - this.lastVocalTime > 2000) {
-                    playJson('assets/sounds/ravager_chase.json');
+                    playJson('assets/sounds/frostbeast_chase.json');
                     this.lastVocalTime = timeNow;
                 }
                 break;
@@ -138,7 +138,7 @@ export class Ravager extends Enemy {
                 if (canSeePlayer) {
                     this.state = STATES.CHASE;
                     this.color = '#ff0000';
-                    playJson('assets/sounds/ravager_detect.json');
+                    playJson('assets/sounds/frostbeast_detect.json');
                 } else {
                     let distToTarget = Math.sqrt((this.targetX - this.x) ** 2 + (this.targetY - this.y) ** 2);
                     if (distToTarget < 0.5) {
@@ -183,9 +183,9 @@ export class Ravager extends Enemy {
 
         // Get FPS from animation config, boost during chase
         const currentAnimData = ANIMATIONS[this.anim];
-        let targetFPS = currentAnimData.fps || RAVAGER_IDLE_FPS;
+        let targetFPS = currentAnimData.fps || FROST_BEAST_IDLE_FPS;
         if (this.state === STATES.CHASE) {
-            targetFPS = RAVAGER_CHASE_FPS;
+            targetFPS = FROST_BEAST_CHASE_FPS;
         }
         const frameTime = 1000 / targetFPS;
 
@@ -208,14 +208,14 @@ export class Ravager extends Enemy {
         if (dist > 0.1) {
             let dirX = dx / dist;
             let dirY = dy / dist;
-            let speedMult = (this.state === STATES.CHASE) ? RAVAGER_CHASE_SPEED_MULT : 1.0;
+            let speedMult = (this.state === STATES.CHASE) ? FROST_BEAST_CHASE_SPEED_MULT : 1.0;
 
             this.vx += dirX * this.accel * speedMult;
             this.vy += dirY * this.accel * speedMult;
         }
 
         // Friction / Terrain Check
-        // Check ALL tiles the Ravager's hitbox (radius 0.4 approx) is touching
+        // Check ALL tiles the FrostBeast's hitbox (radius 0.4 approx) is touching
         // If ANY is mud/slow, apply the slow factor. Priority to the slowest block.
         const radius = 0.4;
         const startX = Math.floor(this.x - radius);
@@ -257,7 +257,7 @@ export class Ravager extends Enemy {
 
         // Velocity Clamping
         let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * RAVAGER_CHASE_SPEED_MULT : this.maxSpeed;
+        let actualMaxSpeed = (this.state === STATES.CHASE) ? this.maxSpeed * FROST_BEAST_CHASE_SPEED_MULT : this.maxSpeed;
 
         if (speed > actualMaxSpeed) {
             let ratio = actualMaxSpeed / speed;
@@ -270,9 +270,9 @@ export class Ravager extends Enemy {
             let stepInterval = (this.state === STATES.CHASE) ? 250 : 500; // Run vs Walk
             if (timeNow - this.lastStepTime > stepInterval) {
                 if (this.state === STATES.CHASE) {
-                    playJson('assets/sounds/ravager_step_run.json');
+                    playJson('assets/sounds/frostbeast_step_run.json');
                 } else {
-                    playJson('assets/sounds/ravager_step_walk.json');
+                    playJson('assets/sounds/frostbeast_step_walk.json');
                 }
                 this.lastStepTime = timeNow;
             }

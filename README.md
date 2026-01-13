@@ -1,11 +1,11 @@
-# Decked Out 2D - Development Tracker
+# Dungeon Outcast - Development Tracker
 
 **Repository:** Private
 **Status:** Beta Release (v0.1.0)
 
 ---
 ## 📚 Project Overview
-Decked Out 2D is a 2D recreation of the original Decked Out 2 by TangoTek from Hermitcraft. It is an action-adventure game where players navigate through procedurally generated dungeons, avoiding enemies and collecting artifacts while managing their resources.
+Dungeon Outcast is a 2D recreation of the original Decked Out 2 by TangoTek from Hermitcraft. It is an action-adventure game where players navigate through procedurally generated dungeons, avoiding enemies and collecting artifacts while managing their resources.
 
 ## 📁 Folder Structure
 ```
@@ -17,7 +17,7 @@ root
 │   ├── js/             # Game Logic
 │   │   ├── core/       # Engine, input, audio, UI
 │   │   ├── data/       # Game Data (constants, map.js, artifacts)
-│   │   ├── entities/   # Player, Enemies (Ravager, Ghast, Vex)
+│   │   ├── entities/   # Player, Enemies (Frost Beast, Specter, Phantom)
 │   │   ├── utils/      # Helpers (collision)
 │   │   ├── world/      # Tiles logic, lighting
 │   │   ├── main.js     # Entry point
@@ -42,15 +42,15 @@ root
     *   [x] **Map Maker v2**: Full JS integration, Variant Support, Pick Tool.
 
 *   **Gameplay Mechanics**
-    *   [x] **Clank System**: Running generates noise; sneaking is silent.
+    *   [x] **Haze System**: Running generates noise; sneaking is silent.
     *   [x] **Health & Damage**: Player HP, visual damage feedback (Red Flash), Game Over state.
     *   [x] **Hazards**: Floor hazards (Lava/Damage blocks).
     *   [x] **Interactions**: Healing blocks (Berries), Ember collection.
 
 *   **AI & Enemies**
-    *   [x] **Ravager**: Physics-based chaser AI.
-    *   [x] **Ghast**: Ranged attacker with projectile logic.
-    *   [x] **Vex**: Dynamic swarm enemy. Spawns based on Clank level (Start > 60, Interval 10). Orbits and swoops.
+    *   [x] **Frost Beast**: Physics-based chaser AI.
+    *   [x] **Specter**: Ranged attacker with projectile logic.
+    *   [x] **Phantom**: Dynamic swarm enemy. Spawns based on Haze level (Start > 60, Interval 10). Orbits and swoops.
 
 ### 🚧  Current Focus
 *   Expanding the tile set with more aesthetic variants.
@@ -88,7 +88,7 @@ The Map Maker tool (`tools.sh` / `tools/mapmaker.html`) has been significantly u
 - [ ] **Deck Logic**: Drawing, Shuffling, Discarding.
 - [ ] **Card Effects**:
     - *Stealth Card*: Reduced visibility radius.
-    - *Sprint Card*: Temporary speed boost without Clank.
+    - *Sprint Card*: Temporary speed boost without Haze.
     - *Stumble Card*: Random noise generation (Debuff).
 
 ### Phase 2: Game Loop & Economy
@@ -112,7 +112,7 @@ The Map Maker tool (`tools.sh` / `tools/mapmaker.html`) has been significantly u
 ---
 
 ## 📝 Notes
-*   *Vex spawning is currently hardcoded to start at 60 Clank.*
+*   *Phantom spawning is currently hardcoded to start at 60 Haze.*
 *   *The Game Engine treats tile variants as visual-only unless specific logic is added to `tiles.js`.*
 
 

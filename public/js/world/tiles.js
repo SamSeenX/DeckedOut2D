@@ -10,7 +10,6 @@ let texturesLoaded = false;
 export function loadBlockTextures(callback, basePath = '') {
     tileSheet.onload = () => {
         texturesLoaded = true;
-        // console.log("Sprite sheet loaded.");
         if (callback) callback();
     };
     tileSheet.onerror = () => {
