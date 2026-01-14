@@ -26,23 +26,23 @@ export const MOBILE_VIEW_W = 15;
 export const MOBILE_VIEW_H = 10;
 export const MOBILE_INITIAL_HEIGHT_VH = 0.9; // 90% view height initially
 export const TOUCH_LAYOUT = {
-    dpad: { x: 20, y: 60, size: 150 },
-    jump: { x: 20, y: 140, size: 70 },
-    sneak: { x: 100, y: 140, size: 60 },
-    eat: { x: 40, y: 60, size: 60 },
-    check: { x: 120, y: 60, size: 60 }
+  dpad: { x: 20, y: 60, size: 150 },
+  jump: { x: 20, y: 140, size: 70 },
+  sneak: { x: 100, y: 140, size: 60 },
+  eat: { x: 40, y: 60, size: 60 },
+  check: { x: 120, y: 60, size: 60 },
 };
 
 export let VIEW_W = DESKTOP_VIEW_W;
 export let VIEW_H = DESKTOP_VIEW_H;
 
 export function updateViewDimensions(w, h) {
-    VIEW_W = w;
-    VIEW_H = h;
+  VIEW_W = w;
+  VIEW_H = h;
 }
 export const FLASHLIGHT_RADIUS = 8;
 export const DIM_VIEW_RADIUS = 10;
-export const SHADOW_EDGE_OPACITY = 0.6;  // Shadow tiles adjacent to lit tiles
+export const SHADOW_EDGE_OPACITY = 0.6; // Shadow tiles adjacent to lit tiles
 export const SHADOW_INNER_OPACITY = 0.4; // Shadow tiles not adjacent to lit tiles
 export const MAX_LOOK_OFFSET = 6;
 
@@ -60,22 +60,22 @@ export const MAX_HAZE = 100;
 export const STRESS_MULTI_AT_MAX_HAZE = 25; // View reduced to 25% at max haze
 
 // Haze Accumulation Sources
-export const HAZE_MOVE_INC = 0.1;           // +0.1 per interval moving
-export const HAZE_MOVE_INTERVAL = 200;      // 200ms interval
-export const HAZE_JUMP_INC = 0.2;           // +0.2 per jump
-export const HAZE_DAMAGE_PENALTY = 5;       // +5 on damage
-export const HAZE_AGGRO_PENALTY = 5;        // +5 on enemy aggro
-export const HAZE_AGGRO_COOLDOWN = 10000;   // 10s cooldown per enemy
-export const ARTIFACT_HAZE_PENALTY = 20;    // +20 on finding artifact
-export const HAZE_MISS_PENALTY = 2;         // +2 on checking empty spot
-export const HAZE_PROXIMITY_INC = 0.05;     // +0.05 per frame near enemy
-export const PROXIMITY_RANGE = 6;           // Range for "Sixth Sense" stress
+export const HAZE_MOVE_INC = 0.1; // +0.1 per interval moving
+export const HAZE_MOVE_INTERVAL = 200; // 200ms interval
+export const HAZE_JUMP_INC = 0.2; // +0.2 per jump
+export const HAZE_DAMAGE_PENALTY = 5; // +5 on damage
+export const HAZE_AGGRO_PENALTY = 5; // +5 on enemy aggro
+export const HAZE_AGGRO_COOLDOWN = 10000; // 10s cooldown per enemy
+export const ARTIFACT_HAZE_PENALTY = 20; // +20 on finding artifact
+export const HAZE_MISS_PENALTY = 2; // +2 on checking empty spot
+export const HAZE_PROXIMITY_INC = 0.05; // +0.05 per frame near enemy
+export const PROXIMITY_RANGE = 6; // Range for "Sixth Sense" stress
 
 // Haze Reduction
-export const HAZE_DECAY_AMOUNT = 0.5;       // -0.5 per interval
-export const HAZE_DECAY_INTERVAL = 10000;   // 10s interval
-export const HAZE_EAT_REDUCTION = 5;        // -5 on eating
-export const HAZE_EMBER_REDUCTION = 2;      // -2 on picking up ember
+export const HAZE_DECAY_AMOUNT = 0.5; // -0.5 per interval
+export const HAZE_DECAY_INTERVAL = 10000; // 10s interval
+export const HAZE_EAT_REDUCTION = 5; // -5 on eating
+export const HAZE_EMBER_REDUCTION = 2; // -2 on picking up ember
 
 // Haze Effect Thresholds
 export const HAZE_SPEED_THRESHOLD = 0.05;
@@ -84,16 +84,15 @@ export const PHANTOM_START_HAZE = 60; // Moved here for context
 export const PHANTOM_CRITICAL_SPAWN_MULT = 1.3; // Double spawns at critical haze
 
 // Heartbeat Audio System (Scaled by Haze)
-export const HEARTBEAT_MIN_INTERVAL = 400;  // ms (Fastest) - High Haze
+export const HEARTBEAT_MIN_INTERVAL = 400; // ms (Fastest) - High Haze
 export const HEARTBEAT_MAX_INTERVAL = 3000; // ms (Slowest) - Low Haze (Start)
-export const HEARTBEAT_MIN_VOLUME = 0.005;   // Low Haze - Very quiet
-export const HEARTBEAT_MAX_VOLUME = 0.6;    // High Haze - Loud
+export const HEARTBEAT_MIN_VOLUME = 0.005; // Low Haze - Very quiet
+export const HEARTBEAT_MAX_VOLUME = 0.6; // High Haze - Loud
 
 // Deprecated / Unused
 export const HAZE_WALK_INC = 0;
 export const HAZE_RUN_INC = 0;
 export const HAZE_CHANCE_MULTIPLIER = 0.5;
-
 
 // === Entities ===
 // Projectiles

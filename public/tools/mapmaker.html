@@ -1,187 +1,551 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Map Maker - Dungeon Outcast</title>
-    <link rel="stylesheet" href="css/mapmaker.css">
-</head>
+    <link rel="stylesheet" href="css/mapmaker.css" />
+  </head>
 
-<body>
+  <body>
     <!-- Top Control Bar -->
     <div id="control-bar">
-        <div class="control-group">
-            <label class="control-label">
-                <input type="file" id="image-upload" accept=".webp,.png,.jpg,.jpeg" hidden>
-                <button id="upload-btn" class="control-btn">📤 Load Image</button>
-            </label>
-            <button id="clear-image-btn" class="control-btn secondary">✕ Clear Image</button>
-        </div>
+      <div class="control-group">
+        <label class="control-label">
+          <input
+            type="file"
+            id="image-upload"
+            accept=".webp,.png,.jpg,.jpeg"
+            hidden
+          />
+          <button id="upload-btn" class="control-btn">📤 Load Image</button>
+        </label>
+        <button id="clear-image-btn" class="control-btn secondary">
+          ✕ Clear Image
+        </button>
+      </div>
 
-        <div class="control-group image-controls" id="image-align-controls" style="display: none;">
-            <label>Cell Size: <input type="number" id="cell-size" value="12" min="1" max="100">px</label>
-            <button id="auto-calc-btn" class="control-btn">📐 Auto Calculate</button>
-            <span class="separator">|</span>
-            <label>Shift X: <input type="number" id="shift-x" value="0" step="1">px</label>
-            <label>Shift Y: <input type="number" id="shift-y" value="0" step="1">px</label>
-        </div>
+      <div
+        class="control-group image-controls"
+        id="image-align-controls"
+        style="display: none"
+      >
+        <label
+          >Cell Size:
+          <input
+            type="number"
+            id="cell-size"
+            value="12"
+            min="1"
+            max="100"
+          />px</label
+        >
+        <button id="auto-calc-btn" class="control-btn">
+          📐 Auto Calculate
+        </button>
+        <span class="separator">|</span>
+        <label
+          >Shift X:
+          <input type="number" id="shift-x" value="0" step="1" />px</label
+        >
+        <label
+          >Shift Y:
+          <input type="number" id="shift-y" value="0" step="1" />px</label
+        >
+      </div>
 
-        <div class="control-group">
-            <button id="undo-btn" class="control-btn" title="Undo (Ctrl+Z)">↩️ Undo</button>
-            <span class="separator">|</span>
-            <label>Width: <input type="number" id="grid-width" value="40" min="5" max="200"></label>
-            <label>Height: <input type="number" id="grid-height" value="30" min="5" max="200"></label>
-            <button id="resize-btn" class="control-btn">Resize Grid</button>
-        </div>
+      <div class="control-group">
+        <button id="undo-btn" class="control-btn" title="Undo (Ctrl+Z)">
+          ↩️ Undo
+        </button>
+        <span class="separator">|</span>
+        <label
+          >Width:
+          <input type="number" id="grid-width" value="40" min="5" max="200"
+        /></label>
+        <label
+          >Height:
+          <input type="number" id="grid-height" value="30" min="5" max="200"
+        /></label>
+        <button id="resize-btn" class="control-btn">Resize Grid</button>
+      </div>
 
-        <div class="control-group">
-            <label>Image Opacity:
-                <input type="range" id="opacity-slider" min="0" max="100" value="50">
-                <span id="opacity-value">50%</span>
-            </label>
-            <label>Block Opacity:
-                <input type="range" id="block-opacity-slider" min="0" max="100" value="50">
-                <span id="block-opacity-value">50%</span>
-            </label>
-        </div>
+      <div class="control-group">
+        <label
+          >Image Opacity:
+          <input
+            type="range"
+            id="opacity-slider"
+            min="0"
+            max="100"
+            value="50"
+          />
+          <span id="opacity-value">50%</span>
+        </label>
+        <label
+          >Block Opacity:
+          <input
+            type="range"
+            id="block-opacity-slider"
+            min="0"
+            max="100"
+            value="50"
+          />
+          <span id="block-opacity-value">50%</span>
+        </label>
+      </div>
 
-        <div class="control-group">
-            <label>
-                <input type="checkbox" id="grid-toggle" checked>
-                Show Grid
-            </label>
-        </div>
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="grid-toggle" checked />
+          Show Grid
+        </label>
+        <span class="separator">|</span>
+        <label title="Highlight solid functionality">
+          <input type="checkbox" id="show-walls-toggle" />
+          <span style="color: #ff6b6b; font-weight: bold">🟥 Walls</span>
+        </label>
+        <label title="Highlight walkable functionality">
+          <input type="checkbox" id="show-floors-toggle" />
+          <span style="color: #51cf66; font-weight: bold">🟩 Floors</span>
+        </label>
+        <label title="Show ambient occlusion shadows at floor/wall edges">
+          <input type="checkbox" id="show-ao-toggle" />
+          <span style="color: #8b7355; font-weight: bold">🌫️ AO</span>
+        </label>
+      </div>
 
-        <div class="control-group">
-            <button id="clear-btn" class="control-btn secondary">🗑️ Clear Map</button>
-            <button id="save-btn" class="control-btn primary">💾 Save Map</button>
+      <div class="control-group">
+        <button
+          id="autogen-btn"
+          class="control-btn accent"
+          title="Auto Generate Dungeon"
+        >
+          🎲 Auto Gen
+        </button>
+        <button id="clear-btn" class="control-btn secondary">
+          🗑️ Clear Map
+        </button>
+        <button id="save-btn" class="control-btn primary">💾 Save Map</button>
+        <button id="export-png-btn" class="control-btn">🖼️ Export PNG</button>
 
-            <label class="control-label">
-                <input type="file" id="load-input" accept=".json,.js" hidden>
-                <button id="load-btn" class="control-btn">📂 Load Map</button>
-            </label>
-        </div>
+        <label class="control-label">
+          <input type="file" id="load-input" accept=".json,.js" hidden />
+          <button id="load-btn" class="control-btn">📂 Load Map</button>
+        </label>
+      </div>
 
-        <div class="control-group">
-            <a href="../public/index.html" class="control-btn">🎮 Back to Game</a>
-        </div>
+      <div class="control-group">
+        <a href="../public/index.html" class="control-btn">🎮 Back to Game</a>
+      </div>
     </div>
 
     <!-- Main Editor Area -->
     <div id="editor-container">
-        <!-- Tile Palette Sidebar -->
-        <div id="tile-palette">
-            <h3>Tiles</h3>
-            <div id="tile-list">
-                <!-- Tiles will be generated by JS -->
-            </div>
+      <!-- Tile Palette Sidebar -->
+      <div id="tile-palette">
+        <h3>Tiles</h3>
+        <div id="tile-list">
+          <!-- Tiles will be generated by JS -->
+        </div>
+      </div>
+
+      <!-- Canvas Area -->
+      <div id="canvas-container">
+        <canvas id="map-canvas"></canvas>
+      </div>
+
+      <!-- Right Side Panel -->
+      <div id="right-sidebar">
+        <!-- Tools Section -->
+        <div id="tools-block">
+          <h3>Tools</h3>
+          <div id="tool-palette">
+            <button class="tool-btn active" id="tool-paint" title="Paint (P)">
+              🖌️ Paint <span class="key-shortcut">P</span>
+            </button>
+            <button class="tool-btn" id="tool-fill" title="Fill (F)">
+              🪣 Fill <span class="key-shortcut">F</span>
+            </button>
+            <button class="tool-btn" id="tool-pick" title="Pick (I)">
+              🆔 Pick <span class="key-shortcut">I</span>
+            </button>
+            <button class="tool-btn" id="tool-erase" title="Erase (E)">
+              🧼 Erase <span class="key-shortcut">E</span>
+            </button>
+          </div>
+          <div id="zoom-controls">
+            <span class="zoom-hint"
+              >Zoom: +/- keys | Pan: Spacebar+Drag | Reset: 0</span
+            >
+          </div>
         </div>
 
-        <!-- Canvas Area -->
-        <div id="canvas-container">
-            <canvas id="map-canvas"></canvas>
+        <div id="tile-info-block">
+          <h3>Selection</h3>
+          <div id="current-tile-info">
+            <strong>Selected:</strong>
+            <span id="selected-tile-name">Stone</span>
+            <div id="tile-details-panel">
+              <!-- Dynamic Attributes go here -->
+            </div>
+          </div>
         </div>
 
-        <!-- Right Side Panel -->
-        <div id="right-sidebar">
-            <!-- Tools Section -->
-            <div id="tools-block">
-                <h3>Tools</h3>
-                <div id="tool-palette">
-                    <button class="tool-btn active" id="tool-paint" title="Paint (P)">🖌️ Paint <span
-                            class="key-shortcut">P</span></button>
-                    <button class="tool-btn" id="tool-fill" title="Fill (F)">🪣 Fill <span
-                            class="key-shortcut">F</span></button>
-                    <button class="tool-btn" id="tool-pick" title="Pick (I)">🆔 Pick <span
-                            class="key-shortcut">I</span></button>
-                    <button class="tool-btn" id="tool-erase" title="Erase (E)">🧼 Erase <span
-                            class="key-shortcut">E</span></button>
-                </div>
-                <div id="zoom-controls">
-                    <span class="zoom-hint">Zoom: +/- keys | Pan: Spacebar+Drag | Reset: 0</span>
-                </div>
-            </div>
+        <div id="attribute-block">
+          <h3>Attributes</h3>
+          <div id="attribute-palette">
+            <button
+              class="attr-btn"
+              data-attr="isArtifactSpot"
+              title="Artifact Spawn Point"
+            >
+              🔴 Artifact Spot
+            </button>
+            <button
+              class="attr-btn"
+              data-attr="isTreasure"
+              title="Treasure/Ember Drop Spot"
+            >
+              💰 Treasure
+            </button>
+            <button class="attr-btn" data-attr="isExit" title="Exit Point">
+              🚪 Exit
+            </button>
+            <button
+              class="attr-btn"
+              data-attr="spawn:player"
+              title="Player Start"
+            >
+              🟢 Start
+            </button>
+            <button
+              class="attr-btn"
+              data-attr="spawn:frostbeast"
+              title="Enemy Spawn (Frost Beast)"
+            >
+              👿 Frost Beast
+            </button>
+            <button
+              class="attr-btn"
+              data-attr="spawn:specter"
+              title="Enemy Spawn (Specter)"
+            >
+              👻 Specter
+            </button>
+            <button
+              class="attr-btn"
+              data-attr="isBerryBush"
+              title="Berry Bush Feature"
+            >
+              🍒 Berry Bush
+            </button>
+            <button
+              class="attr-btn"
+              id="clear-attr-btn"
+              title="Clear Attributes"
+            >
+              ❌ Clear Attr
+            </button>
+          </div>
+          <style>
+            #attribute-palette {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 5px;
+              padding: 10px;
+            }
 
-            <div id="tile-info-block">
-                <h3>Selection</h3>
-                <div id="current-tile-info">
-                    <strong>Selected:</strong>
-                    <span id="selected-tile-name">Stone</span>
-                    <div id="tile-details-panel">
-                        <!-- Dynamic Attributes go here -->
-                    </div>
-                </div>
-            </div>
+            #tool-palette {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 5px;
+              padding: 10px;
+            }
 
-            <div id="attribute-block">
-                <h3>Attributes</h3>
-                <div id="attribute-palette">
-                    <button class="attr-btn" data-attr="isArtifactSpot" title="Artifact Spawn Point">🔴 Artifact
-                        Spot</button>
-                    <button class="attr-btn" data-attr="isTreasure" title="Treasure/Ember Drop Spot">💰
-                        Treasure</button>
-                    <button class="attr-btn" data-attr="isExit" title="Exit Point">🚪 Exit</button>
-                    <button class="attr-btn" data-attr="spawn:player" title="Player Start">🟢 Start</button>
-                    <button class="attr-btn" data-attr="spawn:frostbeast" title="Enemy Spawn (Frost Beast)">👿 Frost Beast</button>
-                    <button class="attr-btn" data-attr="spawn:specter" title="Enemy Spawn (Specter)">👻 Specter</button>
-                    <button class="attr-btn" id="clear-attr-btn" title="Clear Attributes">❌ Clear Attr</button>
-                </div>
-                <style>
-                    #attribute-palette {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 5px;
-                        padding: 10px;
-                    }
+            #zoom-controls {
+              padding: 8px 10px;
+              font-size: 11px;
+              color: #888;
+              border-top: 1px solid #333;
+            }
 
-                    #tool-palette {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 5px;
-                        padding: 10px;
-                    }
-
-                    #zoom-controls {
-                        padding: 8px 10px;
-                        font-size: 11px;
-                        color: #888;
-                        border-top: 1px solid #333;
-                    }
-
-                    .zoom-hint {
-                        display: block;
-                        line-height: 1.4;
-                    }
-                </style>
-            </div>
-
-            <!-- Mini-Map -->
-            <div id="minimap-container">
-                <h3>Mini-Map</h3>
-                <canvas id="minimap-canvas"></canvas>
-            </div>
+            .zoom-hint {
+              display: block;
+              line-height: 1.4;
+            }
+          </style>
         </div>
+
+        <!-- Mini-Map -->
+        <div id="minimap-container">
+          <h3>Mini-Map</h3>
+          <canvas id="minimap-canvas"></canvas>
+        </div>
+      </div>
     </div>
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="modal hidden">
-        <div class="modal-content">
-            <p id="confirm-message">Are you sure?</p>
-            <div class="modal-buttons">
-                <button id="confirm-yes" class="control-btn primary">Yes, Clear</button>
-                <button id="confirm-no" class="control-btn">Cancel</button>
-            </div>
+      <div class="modal-content">
+        <p id="confirm-message">Are you sure?</p>
+        <div class="modal-buttons">
+          <button id="confirm-yes" class="control-btn primary">
+            Yes, Clear
+          </button>
+          <button id="confirm-no" class="control-btn">Cancel</button>
         </div>
+      </div>
     </div>
+
+    <!-- Generator Modal -->
+    <div id="generator-modal" class="modal hidden">
+      <div class="modal-content generator-modal-content">
+        <h2>🎲 Smart Dungeon Generator</h2>
+        <p class="modal-subtitle">
+          Configure your procedurally generated dungeon
+        </p>
+
+        <div class="generator-form">
+          <!-- Map Dimensions -->
+          <div class="form-section">
+            <h4>📐 Map Dimensions</h4>
+            <div class="form-row">
+              <label>
+                <span>Width (tiles)</span>
+                <input
+                  type="number"
+                  id="gen-width"
+                  value="80"
+                  min="10"
+                  max="400"
+                />
+              </label>
+              <label>
+                <span>Height (tiles)</span>
+                <input
+                  type="number"
+                  id="gen-height"
+                  value="60"
+                  min="10"
+                  max="400"
+                />
+              </label>
+            </div>
+          </div>
+
+          <!-- Room Settings -->
+          <div class="form-section">
+            <h4>🚪 Room Settings</h4>
+            <!-- Max Rooms is now ignored
+            <div class="form-row">
+              <label>
+                <span>Max Rooms</span>
+                <input
+                  type="number"
+                  id="gen-max-rooms"
+                  value="15"
+                  min="3"
+                  max="50"
+                />
+              </label>
+            </div>
+            -->
+            <div class="form-row">
+              <label>
+                <span>Min Corridor Width</span>
+                <input
+                  type="number"
+                  id="gen-min-corridor-width"
+                  value="1"
+                  min="1"
+                  max="3"
+                />
+              </label>
+              <label>
+                <span>Max Corridor Width</span>
+                <input
+                  type="number"
+                  id="gen-max-corridor-width"
+                  value="2"
+                  min="1"
+                  max="4"
+                />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Min Room Size</span>
+                <input
+                  type="number"
+                  id="gen-min-room"
+                  value="4"
+                  min="3"
+                  max="10"
+                />
+              </label>
+              <label>
+                <span>Max Room Size</span>
+                <input
+                  type="number"
+                  id="gen-max-room"
+                  value="8"
+                  min="4"
+                  max="20"
+                />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Max Corridor Length</span>
+                <input
+                  type="number"
+                  id="gen-max-corridor"
+                  value="6"
+                  min="2"
+                  max="15"
+                />
+              </label>
+              <span class="form-hint">Shorter = more winding corridors</span>
+            </div>
+          </div>
+
+          <!-- Biome Settings -->
+          <div class="form-section">
+            <h4>🌍 Biome Settings</h4>
+            <div class="form-row">
+              <label>
+                <span>Min Biome Size</span>
+                <input
+                  type="number"
+                  id="gen-min-biome-size"
+                  value="80"
+                  min="20"
+                  max="500"
+                />
+              </label>
+              <label>
+                <span>Max Biome Size</span>
+                <input
+                  type="number"
+                  id="gen-max-biome-size"
+                  value="200"
+                  min="50"
+                  max="1000"
+                />
+              </label>
+            </div>
+            <span class="form-hint"
+              >Number of tiles per biome - grows until map is full</span
+            >
+          </div>
+
+          <!-- Features -->
+          <div class="form-section">
+            <h4>✨ Auto-Add Features</h4>
+            <div class="form-row">
+              <label>
+                <span>🟢 Spawn Points</span>
+                <input
+                  type="number"
+                  id="gen-spawn-count"
+                  value="1"
+                  min="0"
+                  max="5"
+                />
+              </label>
+              <label>
+                <span>🚪 Exit Points</span>
+                <input
+                  type="number"
+                  id="gen-exit-count"
+                  value="1"
+                  min="0"
+                  max="5"
+                />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>🔴 Artifacts</span>
+                <input
+                  type="number"
+                  id="gen-artifact-count"
+                  value="3"
+                  min="0"
+                  max="10"
+                />
+              </label>
+              <label>
+                <span>💰 Treasures</span>
+                <input
+                  type="number"
+                  id="gen-treasure-count"
+                  value="5"
+                  min="0"
+                  max="20"
+                />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>👿 Frost Beast %</span>
+                <input
+                  type="number"
+                  id="gen-prob-frostbeast"
+                  value="20"
+                  min="0"
+                  max="100"
+                  step="5"
+                />
+              </label>
+              <label>
+                <span>👻 Specter %</span>
+                <input
+                  type="number"
+                  id="gen-prob-specter"
+                  value="5"
+                  min="0"
+                  max="100"
+                  step="1"
+                />
+              </label>
+              <label>
+                <span>🍒 Berry Bush %</span>
+                <input
+                  type="number"
+                  id="gen-prob-berry"
+                  value="10"
+                  min="0"
+                  max="100"
+                  step="5"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button
+            id="generator-generate"
+            class="control-btn primary generate-btn"
+          >
+            ✨ Generate Dungeon
+          </button>
+          <button id="generator-cancel" class="control-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications for Generation Progress -->
+    <div id="toast-container"></div>
 
     <!-- Status Bar -->
     <div id="status-bar">
-        <span id="cursor-pos">Tile: (0, 0)</span>
-        <span id="map-size">Map: 40 × 30</span>
-        <span id="zoom-level">Zoom: 100%</span>
+      <span id="cursor-pos">Tile: (0, 0)</span>
+      <span id="map-size">Map: 40 × 30</span>
+      <span id="zoom-level">Zoom: 100%</span>
     </div>
 
     <script type="module" src="js/mapmaker.js"></script>
-</body>
-
+  </body>
 </html>
