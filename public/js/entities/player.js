@@ -26,12 +26,17 @@ import {
 } from "../data/config.js";
 
 import { keys, setGameActive } from "../core/input.js";
-import { triggerShake } from "../core/camera.js";
+import { triggerShake, getCamera } from "../core/camera.js";
 import { map } from "../data/map.js";
 import { BLOCK_DEFS, DEFAULT_BLOCK } from "../world/tiles.js";
 import { checkWallCollision } from "../utils/collision.js";
 import { gameState } from "../core/state.js";
-import { updateUI, showToast, showVictory } from "../core/ui.js";
+import {
+  updateUI,
+  showToast,
+  showVictory,
+  playArtifactCollectAnimation,
+} from "../core/ui.js";
 import { updateTouchVisibility } from "../core/touch.js";
 
 import { spawnEmber, queueRegrowth, spawnBerry } from "../core/game.js";
@@ -975,13 +980,27 @@ function checkTileEvents() {
       const centerTileX = Math.floor(player.x);
       const centerTileY = Math.floor(player.y);
 
-      // 1. Check for Artifact
       if (
         gameState.targetArtifactLoc &&
         gameState.targetArtifactLoc.x === centerTileX &&
         gameState.targetArtifactLoc.y === centerTileY &&
         !gameState.hasArtifact
       ) {
+        // Play collection animation before updating state
+        const iconPath = gameState.targetArtifactItem?.icon
+          ? `/assets/artifacts/${gameState.targetArtifactItem.icon}`
+          : "/assets/artifacts/default.webp";
+        const cam = getCamera(player, map);
+        const tileSize = 40; // TILE_SIZE
+        playArtifactCollectAnimation(
+          centerTileX + 0.5,
+          centerTileY + 0.5,
+          cam.x,
+          cam.y,
+          tileSize,
+          iconPath
+        );
+
         gameState.hasArtifact = true;
         showToast("ARTIFACT FOUND! Run to the Exit!", 5000);
         playBingBing();

@@ -1,21 +1,24 @@
 export const gameState = {
-    haze: 0,
-    running: true,
+  haze: 0,
+  running: true,
 
-    // Artifact Hunt
-    targetArtifactLoc: null, // {x, y}
-    targetArtifactItem: null, // The item definition
-    hasArtifact: false,
-    gameWon: false,
+  // Artifact Hunt
+  targetArtifactLoc: null, // {x, y}
+  targetArtifactItem: null, // The item definition
+  hasArtifact: false,
+  gameWon: false,
 
-    // Inventory & Currency
-    embers: 0,
-    inventory: {
-        food: 0
-    },
+  // Exit locations (cached at start for efficient compass lookup)
+  exitSpots: [],
+  targetExitLoc: null, // The chosen exit (selected when artifact is picked up)
 
-    // Session Stats
-    startTime: Date.now(),
-    embersCollected: 0
+  // Inventory & Currency
+  embers: 0,
+  inventory: {
+    food: 0,
+  },
+
+  // Session Stats
+  startTime: Date.now(),
+  embersCollected: 0,
 };
-

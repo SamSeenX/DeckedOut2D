@@ -75,7 +75,7 @@ import {
 } from "./audio.js";
 import { getCamera, triggerShake } from "./camera.js"; // Restored import
 import { checkLineOfSight, getFocusPoint } from "../world/lighting.js"; // Restored import
-import { updateUI, showToast } from "./ui.js";
+import { updateUI, showToast, initUI } from "./ui.js";
 import { AUDIO_ASSETS } from "../data/assets.js";
 
 // Setup
@@ -238,6 +238,7 @@ function setupLevel() {
 
   gameState.hasArtifact = false;
   gameState.gameWon = false;
+  gameState.exitSpots = []; // Clear cached exits
 
   lastPhantomSpawnHaze = PHANTOM_START_HAZE - PHANTOM_SPAWN_INTERVAL; // Ensure correct first spawn timing
 
@@ -292,7 +293,11 @@ function setupLevel() {
           map[y][x].isTreasure = true;
           treasureSpots.push({ x: x + 0.5, y: y + 0.5 });
         }
-        if (cell.isExit) map[y][x].isExit = true;
+        if (cell.isExit) {
+          map[y][x].isExit = true;
+          // Cache exit location for efficient compass lookup
+          gameState.exitSpots.push({ x, y });
+        }
       }
 
       // 3. Register Pre-Place Bushes
@@ -1047,6 +1052,7 @@ export function toggleFullscreen() {
 }
 
 function launchGame() {
+  initUI(); // Cache UI elements for performance
   resetGameLogic(); // Initialize Map/Player
 
   showToast("WASD to Move, Hold SHIFT to Sneak", 5000);
