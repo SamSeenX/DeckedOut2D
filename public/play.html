@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-683R1S485C"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-683R1S485C"
+    ></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-        gtag('config', 'G-683R1S485C');
+      gtag("config", "G-683R1S485C");
     </script>
 
     <!-- AdSense (Pending Approval)
@@ -17,179 +21,202 @@
         crossorigin="anonymous"></script>
     -->
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Play Dungeon Outcast - Free Browser Dungeon Crawler</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description"
-        content="Play Dungeon Outcast free in your browser! A stealth dungeon crawler inspired by Hermitcraft's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required.">
+    <meta
+      name="description"
+      content="Play Dungeon Outcast free in your browser! A stealth dungeon crawler inspired by Hermitcraft's Decked Out 2. Sneak through dungeons, avoid monsters, collect artifacts. No download required."
+    />
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/toast.css">
-    <link rel="stylesheet" href="css/touch.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="stylesheet" href="css/ui.css">
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+    <link rel="stylesheet" href="css/touch.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <link rel="stylesheet" href="css/ui.css" />
     <!-- article.css removed as it is not needed here -->
-    <link rel="icon" href="assets/favicon.png">
-</head>
+    <link rel="icon" href="assets/favicon.png" />
+  </head>
 
-<body>
-
+  <body>
     <div id="game-container">
+      <!-- Fullscreen Toggle -->
+      <button id="fullscreen-btn" title="Toggle Fullscreen" tabindex="-1">
+        ⛶
+      </button>
 
-        <!-- Fullscreen Toggle -->
-        <button id="fullscreen-btn" title="Toggle Fullscreen" tabindex="-1">⛶</button>
+      <!-- Home Button -->
+      <a
+        href="/"
+        id="home-btn"
+        title="Back to Home"
+        style="
+          position: absolute;
+          bottom: 10px;
+          left: 10px;
+          z-index: 2000;
+          font-size: 24px;
+          text-decoration: none;
+          background: rgba(0, 0, 0, 0.5);
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 5px;
+          border: 1px solid #444;
+        "
+        >🏠</a
+      >
 
-        <!-- Home Button -->
-        <a href="/" id="home-btn" title="Back to Home"
-            style="position: absolute; bottom: 10px; left: 10px; z-index: 2000; font-size: 24px; text-decoration: none; background: rgba(0,0,0,0.5); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 5px; border: 1px solid #444;">🏠</a>
+      <!-- Orientation Warning Overlay -->
+      <div id="rotate-warning" class="hidden">
+        <div id="rotate-warning-icon">📱</div>
+        <div id="rotate-warning-text">PLEASE ROTATE YOUR DEVICE</div>
+      </div>
 
-        <!-- Orientation Warning Overlay -->
-        <div id="rotate-warning" class="hidden">
-            <div id="rotate-warning-icon">📱</div>
-            <div id="rotate-warning-text">PLEASE ROTATE YOUR DEVICE</div>
-        </div>
+      <div id="start-overlay">
+        <div class="start-text">DUNGEON OUTCAST</div>
+        <div class="start-subtext">Click to Enter</div>
+        <div class="menu-footer">do.samseen.dev</div>
+      </div>
 
-        <div id="start-overlay">
-            <div class="start-text">DUNGEON OUTCAST</div>
-            <div class="start-subtext">Click to Enter</div>
-            <div class="menu-footer">do.samseen.dev</div>
-        </div>
+      <div id="game-over-overlay" class="hidden">
+        <div class="start-text" style="color: red">GAME OVER</div>
+        <div class="start-subtext">Click to Retry</div>
+      </div>
 
-        <div id="game-over-overlay" class="hidden">
-            <div class="start-text" style="color: red;">GAME OVER</div>
-            <div class="start-subtext">Click to Retry</div>
-        </div>
+      <!-- Victory Overlay -->
+      <div id="victory-overlay" class="hidden">
+        <div id="victory-container">
+          <h1 class="victory-title">VICTORY OVERCOME</h1>
 
-        <!-- Victory Overlay -->
-        <div id="victory-overlay" class="hidden">
-            <div id="victory-container">
-                <h1 class="victory-title">VICTORY OVERCOME</h1>
-
-                <div id="victory-card">
-                    <div class="card-header">
-                        <div id="victory-icon-container">
-                            <div id="victory-artifact-icon">👑</div>
-                        </div>
-                        <h2 id="victory-artifact-name">Crown of Souls</h2>
-                    </div>
-
-                    <div class="card-body">
-                        <p id="victory-artifact-desc">Loading lore...</p>
-
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <span class="stat-label">Value</span>
-                                <span class="stat-value" id="victory-value">???</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Collected</span>
-                                <span class="stat-value" id="victory-embers">0</span>
-                            </div>
-                            <div class="stat-box">
-                                <span class="stat-label">Time</span>
-                                <span class="stat-value" id="victory-duration">0m 0s</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <button id="victory-share-btn" class="primary-btn">📸 SAVE VICTORY CARD</button>
-                    </div>
-                </div>
-                <div class="start-subtext" id="victory-continue">Click to Escape</div>
-            </div>
-        </div>
-
-        <!-- Cinematic Intro Layer -->
-        <div id="cinematic-overlay" class="hidden">
-            <canvas id="intro-particles"></canvas>
-            <div id="door-container">
-                <img id="door-left" src="assets/door_left.webp" alt="Door Left">
-                <img id="door-right" src="assets/door_right.webp" alt="Door Right">
-            </div>
-        </div>
-
-        <div id="ui-layer" class="hidden">
-            <div id="top-bar">
-                <div class="hud-item hud-haze">
-                    HAZE: <div id="haze-meter-container"></div>
-                </div>
-                <div class="hud-item hud-hp">
-                    <div id="hp-container"></div>
-                </div>
+          <div id="victory-card">
+            <div class="card-header">
+              <div id="victory-icon-container">
+                <div id="victory-artifact-icon">👑</div>
+              </div>
+              <h2 id="victory-artifact-name">Crown of Souls</h2>
             </div>
 
-            <div id="bottom-bar">
-                <div class="hud-group">
-                    <div id="compass-container" title="Points to Artifact or Exit">
-                        <div id="compass-needle">➤</div>
-                    </div>
-                </div>
+            <div class="card-body">
+              <p id="victory-artifact-desc">Loading lore...</p>
 
-                <div class="hud-group">
-                    <div class="hud-icon">🔥</div>
-                    <span id="ember-display">0</span>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <span class="stat-label">Value</span>
+                  <span class="stat-value" id="victory-value">???</span>
                 </div>
-
-                <div class="hud-group">
-                    <div class="hud-icon">🍒</div>
-                    <span id="food-display">0</span>
-                    <small>F to Eat</small>
+                <div class="stat-box">
+                  <span class="stat-label">Collected</span>
+                  <span class="stat-value" id="victory-embers">0</span>
                 </div>
-
-                <div class="hud-group" id="artifact-slot">
-                    <div class="hud-label">Artifact</div>
-                    <div id="artifact-icon" class="empty">?</div>
+                <div class="stat-box">
+                  <span class="stat-label">Time</span>
+                  <span class="stat-value" id="victory-duration">0m 0s</span>
                 </div>
+              </div>
             </div>
+
+            <div class="card-footer">
+              <button id="victory-share-btn" class="primary-btn">
+                📸 SAVE VICTORY CARD
+              </button>
+            </div>
+          </div>
+          <div class="start-subtext" id="victory-continue">Click to Escape</div>
+        </div>
+      </div>
+
+      <!-- Cinematic Intro Layer -->
+      <div id="cinematic-overlay" class="hidden">
+        <canvas id="intro-particles"></canvas>
+        <div id="door-container">
+          <img id="door-left" src="assets/door_left.webp" alt="Door Left" />
+          <img id="door-right" src="assets/door_right.webp" alt="Door Right" />
+        </div>
+      </div>
+
+      <div id="ui-layer" class="hidden">
+        <div id="top-bar">
+          <div class="hud-item hud-haze">
+            HAZE:
+            <div id="haze-meter-container"></div>
+          </div>
+          <div class="hud-item hud-hp">
+            <div id="hp-container"></div>
+          </div>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-        <!-- Touch Controls Toggle (Bottom Right) -->
-        <div id="touch-toggle-container">
-            <label class="retro-toggle-container">
-                <input type="checkbox" id="touch-toggle" style="display: none;">
-                <div class="retro-toggle-btn"></div>
-                <span>TOUCH</span>
-            </label>
-        </div>
-
-        <!-- Touch Controls -->
-        <div id="touch-controls" class="hidden">
-            <div id="dpad-container">
-                <div id="dpad-base">
-                    <div id="dpad-stick"></div>
-                </div>
+        <div id="bottom-bar">
+          <div class="hud-group">
+            <div id="compass-container" title="Points to Artifact or Exit">
+              <div id="compass-needle">➤</div>
             </div>
-            <div id="action-buttons">
-                <!-- Jump (Space) -->
-                <button id="btn-jump" class="touch-btn" data-key=" ">
-                    <div class="btn-icon">⬆️</div>
-                </button>
-                <div class="action-row">
-                    <!-- Sneak (Shift) -->
-                    <button id="btn-sneak" class="touch-btn" data-key="shift">
-                        <div class="btn-icon">👟</div>
-                    </button>
-                    <!-- Eat (F) -->
-                    <button id="btn-eat" class="touch-btn" data-key="f">
-                        <div class="btn-icon">🍒</div>
-                    </button>
-                    <!-- Check Artifact/Compass (E) -->
-                    <button id="btn-check" class="touch-btn" data-key="e">
-                        <div class="btn-icon">🧭</div>
-                    </button>
-                </div>
-            </div>
+          </div>
+
+          <div class="hud-group">
+            <div class="hud-icon">🔥</div>
+            <span id="ember-display">0</span>
+          </div>
+
+          <div class="hud-group">
+            <div class="hud-icon">🍒</div>
+            <span id="food-display">0</span>
+            <small>F to Eat</small>
+          </div>
+
+          <div class="hud-group" id="artifact-slot">
+            <div class="hud-label">Artifact</div>
+            <div id="artifact-icon" class="empty">?</div>
+          </div>
         </div>
+      </div>
+
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+      <!-- Touch Controls Toggle (Bottom Right) -->
+      <div id="touch-toggle-container">
+        <label class="retro-toggle-container">
+          <input type="checkbox" id="touch-toggle" style="display: none" />
+          <div class="retro-toggle-btn"></div>
+          <span>TOUCH</span>
+        </label>
+      </div>
+
+      <!-- Touch Controls -->
+      <div id="touch-controls" class="hidden">
+        <div id="dpad-container">
+          <div id="dpad-base">
+            <div id="dpad-stick"></div>
+          </div>
+        </div>
+        <div id="action-buttons">
+          <!-- Jump (Space) -->
+          <button id="btn-jump" class="touch-btn" data-key=" ">
+            <div class="btn-icon">⬆️</div>
+          </button>
+          <div class="action-row">
+            <!-- Sneak (Shift) -->
+            <button id="btn-sneak" class="touch-btn" data-key="shift">
+              <div class="btn-icon">👟</div>
+            </button>
+            <!-- Eat (F) -->
+            <button id="btn-eat" class="touch-btn" data-key="f">
+              <div class="btn-icon">🍒</div>
+            </button>
+            <!-- Check Artifact/Compass (E) -->
+            <button id="btn-check" class="touch-btn" data-key="e">
+              <div class="btn-icon">🧭</div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Game Logic -->
     <script type="module" src="js/main.js"></script>
-
-</body>
-
+  </body>
 </html>

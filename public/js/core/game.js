@@ -241,6 +241,9 @@ function setupLevel() {
 
   lastPhantomSpawnHaze = PHANTOM_START_HAZE - PHANTOM_SPAWN_INTERVAL; // Ensure correct first spawn timing
 
+  // Collect all player spawn points for random selection
+  let playerSpawnPoints = [];
+
   // Scan map for Spawn Objects
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
@@ -250,8 +253,8 @@ function setupLevel() {
       if (typeof cell === "object" && cell !== null) {
         // 1. Handle Spawns
         if (cell.spawn === "player") {
-          player.x = x + 0.5; // Center in tile
-          player.y = y + 0.5;
+          // Collect spawn point for random selection later
+          playerSpawnPoints.push({ x: x + 0.5, y: y + 0.5 });
         } else if (cell.spawn === "enemy" || cell.spawn === "frostbeast") {
           // Default to FrostBeast for generic 'enemy' spawn
           enemies.push(new FrostBeast(x + 0.5, y + 0.5));
@@ -302,7 +305,22 @@ function setupLevel() {
     }
   }
 
-  // 2. Select Random Artifact Location
+  // 2. Select Random Player Spawn Point (BEFORE artifact selection)
+  if (playerSpawnPoints.length > 0) {
+    const spawnPoint =
+      playerSpawnPoints[Math.floor(Math.random() * playerSpawnPoints.length)];
+    player.x = spawnPoint.x;
+    player.y = spawnPoint.y;
+    console.log(
+      `Player spawned at random start point (${spawnPoint.x}, ${spawnPoint.y}) from ${playerSpawnPoints.length} available`
+    );
+  } else {
+    console.warn("No Player Spawn Points found on map! Defaulting to (5, 5)");
+    player.x = 5.5;
+    player.y = 5.5;
+  }
+
+  // 3. Select Random Artifact Location (skip the nearest spot to player)
   let artifactSpots = [];
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
@@ -314,9 +332,28 @@ function setupLevel() {
   }
 
   if (artifactSpots.length > 0) {
-    let spot = artifactSpots[Math.floor(Math.random() * artifactSpots.length)];
+    // Sort by distance to player (ascending)
+    artifactSpots.sort((a, b) => {
+      const distA = (a.x - player.x) ** 2 + (a.y - player.y) ** 2;
+      const distB = (b.x - player.x) ** 2 + (b.y - player.y) ** 2;
+      return distA - distB;
+    });
+
+    // Skip the nearest 10% of artifact spots (at least 1) if there are multiple spots
+    const skipCount = Math.max(1, Math.floor(artifactSpots.length * 0.1));
+    let eligibleSpots =
+      artifactSpots.length > skipCount
+        ? artifactSpots.slice(skipCount)
+        : artifactSpots;
+
+    // Pick random from eligible spots
+    let spot = eligibleSpots[Math.floor(Math.random() * eligibleSpots.length)];
     gameState.targetArtifactLoc = spot;
     gameState.targetArtifactItem = getRandomArtifact();
+
+    console.log(
+      `Artifact placed at (${spot.x}, ${spot.y}), skipped ${skipCount} nearest spots. ${eligibleSpots.length} eligible of ${artifactSpots.length} total`
+    );
   } else {
     console.warn("No Artifact Spots found on map!");
   }
@@ -482,6 +519,197 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
+// --- AMBIENT OCCLUSION ---
+// Draws subtle gradient shadows on floor tile edges adjacent to walls
+function drawAmbientOcclusion(ctx, camX, camY, litTiles, dimViewRadius) {
+  // Helper to draw a single pass of shadows
+  const drawAOPass = (size, color, cornerRadiusMult) => {
+    for (let y = Math.floor(camY); y < camY + VIEW_H + 1; y++) {
+      for (let x = Math.floor(camX); x < camX + VIEW_W + 1; x++) {
+        if (y >= map.length || x >= map[0].length || y < 0 || x < 0) continue;
+
+        // Only draw AO for visible tiles
+        const isLit = litTiles.has(`${x},${y}`);
+        const distToPlayer = Math.sqrt(
+          (player.x - x) ** 2 + (player.y - y) ** 2
+        );
+        const isDim = distToPlayer <= dimViewRadius;
+        if (!isLit && !isDim) continue;
+
+        let tile = map[y][x];
+        let id = typeof tile === "object" ? tile.id : tile;
+        let block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
+        if (!block.solid) continue; // Only process walls
+
+        const wallPx = (x - camX) * TILE_SIZE;
+        const wallPy = (y - camY) * TILE_SIZE;
+
+        // Helper to check if neighbor is a visible floor
+        const isVisibleFloor = (nx, ny) => {
+          if (ny >= map.length || nx >= map[0].length || ny < 0 || nx < 0)
+            return false;
+          const nTile = map[ny][nx];
+          const nId = typeof nTile === "object" ? nTile.id : nTile;
+          const nBlock = BLOCK_DEFS[nId] || DEFAULT_BLOCK;
+          if (nBlock.solid) return false;
+          // Check visibility
+          const nIsLit = litTiles.has(`${nx},${ny}`);
+          const nDistToPlayer = Math.sqrt(
+            (player.x - nx) ** 2 + (player.y - ny) ** 2
+          );
+          return nIsLit || nDistToPlayer <= dimViewRadius;
+        };
+
+        // --- Linear Shadows ---
+
+        // Bottom (Shadow on floor at y+1)
+        if (isVisibleFloor(x, y + 1)) {
+          const floorPy = (y + 1 - camY) * TILE_SIZE;
+          const grad = ctx.createLinearGradient(0, floorPy, 0, floorPy + size);
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, "transparent");
+          ctx.fillStyle = grad;
+          ctx.fillRect(wallPx, floorPy, TILE_SIZE, size);
+        }
+
+        // Top (Shadow on floor at y-1)
+        if (isVisibleFloor(x, y - 1)) {
+          const floorPy = (y - 1 - camY) * TILE_SIZE;
+          const grad = ctx.createLinearGradient(
+            0,
+            floorPy + TILE_SIZE,
+            0,
+            floorPy + TILE_SIZE - size
+          );
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, "transparent");
+          ctx.fillStyle = grad;
+          ctx.fillRect(wallPx, floorPy + TILE_SIZE - size, TILE_SIZE, size);
+        }
+
+        // Right (Shadow on floor at x+1)
+        if (isVisibleFloor(x + 1, y)) {
+          const floorPx = (x + 1 - camX) * TILE_SIZE;
+          const grad = ctx.createLinearGradient(floorPx, 0, floorPx + size, 0);
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, "transparent");
+          ctx.fillStyle = grad;
+          ctx.fillRect(floorPx, wallPy, size, TILE_SIZE);
+        }
+
+        // Left (Shadow on floor at x-1)
+        if (isVisibleFloor(x - 1, y)) {
+          const floorPx = (x - 1 - camX) * TILE_SIZE;
+          const grad = ctx.createLinearGradient(
+            floorPx + TILE_SIZE,
+            0,
+            floorPx + TILE_SIZE - size,
+            0
+          );
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, "transparent");
+          ctx.fillStyle = grad;
+          ctx.fillRect(floorPx + TILE_SIZE - size, wallPy, size, TILE_SIZE);
+        }
+
+        // --- Corner Shadows ---
+        const checkSolid = (cx, cy) => {
+          if (cx < 0 || cx >= map[0].length || cy < 0 || cy >= map.length)
+            return true;
+          const t = map[cy]?.[cx];
+          if (!t || (typeof t === "object" && t.id === undefined)) return false;
+          const tId = typeof t === "object" ? t.id : t;
+          return (BLOCK_DEFS[tId] || DEFAULT_BLOCK).solid;
+        };
+
+        const cornerShadow = (cx, cy, fx, fy, w, h) => {
+          const grad = ctx.createRadialGradient(
+            cx,
+            cy,
+            0,
+            cx,
+            cy,
+            size * cornerRadiusMult * 0.7
+          );
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, "transparent");
+          ctx.fillStyle = grad;
+          ctx.fillRect(fx, fy, w, h);
+        };
+
+        // Bottom-Right
+        if (
+          isVisibleFloor(x + 1, y + 1) &&
+          !checkSolid(x + 1, y) &&
+          !checkSolid(x, y + 1)
+        ) {
+          cornerShadow(
+            (x + 1 - camX) * TILE_SIZE,
+            (y + 1 - camY) * TILE_SIZE,
+            (x + 1 - camX) * TILE_SIZE,
+            (y + 1 - camY) * TILE_SIZE,
+            size,
+            size
+          );
+        }
+        // Bottom-Left
+        if (
+          isVisibleFloor(x - 1, y + 1) &&
+          !checkSolid(x - 1, y) &&
+          !checkSolid(x, y + 1)
+        ) {
+          cornerShadow(
+            (x - camX) * TILE_SIZE,
+            (y + 1 - camY) * TILE_SIZE,
+            (x - camX) * TILE_SIZE - size,
+            (y + 1 - camY) * TILE_SIZE,
+            size,
+            size
+          );
+        }
+        // Top-Right
+        if (
+          isVisibleFloor(x + 1, y - 1) &&
+          !checkSolid(x + 1, y) &&
+          !checkSolid(x, y - 1)
+        ) {
+          cornerShadow(
+            (x + 1 - camX) * TILE_SIZE,
+            (y - camY) * TILE_SIZE,
+            (x + 1 - camX) * TILE_SIZE,
+            (y - camY) * TILE_SIZE - size,
+            size,
+            size
+          );
+        }
+        // Top-Left
+        if (
+          isVisibleFloor(x - 1, y - 1) &&
+          !checkSolid(x - 1, y) &&
+          !checkSolid(x, y - 1)
+        ) {
+          cornerShadow(
+            (x - camX) * TILE_SIZE,
+            (y - camY) * TILE_SIZE,
+            (x - camX) * TILE_SIZE - size,
+            (y - camY) * TILE_SIZE - size,
+            size,
+            size
+          );
+        }
+      }
+    }
+  };
+
+  // Pass 1: Wide, light shadow (Ambient occlusion)
+  // Wider (0.75x tile) and lighter (0.25 opacity)
+  drawAOPass(TILE_SIZE * 0.75, "rgba(0, 0, 0, 0.25)", 1.4);
+
+  // Pass 2: Narrow, dark shadow (Contact shadow)
+  // Narrower (0.35x tile) and darker (0.45 opacity)
+  drawAOPass(TILE_SIZE * 0.35, "rgba(0, 0, 0, 0.45)", 1.2);
+}
+
 // --- RENDER ENGINE ---
 function draw() {
   // 0. Calculate Stress Factors
@@ -619,6 +847,9 @@ function draw() {
   }
 
   ctx.globalAlpha = 1.0;
+
+  // 4b. Draw Ambient Occlusion (edge shadows where floors meet walls)
+  drawAmbientOcclusion(ctx, camX, camY, litTiles, currentDimViewRadius);
 
   // 5. Draw Player (Layer 2)
   player.draw(ctx, camX, camY, TILE_SIZE);
