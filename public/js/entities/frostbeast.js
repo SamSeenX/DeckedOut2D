@@ -9,7 +9,7 @@ import {
   FROST_BEAST_CHASE_FPS,
   FROST_BEAST_PATROL_RADIUS,
 } from "../data/config.js";
-import { checkWallCollision } from "../utils/collision.js";
+// Collision is handled via inherited this.checkCollision() from Enemy class
 import { checkLineOfSight } from "../world/lighting.js";
 import { BLOCK_DEFS, DEFAULT_BLOCK } from "../world/tiles.js";
 import { SPRITES } from "../data/assets.js";
@@ -91,13 +91,20 @@ export class FrostBeast extends Enemy {
   }
 
   update(player, map, timeNow) {
+    // Update squeeze/push system for navigating tight spaces
+    this.updateSqueezeSystem(timeNow);
+
     // Distance to Player
     let distToPlayer = Math.sqrt(
       (player.x - this.x) ** 2 + (player.y - this.y) ** 2
     );
 
-    // Attack Logic: Melee Range
-    if (distToPlayer < 0.8 && timeNow - this.lastAttackTime > 1000) {
+    // Attack Logic: Melee Range (God mode prevents attacks)
+    if (
+      !window.godMode &&
+      distToPlayer < 0.8 &&
+      timeNow - this.lastAttackTime > 1000
+    ) {
       player.takeDamage(2);
       this.lastAttackTime = timeNow;
     }
@@ -113,8 +120,9 @@ export class FrostBeast extends Enemy {
       });
     }
 
-    // Visibility
+    // Visibility - God Mode makes player invisible to enemies
     let canSeePlayer =
+      !window.godMode &&
       distToPlayer < DETECTION_RANGE &&
       checkLineOfSight(this.x, this.y, player.x, player.y);
 
@@ -136,7 +144,7 @@ export class FrostBeast extends Enemy {
             let ty = this.spawnY + Math.sin(angle) * dist;
 
             // Check if point is inside a wall
-            if (!checkWallCollision(tx, ty)) {
+            if (!this.checkCollision(tx, ty)) {
               this.targetX = tx;
               this.targetY = ty;
               break;
@@ -214,11 +222,11 @@ export class FrostBeast extends Enemy {
               // Check collision for both candidates
               // "Project" position slightly out to see if it's a wall
               let checkDist = 0.5; // Half a tile check
-              let leftBlocked = checkWallCollision(
+              let leftBlocked = this.checkCollision(
                 this.x + leftDir.x * checkDist,
                 this.y + leftDir.y * checkDist
               );
-              let rightBlocked = checkWallCollision(
+              let rightBlocked = this.checkCollision(
                 this.x + rightDir.x * checkDist,
                 this.y + rightDir.y * checkDist
               );
@@ -440,12 +448,34 @@ export class FrostBeast extends Enemy {
     }
 
     // Collision & Movement
-    if (!checkWallCollision(this.x + this.vx, this.y)) {
+    const contact = this.lastWallContact || {};
+
+    // X Movement
+    let nextX = this.x + this.vx;
+    let blockedX = this.checkCollision(nextX, this.y);
+
+    // "Force Escape": If blocked, but moving AWAY from a contact into free space, allow it.
+    if (blockedX) {
+      if (this.vx > 0 && contact.left && !contact.right) blockedX = false;
+      if (this.vx < 0 && contact.right && !contact.left) blockedX = false;
+    }
+
+    if (!blockedX) {
       this.x += this.vx;
     } else {
       this.vx = 0;
     }
-    if (!checkWallCollision(this.x, this.y + this.vy)) {
+
+    // Y Movement
+    let nextY = this.y + this.vy;
+    let blockedY = this.checkCollision(this.x, nextY);
+
+    if (blockedY) {
+      if (this.vy > 0 && contact.top && !contact.bottom) blockedY = false;
+      if (this.vy < 0 && contact.bottom && !contact.top) blockedY = false;
+    }
+
+    if (!blockedY) {
       this.y += this.vy;
     } else {
       this.vy = 0;

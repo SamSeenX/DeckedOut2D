@@ -142,6 +142,9 @@ export const player = {
   lastHarvestDir: "down",
 
   takeDamage(amount) {
+    // God Mode: Ignore all damage
+    if (window.godMode) return;
+
     this.hp -= amount;
     this.lastDamageTime = Date.now();
     triggerShake(0.2); // Shake intensity
@@ -357,10 +360,10 @@ export function updatePlayer() {
     if (keys["d"] || keys["arrowright"]) player.vx += accel;
   }
 
-  // Environment physics
+  // Environment physics (God mode bypasses tile friction)
   let centerBlockId = getTileId(player.x, player.y);
   let centerBlock = BLOCK_DEFS[centerBlockId] || DEFAULT_BLOCK;
-  let slideFactor = centerBlock.slideFactor || 0.8;
+  let slideFactor = window.godMode ? 0.92 : centerBlock.slideFactor || 0.8;
 
   player.vx *= slideFactor;
   player.vy *= slideFactor;
@@ -385,8 +388,9 @@ export function updatePlayer() {
 
   // X-Axis Movement
   let canMoveX = true;
-  if (checkWallCollision(nextX, player.y)) canMoveX = false;
-  else {
+  // God Mode: Skip wall collision (no-clip)
+  if (!window.godMode && checkWallCollision(nextX, player.y)) canMoveX = false;
+  else if (!window.godMode) {
     // Elevation Check X
     if (targetZ_X > currentZ) {
       // Trying to go UP
@@ -403,8 +407,9 @@ export function updatePlayer() {
 
   // Y-Axis Movement
   let canMoveY = true;
-  if (checkWallCollision(player.x, nextY)) canMoveY = false;
-  else {
+  // God Mode: Skip wall collision (no-clip)
+  if (!window.godMode && checkWallCollision(player.x, nextY)) canMoveY = false;
+  else if (!window.godMode) {
     // Elevation Check Y
     if (targetZ_Y > currentZ) {
       // Trying to go UP

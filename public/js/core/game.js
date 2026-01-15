@@ -92,6 +92,9 @@ const minimapCanvas = document.getElementById("minimap-canvas");
 const minimapCtx = minimapCanvas ? minimapCanvas.getContext("2d") : null;
 if (minimapCtx) minimapCtx.imageSmoothingEnabled = false;
 
+// Expose showToast globally for debug mode notifications
+window.showToast = showToast;
+
 // --- Device Detection & Config Application ---
 function applyDeviceConfig() {
   const isMobile =
@@ -807,8 +810,10 @@ function drawMinimap() {
   }
 
   const mCtx = minimapCtx;
-  const tileSize = MINIMAP_TILE_SIZE;
-  const viewRadius = MINIMAP_VIEW_RADIUS;
+  // DEBUG: Zoom out in debug mode
+  const isDebug = window.debugMode;
+  const tileSize = isDebug ? MINIMAP_TILE_SIZE * 0.5 : MINIMAP_TILE_SIZE;
+  const viewRadius = isDebug ? MINIMAP_VIEW_RADIUS * 2 : MINIMAP_VIEW_RADIUS;
 
   // Clear minimap
   mCtx.fillStyle = "rgba(0, 0, 0, 0.8)";
@@ -840,23 +845,46 @@ function drawMinimap() {
       const id = typeof tile === "object" ? tile.id : tile;
       const block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
 
+      const drawX = offsetX + dx * tileSize;
+      const drawY = offsetY + dy * tileSize;
+
       // Color based on tile type - walls are 50% darker than floors
       if (block.solid) {
         mCtx.fillStyle = "#181818"; // Walls - 50% darker than floors
       } else if (block.damage) {
         mCtx.fillStyle = "#662222"; // Hazard - red tint
-      } else if (id === 2) {
-        mCtx.fillStyle = "#4a7c8a"; // Ice floor - blue tint
-      } else if (id === 12) {
-        mCtx.fillStyle = "#3d2e24"; // Mud - brown
+      } else if (block.fabric_type === "water") {
+        mCtx.fillStyle = "#112244"; // Water - blue tint
       } else {
-        mCtx.fillStyle = "#303030"; // Regular floor - base color
+        mCtx.fillStyle = "#333333"; // Floor
       }
 
-      const drawX = offsetX + dx * tileSize;
-      const drawY = offsetY + dy * tileSize;
+      // Draw full tile
       mCtx.fillRect(drawX, drawY, tileSize, tileSize);
     }
+  }
+
+  // Draw Enemies (Debug only)
+  if (isDebug) {
+    mCtx.fillStyle = "red";
+    enemies.forEach((e) => {
+      // Calculate relative position
+      const ex = e.x - startX;
+      const ey = e.y - startY;
+
+      // Only draw if within minimap view
+      if (ex >= 0 && ex < tilesAcross && ey >= 0 && ey < tilesAcross) {
+        const drawX = offsetX + ex * tileSize;
+        const drawY = offsetY + ey * tileSize;
+        // Draw 3x3 dot centered
+        mCtx.fillRect(
+          drawX + tileSize / 2 - 1.5,
+          drawY + tileSize / 2 - 1.5,
+          3,
+          3
+        );
+      }
+    });
   }
 
   // Draw player indicator (center of minimap)
@@ -1152,6 +1180,60 @@ function draw() {
       let sy = (spot.y - 0.5 - camY) * TILE_SIZE;
       ctx.strokeRect(sx, sy, TILE_SIZE, TILE_SIZE);
     });
+
+    // --- DEBUG LEGEND (Bottom Right) ---
+    const lx = canvas.width - 220;
+    const ly = canvas.height - 180;
+
+    // Background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(lx, ly, 210, 170);
+
+    ctx.font = "14px monospace";
+    ctx.textAlign = "left";
+    let textY = ly + 20;
+
+    // Title
+    ctx.fillStyle = "white";
+    ctx.fillText("🛠️ DEBUG LEGEND", lx + 10, textY);
+    textY += 25;
+
+    // Items
+    const drawItem = (color, text, type = "rect") => {
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      if (type === "rect") {
+        ctx.strokeRect(lx + 10, textY - 10, 12, 12);
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(lx + 10, textY - 10, 12, 12);
+        ctx.globalAlpha = 1.0;
+      } else if (type === "solid_rect") {
+        ctx.fillRect(lx + 10, textY - 10, 12, 12);
+      } else if (type === "circle") {
+        ctx.beginPath();
+        ctx.arc(lx + 16, textY - 4, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "white";
+      ctx.fillText(text, lx + 30, textY);
+      textY += 20;
+    };
+
+    drawItem("yellow", "Hitbox (Normal)", "rect");
+    drawItem("orange", "Hitbox (Squeezed)", "rect");
+    drawItem("red", "Wall Contact Side", "solid_rect");
+    drawItem("#ff00ff", "Sensor: Solid Wall", "circle");
+    drawItem("#00ffff", "Sensor: Free Space", "circle");
+
+    textY += 5;
+    if (window.godMode) {
+      ctx.fillStyle = "#00ff00";
+      ctx.fillText("⚡ GOD MODE ACTIVE", lx + 10, textY);
+    } else {
+      ctx.fillStyle = "#888";
+      ctx.fillText("Press 'G' for God Mode", lx + 10, textY);
+    }
   }
 
   ctx.restore();
