@@ -637,13 +637,17 @@ canvas {
   transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+#door-right {
+  transform: scaleX(-1);
+}
+
 /* Open States */
 #door-container.open #door-left {
   transform: translateX(-100%);
 }
 
 #door-container.open #door-right {
-  transform: translateX(100%);
+  transform: translateX(100%) scaleX(-1);
 }
 
 /* === HUD Hearts & Haze === */

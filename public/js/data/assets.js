@@ -22,13 +22,11 @@ export const SPRITES = {
 // === UI & MENU ASSETS (imported for cache-busted hashed filenames) ===
 import menuBgImg from "../../assets/menu_bg.webp";
 import doorLeftImg from "../../assets/door_left.webp";
-import doorRightImg from "../../assets/door_right.webp";
 import faviconImg from "../../assets/favicon.png";
 
 export const UI_ASSETS = {
   menuBg: menuBgImg,
   doorLeft: doorLeftImg,
-  doorRight: doorRightImg,
   favicon: faviconImg,
 };
 
