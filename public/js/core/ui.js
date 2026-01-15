@@ -254,7 +254,7 @@ export function showToast(message, duration = 3000) {
 }
 /**
  * Play artifact collection animation
- * Icon pops up from world position and flies to the HUD slot
+ * Icon pops up from world position to screen center, then flies to the HUD slot
  * With glowing particle effects
  */
 export function playArtifactCollectAnimation(
@@ -275,6 +275,10 @@ export function playArtifactCollectAnimation(
   const canvasRect = canvas.getBoundingClientRect();
   const startX = canvasRect.left + (worldX - camX) * tileSize;
   const startY = canvasRect.top + (worldY - camY) * tileSize;
+
+  // Calculate center of screen (for showcase position)
+  const centerX = canvasRect.left + canvasRect.width / 2;
+  const centerY = canvasRect.top + canvasRect.height / 2;
 
   // Get target position (artifact slot in HUD)
   const slotRect = artifactSlot.getBoundingClientRect();
@@ -338,7 +342,7 @@ export function playArtifactCollectAnimation(
     }, delay);
   }
 
-  // Create floating artifact element - start VERY small
+  // Create floating artifact element - start VERY small at world position
   const floatingIcon = document.createElement("div");
   floatingIcon.className = "artifact-collect-anim";
   floatingIcon.innerHTML = `<img src="${iconPath}" alt="Artifact">`;
@@ -350,7 +354,7 @@ export function playArtifactCollectAnimation(
     height: 120px;
     z-index: 9999;
     pointer-events: none;
-    transform: translate(-50%, -50%) translateY(40px) scale(0);
+    transform: translate(-50%, -50%) scale(0);
     filter: drop-shadow(0 0 10px gold);
   `;
 
@@ -367,31 +371,30 @@ export function playArtifactCollectAnimation(
   // Force reflow
   void floatingIcon.offsetWidth;
 
-  // === PHASE 1: Pop up from ground - GROW LARGE (0-500ms) ===
-  floatingIcon.style.transition =
-    "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.5s ease";
-  floatingIcon.style.transform =
-    "translate(-50%, -50%) translateY(-80px) scale(1.5)";
+  // Spawn initial burst of particles at pickup location
+  for (let i = 0; i < 8; i++) {
+    spawnParticle(startX, startY, i * 20);
+  }
+
+  // === PHASE 1: Move to screen center and GROW LARGE (0-500ms) ===
+  floatingIcon.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
+  floatingIcon.style.left = `${centerX}px`;
+  floatingIcon.style.top = `${centerY}px`;
+  floatingIcon.style.transform = "translate(-50%, -50%) scale(1.5)";
   floatingIcon.style.filter =
     "drop-shadow(0 0 30px gold) drop-shadow(0 0 15px white)";
 
-  // Spawn burst of particles
-  for (let i = 0; i < 12; i++) {
-    spawnParticle(startX, startY - 20, i * 30);
-  }
-
-  // === PHASE 2: Hold and pulse at max size (500-900ms) ===
+  // === PHASE 2: Hold and pulse at center (500-900ms) ===
   setTimeout(() => {
     floatingIcon.style.transition =
       "transform 0.4s ease-in-out, filter 0.4s ease";
-    floatingIcon.style.transform =
-      "translate(-50%, -50%) translateY(-100px) scale(1.3)";
+    floatingIcon.style.transform = "translate(-50%, -50%) scale(1.3)";
     floatingIcon.style.filter =
       "drop-shadow(0 0 40px gold) drop-shadow(0 0 20px white) drop-shadow(0 0 5px orange)";
 
-    // More particles during pulse
+    // Particles during pulse at center
     for (let i = 0; i < 8; i++) {
-      spawnParticle(startX, startY - 80, i * 50);
+      spawnParticle(centerX, centerY, i * 50);
     }
   }, 500);
 
@@ -401,11 +404,10 @@ export function playArtifactCollectAnimation(
       "all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
     floatingIcon.style.left = `${endX}px`;
     floatingIcon.style.top = `${endY}px`;
-    floatingIcon.style.transform =
-      "translate(-50%, -50%) translateY(0) scale(0.4)";
+    floatingIcon.style.transform = "translate(-50%, -50%) scale(0.4)";
     floatingIcon.style.filter = "drop-shadow(0 0 15px gold)";
 
-    // Trail particles during flight
+    // Trail particles during flight from center to slot
     const flyDuration = 600;
     const startTime = Date.now();
     const trailInterval = setInterval(() => {
@@ -414,8 +416,8 @@ export function playArtifactCollectAnimation(
         clearInterval(trailInterval);
         return;
       }
-      const currentX = startX + (endX - startX) * progress;
-      const currentY = startY - 100 + (endY - (startY - 100)) * progress;
+      const currentX = centerX + (endX - centerX) * progress;
+      const currentY = centerY + (endY - centerY) * progress;
       spawnParticle(currentX, currentY, 0);
     }, 50);
   }, 900);

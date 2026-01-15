@@ -1,16 +1,16 @@
 {
-    "name": "Player Step Walk",
-    "notes": [
-        {
-            "type": "noise",
-            "startTime": 0,
-            "duration": 0.05,
-            "volPeak": 0.1,
-            "attack": 0.01,
-            "filterType": "lowpass",
-            "filterFreqStart": 600,
-            "filterFreqEnd": 100,
-            "Q": 1
-        }
-    ]
+  "name": "Player Step Walk",
+  "notes": [
+    {
+      "type": "noise",
+      "startTime": 0,
+      "duration": 0.05,
+      "volPeak": 0.3,
+      "attack": 0.01,
+      "filterType": "lowpass",
+      "filterFreqStart": 600,
+      "filterFreqEnd": 100,
+      "Q": 1
+    }
+  ]
 }

@@ -4,7 +4,7 @@
 // This file contains all tunable game parameters.
 // Modify these values to adjust game balance, visuals, and behavior.
 
-export const TILE_SIZE = 40; // Size of each tile in pixels (affects rendering scale)
+export const TILE_SIZE = 60; // Size of each tile in pixels (affects rendering scale)
 
 // === Physics & Player ===
 export const ACCELERATION = 0.02; // How quickly the player reaches max speed (tiles/frame²)
@@ -21,13 +21,23 @@ export const PLAYER_CHECK_COOLDOWN = 1000; // Milliseconds between "check" actio
 export const PLAYER_ANIMATION_SPEED = 10; // Game ticks between animation frame changes
 
 // === Camera & Display ===
-export const DESKTOP_WIDTH = 800; // Canvas width in pixels for desktop
-export const DESKTOP_HEIGHT = 600; // Canvas height in pixels for desktop
-export const DESKTOP_VIEW_W = 20; // Number of tiles visible horizontally on desktop
-export const DESKTOP_VIEW_H = 15; // Number of tiles visible vertically on desktop
+// Desktop canvas sizing modes:
+// - 'fixed': Use DESKTOP_BASE_WIDTH x DESKTOP_BASE_HEIGHT (classic mode)
+// - 'fit': Scale to fit window while maintaining aspect ratio
+// - 'fill': Fill window, adjusting view tiles to match
+export const DESKTOP_SCALE_MODE = "fit"; // Options: 'fixed', 'fit', 'fill'
 
-export const MOBILE_WIDTH = 600; // Canvas width in pixels for mobile
-export const MOBILE_HEIGHT = 400; // Canvas height in pixels for mobile
+// Base canvas dimensions (used as reference for scaling)
+export const DESKTOP_BASE_WIDTH = 800; // Base canvas width for desktop
+export const DESKTOP_BASE_HEIGHT = 600; // Base canvas height for desktop
+
+// Maximum scale factor for 'fit' mode (prevents overly large canvas on huge monitors)
+export const DESKTOP_MAX_SCALE = 2.5; // Max multiplier for canvas scaling
+
+// Minimum scale factor (prevents canvas from being too small)
+export const DESKTOP_MIN_SCALE = 0.5; // Min multiplier for canvas scaling
+
+// Mobile settings
 export const MOBILE_VIEW_W = 15; // Number of tiles visible horizontally on mobile
 export const MOBILE_VIEW_H = 10; // Number of tiles visible vertically on mobile
 export const MOBILE_INITIAL_HEIGHT_VH = 0.9; // Initial canvas height as viewport percentage (90%)
@@ -41,9 +51,15 @@ export const TOUCH_LAYOUT = {
   check: { x: 120, y: 60, size: 60 }, // Check/interact button position and size
 };
 
-// Dynamic view dimensions (set at runtime based on device)
-export let VIEW_W = DESKTOP_VIEW_W;
-export let VIEW_H = DESKTOP_VIEW_H;
+// === Minimap ===
+export const MINIMAP_SIZE = 120; // Size of minimap in pixels (width and height)
+export const MINIMAP_TILE_SIZE = 4; // Size of each tile on the minimap in pixels
+export const MINIMAP_VIEW_RADIUS = 20; // Radius of tiles to show around player
+export const MINIMAP_MARGIN = 10; // Margin from bottom-left corner in pixels
+
+// Dynamic view dimensions (calculated at runtime based on canvas size and TILE_SIZE)
+export let VIEW_W = 20; // Will be recalculated
+export let VIEW_H = 15; // Will be recalculated
 
 export function updateViewDimensions(w, h) {
   VIEW_W = w;
@@ -122,6 +138,7 @@ export const FROST_BEAST_CHASE_SPEED_MULT = 2.8; // Speed multiplier when chasin
 export const FROST_BEAST_DETECTION_RANGE = 6; // Distance in tiles to detect and chase player
 export const FROST_BEAST_IDLE_FPS = 6; // Animation frames per second when idle
 export const FROST_BEAST_CHASE_FPS = 12; // Animation frames per second when chasing
+export const FROST_BEAST_PATROL_RADIUS = 6; // Radius in tiles for idle roaming
 
 // --- Phantom (spawned by haze, orbits then swoops) ---
 export const PHANTOM_ORBIT_SPEED = 0.02; // Rotation speed when orbiting player (radians/frame)

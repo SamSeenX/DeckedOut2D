@@ -7,6 +7,7 @@ import {
   FROST_BEAST_DETECTION_RANGE,
   FROST_BEAST_IDLE_FPS,
   FROST_BEAST_CHASE_FPS,
+  FROST_BEAST_PATROL_RADIUS,
 } from "../data/config.js";
 import { checkWallCollision } from "../utils/collision.js";
 import { checkLineOfSight } from "../world/lighting.js";
@@ -80,6 +81,13 @@ export class FrostBeast extends Enemy {
     // Audio State
     this.lastVocalTime = 0;
     this.lastStepTime = 0;
+
+    // Stuck Detection State
+    this.lastPos = { x: x, y: y };
+    this.stuckTimer = 0;
+    this.isSidestepping = false;
+    this.sidestepTimer = 0;
+    this.sidestepDir = { x: 0, y: 0 };
   }
 
   update(player, map, timeNow) {
@@ -119,10 +127,24 @@ export class FrostBeast extends Enemy {
           playJson("assets/sounds/frostbeast_detect.json");
           this.triggerAggro(player, timeNow);
         } else if (timeNow - this.lastMoveTime > IDLE_MOVE_INTERVAL) {
-          let angle = Math.random() * Math.PI * 2;
-          let dist = Math.random() * 3;
-          this.targetX = this.spawnX + Math.cos(angle) * dist;
-          this.targetY = this.spawnY + Math.sin(angle) * dist;
+          // Try to find a valid non-wall spot to roam to
+          let attempts = 0;
+          while (attempts < 5) {
+            let angle = Math.random() * Math.PI * 2;
+            let dist = Math.random() * FROST_BEAST_PATROL_RADIUS;
+            let tx = this.spawnX + Math.cos(angle) * dist;
+            let ty = this.spawnY + Math.sin(angle) * dist;
+
+            // Check if point is inside a wall
+            if (!checkWallCollision(tx, ty)) {
+              this.targetX = tx;
+              this.targetY = ty;
+              break;
+            }
+            attempts++;
+          }
+          // If we failed 5 times, we just stay put (targetX/Y remain as is or could reset to spawn)
+
           this.lastMoveTime = timeNow;
         }
 
@@ -138,12 +160,90 @@ export class FrostBeast extends Enemy {
           this.targetX = player.x;
           this.targetY = player.y;
           this.lastSeenPlayerPos = { x: player.x, y: player.y };
+
+          // --- Stuck Detection Logic ---
+          if (!this.isSidestepping) {
+            let distMoved = Math.sqrt(
+              (this.x - this.lastPos.x) ** 2 + (this.y - this.lastPos.y) ** 2
+            );
+
+            // Calculate expected movement based on terrain
+            let baseSpeed =
+              this.maxSpeed *
+              (this.state === STATES.CHASE
+                ? FROST_BEAST_CHASE_SPEED_MULT
+                : 1.0);
+            let terrainFactor = this.currentTerrainFactor || 0.8;
+            let expectedDist = baseSpeed * terrainFactor; // Approximate per-frame distance
+
+            // If movement is less than 30% of what we expect for this terrain, we are likely stuck
+            let stuckThreshold = expectedDist * 0.3;
+
+            let timeDelta = timeNow - (this.lastCheckTime || timeNow);
+
+            if (distMoved < stuckThreshold) {
+              this.stuckTimer += timeDelta;
+            } else {
+              // Leaky bucket: decrement timer instead of hard reset
+              // This makes it handle jittery collision movement better
+              this.stuckTimer = Math.max(0, this.stuckTimer - timeDelta);
+            }
+            this.lastPos = { x: this.x, y: this.y };
+            this.lastCheckTime = timeNow;
+
+            // Trigger Sidestep if stuck > 500ms
+            if (this.stuckTimer > 500) {
+              this.isSidestepping = true;
+              this.sidestepTimer = 300; // Sidestep duration (ms)
+              this.stuckTimer = 0;
+
+              // Calculate Sidestep Direction (Perpendicular to target)
+              // Vector to player
+              let dx = player.x - this.x;
+              let dy = player.y - this.y;
+              // Normalize
+              let len = Math.sqrt(dx * dx + dy * dy);
+              if (len > 0) {
+                dx /= len;
+                dy /= len;
+              }
+              // Rotate 90 degrees to find candidate directions
+              let leftDir = { x: -dy, y: dx };
+              let rightDir = { x: dy, y: -dx };
+
+              // Check collision for both candidates
+              // "Project" position slightly out to see if it's a wall
+              let checkDist = 0.5; // Half a tile check
+              let leftBlocked = checkWallCollision(
+                this.x + leftDir.x * checkDist,
+                this.y + leftDir.y * checkDist
+              );
+              let rightBlocked = checkWallCollision(
+                this.x + rightDir.x * checkDist,
+                this.y + rightDir.y * checkDist
+              );
+
+              if (!leftBlocked && rightBlocked) {
+                this.sidestepDir = leftDir;
+              } else if (!rightBlocked && leftBlocked) {
+                this.sidestepDir = rightDir;
+              } else {
+                // If both blocked or both free, pick randomly
+                if (Math.random() < 0.5) {
+                  this.sidestepDir = leftDir;
+                } else {
+                  this.sidestepDir = rightDir;
+                }
+              }
+            }
+          }
         } else {
           this.state = STATES.SEARCHING;
           this.stateTimer = timeNow;
           this.color = "#aa0000";
           this.targetX = this.lastSeenPlayerPos.x;
           this.targetY = this.lastSeenPlayerPos.y;
+          this.isSidestepping = false; // Reset if lost sight
         }
 
         // Chase Bark (Randomly)
@@ -156,6 +256,7 @@ export class FrostBeast extends Enemy {
       case STATES.SEARCHING:
         if (canSeePlayer) {
           this.state = STATES.CHASE;
+          this.searchStartTime = 0; // Reset failsafe
           this.color = "#ff0000";
           playJson("assets/sounds/frostbeast_detect.json");
         } else {
@@ -170,10 +271,20 @@ export class FrostBeast extends Enemy {
               this.targetY = this.y + Math.sin(angle) * dist;
               this.lastMoveTime = timeNow;
             }
+          } else {
+            // If we haven't reached the target (last seen pos) yet,
+            // keep the search timer fresh so we don't give up while traveling.
+            // FAILSAFE: Only do this for 10 seconds max to prevent infinite loops if unreachable.
+            if (!this.searchStartTime) this.searchStartTime = timeNow;
+
+            if (timeNow - this.searchStartTime < 10000) {
+              this.stateTimer = timeNow;
+            }
           }
 
           if (timeNow - this.stateTimer > SEARCH_DURATION) {
             this.state = STATES.IDLE;
+            this.searchStartTime = 0; // Reset failsafe
             this.color = "red";
             // Roam around CURRENT location instead of returning to spawn
             this.spawnX = this.x;
@@ -256,10 +367,38 @@ export class FrostBeast extends Enemy {
 
     if (!touchedTiles) minSlideFactor = 0.8;
 
+    if (!touchedTiles) minSlideFactor = 0.8;
+
+    // Track current terrain factor for dynamic stuck detection
+    this.currentTerrainFactor = minSlideFactor;
+
     // Acceleration - ALSO affected by terrain (enemies struggle on mud/water)
-    if (dist > 0.1) {
-      let dirX = dx / dist;
-      let dirY = dy / dist;
+    if (dist > 0.1 || this.isSidestepping) {
+      let dirX, dirY;
+
+      // Sidestep Override
+      if (this.isSidestepping) {
+        dirX = this.sidestepDir.x;
+        dirY = this.sidestepDir.y;
+
+        // Decrease Timer
+        // We need 'timeNow' diff or just approximate per frame?
+        // We have timeNow passed in. But we need delta.
+        // Let's assume ~16ms or just use a fixed decrement if delta isn't available easily here.
+        // Wait, applyPhysics has 'timeNow'. We used 'lastStepTime' before.
+        // Let's just use a fixed 16ms decrement for simplicity or track lastFrameTime globally?
+        // Actually, this.sidestepTimer was set to 300ms.
+        // We don't have delta time passed clearly.
+        // Let's rely on valid dist check or just assume 60fps (16ms)
+        this.sidestepTimer -= 16;
+        if (this.sidestepTimer <= 0) {
+          this.isSidestepping = false;
+        }
+      } else {
+        dirX = dx / dist;
+        dirY = dy / dist;
+      }
+
       let speedMult =
         this.state === STATES.CHASE ? FROST_BEAST_CHASE_SPEED_MULT : 1.0;
 

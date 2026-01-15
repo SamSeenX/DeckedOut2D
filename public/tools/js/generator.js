@@ -980,28 +980,75 @@ export function generateSmartDungeon(
   // --- FEATURE PLACEMENT ---
   reportProgress("features", "Placing features...");
 
-  // 1. Player Spawns (start from first room)
+  // 1. Player Spawns (using Furthest Point Sampling to spread them out)
+  const spawnRoomIndices = [];
   if (rooms.length > 0 && settings.spawnCount > 0) {
     const count = Math.min(settings.spawnCount, rooms.length);
-    for (let i = 0; i < count; i++) {
-      const room = rooms[i];
+
+    // First spawn is always the first room (center-ish)
+    spawnRoomIndices.push(0);
+
+    // Find subsequent spawns
+    while (spawnRoomIndices.length < count) {
+      let bestRoomIndex = -1;
+      let maxMinDist = -1;
+
+      for (let i = 0; i < rooms.length; i++) {
+        if (spawnRoomIndices.includes(i)) continue;
+
+        // Calculate min distance to any existing spawn room
+        let minDist = Infinity;
+        for (const spawnIndex of spawnRoomIndices) {
+          const r1 = rooms[i];
+          const r2 = rooms[spawnIndex];
+          const dist =
+            Math.abs(r1.centerX - r2.centerX) +
+            Math.abs(r1.centerY - r2.centerY);
+          if (dist < minDist) minDist = dist;
+        }
+
+        if (minDist > maxMinDist) {
+          maxMinDist = minDist;
+          bestRoomIndex = i;
+        }
+      }
+
+      if (bestRoomIndex !== -1) {
+        spawnRoomIndices.push(bestRoomIndex);
+      } else {
+        break;
+      }
+    }
+
+    // Apply spawns to map
+    for (const index of spawnRoomIndices) {
+      const room = rooms[index];
       const tile = ensureTileObject(room.centerY, room.centerX);
       tile.spawn = "player";
-      // Don't mark as used for other things if possible, but spawns are critical
     }
   }
 
-  // 2. Exits (start from last room)
+  // 2. Exits (start from last room, skipping spawns)
+  const exitRoomIndices = [];
   if (rooms.length > 1 && settings.exitCount > 0) {
-    const count = Math.min(
-      settings.exitCount,
-      rooms.length - settings.spawnCount
-    ); // Avoid overlapping spawns if possible
+    // Determine how many exits we can place
+    const availableRoomCount = rooms.length - spawnRoomIndices.length;
+    const count = Math.min(settings.exitCount, availableRoomCount);
 
-    for (let i = 0; i < count; i++) {
-      // Pick room from the end
-      const roomIdx = rooms.length - 1 - i;
-      if (roomIdx < 0) break;
+    let foundCount = 0;
+    // Iterate backwards from the last room
+    for (let i = rooms.length - 1; i >= 0 && foundCount < count; i--) {
+      // Skip if this room is already a spawn
+      if (spawnRoomIndices.includes(i)) continue;
+
+      const roomIdx = i;
+      // We'll proceed to try and place an exit here.
+      // If we fail to place an exit in this room (unlikely), we ideally should try another,
+      // but for now we follow the existing pattern of iterating.
+
+      // Note: We're inside the loop context, so we continue logic...
+      // Ideally we should refactor this loop structure, but we are inside multi-replace.
+      // Let's just track the index if we attempt it.
 
       const room = rooms[roomIdx];
       const exitPos = findExitWallPosition(finalMap, width, height, room);
@@ -1013,6 +1060,8 @@ export function generateSmartDungeon(
         tile.id = 0; // Convert to stone floor (passable)
         tile.v = 1;
         tile.isExit = true;
+        exitRoomIndices.push(roomIdx);
+        foundCount++;
       } else {
         // Fallback: Place exit on a floor tile INSIDE the room
         // Find a floor tile in the room that has at least one cardinal floor neighbor
@@ -1055,6 +1104,8 @@ export function generateSmartDungeon(
                 const tile = ensureTileObject(ry, rx);
                 tile.isExit = true;
                 placed = true;
+                exitRoomIndices.push(roomIdx);
+                foundCount++;
               }
             }
           }
@@ -1064,6 +1115,8 @@ export function generateSmartDungeon(
         if (!placed) {
           const tile = ensureTileObject(room.centerY, room.centerX);
           tile.isExit = true;
+          exitRoomIndices.push(roomIdx);
+          foundCount++;
         }
       }
     }
@@ -1071,10 +1124,11 @@ export function generateSmartDungeon(
 
   // Track used rooms for artifacts and treasures
   // We'll consider the first few (spawns) and last few (exits) as "used" to avoid cluttering them
+  // Track used rooms for artifacts and treasures
+  // We'll consider the first few (spawns) and last few (exits) as "used" to avoid cluttering them
   const usedRooms = new Set();
-  for (let i = 0; i < settings.spawnCount; i++) usedRooms.add(i);
-  for (let i = 0; i < settings.exitCount; i++)
-    usedRooms.add(rooms.length - 1 - i);
+  spawnRoomIndices.forEach((idx) => usedRooms.add(idx));
+  exitRoomIndices.forEach((idx) => usedRooms.add(idx));
 
   // Optional: Add artifact spots in random rooms (at random positions)
   if (settings.artifactCount > 0 && rooms.length > 2) {

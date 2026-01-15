@@ -1,27 +1,27 @@
 {
-    "name": "Player Step Run",
-    "notes": [
-        {
-            "type": "noise",
-            "startTime": 0,
-            "duration": 0.08,
-            "volPeak": 0.2,
-            "attack": 0.005,
-            "filterType": "lowpass",
-            "filterFreqStart": 900,
-            "filterFreqEnd": 200,
-            "Q": 1
-        },
-        {
-            "type": "noise",
-            "startTime": 0.02,
-            "duration": 0.05,
-            "volPeak": 0.1,
-            "attack": 0.01,
-            "filterType": "highpass",
-            "filterFreqStart": 500,
-            "filterFreqEnd": 1000,
-            "Q": 1
-        }
-    ]
+  "name": "Player Step Run",
+  "notes": [
+    {
+      "type": "noise",
+      "startTime": 0,
+      "duration": 0.08,
+      "volPeak": 0.4,
+      "attack": 0.005,
+      "filterType": "lowpass",
+      "filterFreqStart": 900,
+      "filterFreqEnd": 200,
+      "Q": 1
+    },
+    {
+      "type": "noise",
+      "startTime": 0.02,
+      "duration": 0.05,
+      "volPeak": 0.2,
+      "attack": 0.01,
+      "filterType": "highpass",
+      "filterFreqStart": 500,
+      "filterFreqEnd": 1000,
+      "Q": 1
+    }
+  ]
 }

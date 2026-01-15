@@ -3,12 +3,11 @@ import {
   VIEW_W,
   VIEW_H,
   updateViewDimensions,
-  DESKTOP_WIDTH,
-  DESKTOP_HEIGHT,
-  DESKTOP_VIEW_W,
-  DESKTOP_VIEW_H,
-  MOBILE_WIDTH,
-  MOBILE_HEIGHT,
+  DESKTOP_SCALE_MODE,
+  DESKTOP_BASE_WIDTH,
+  DESKTOP_BASE_HEIGHT,
+  DESKTOP_MAX_SCALE,
+  DESKTOP_MIN_SCALE,
   MOBILE_VIEW_W,
   MOBILE_VIEW_H,
   MOBILE_INITIAL_HEIGHT_VH,
@@ -33,6 +32,9 @@ import {
   HAZE_EMBER_REDUCTION,
   HAZE_CRITICAL_THRESHOLD,
   PHANTOM_CRITICAL_SPAWN_MULT,
+  MINIMAP_SIZE,
+  MINIMAP_TILE_SIZE,
+  MINIMAP_VIEW_RADIUS,
 } from "../data/config.js";
 import {
   triggerHaptic,
@@ -85,6 +87,11 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false; // Pixel Art Rendering
 let globalScale = 1;
 
+// Minimap Setup
+const minimapCanvas = document.getElementById("minimap-canvas");
+const minimapCtx = minimapCanvas ? minimapCanvas.getContext("2d") : null;
+if (minimapCtx) minimapCtx.imageSmoothingEnabled = false;
+
 // --- Device Detection & Config Application ---
 function applyDeviceConfig() {
   const isMobile =
@@ -116,9 +123,9 @@ function applyDeviceConfig() {
       container.style.height = `${canvas.height}px`;
     }
 
-    // Dynamic Scaling to fit 15x10 Grid
+    // Dynamic Scaling to fit desired tile grid
     const targetW = MOBILE_VIEW_W * TILE_SIZE;
-    const targetH = MOBILE_VIEW_H * TILE_SIZE; // 15x10 as requested
+    const targetH = MOBILE_VIEW_H * TILE_SIZE;
 
     // Calculate needed scale to fit target tiles into actual screen
     const scaleX = canvas.width / targetW;
@@ -126,22 +133,92 @@ function applyDeviceConfig() {
 
     globalScale = Math.min(scaleX, scaleY);
 
+    // Calculate view dimensions based on actual canvas size and scale
     let viewW = Math.ceil(canvas.width / (TILE_SIZE * globalScale));
     let viewH = Math.ceil(canvas.height / (TILE_SIZE * globalScale));
 
     updateViewDimensions(viewW, viewH);
   } else {
-    // Desktop Settings
-    globalScale = 1;
-    canvas.width = DESKTOP_WIDTH;
-    canvas.height = DESKTOP_HEIGHT;
+    // Desktop Settings - Dynamic based on DESKTOP_SCALE_MODE
 
-    if (container) {
-      container.style.width = `${DESKTOP_WIDTH}px`;
-      container.style.height = `${DESKTOP_HEIGHT}px`;
+    // Get available space (use parent container or window)
+    const gameWrapper = document.getElementById("game-wrapper");
+    const availableWidth = gameWrapper
+      ? gameWrapper.clientWidth
+      : window.innerWidth;
+    const availableHeight = gameWrapper
+      ? gameWrapper.clientHeight
+      : window.innerHeight - 100; // Leave room for UI
+
+    // Calculate canvas dimensions based on scale mode
+    let canvasWidth, canvasHeight;
+
+    switch (DESKTOP_SCALE_MODE) {
+      case "fixed":
+        // Classic mode: Fixed canvas size, globalScale = 1
+        canvasWidth = DESKTOP_BASE_WIDTH;
+        canvasHeight = DESKTOP_BASE_HEIGHT;
+        globalScale = 1;
+        break;
+
+      case "fit":
+        // Scale canvas to fit available space while maintaining aspect ratio
+        const baseAspect = DESKTOP_BASE_WIDTH / DESKTOP_BASE_HEIGHT;
+        const availableAspect = availableWidth / availableHeight;
+
+        let fitScale;
+        if (availableAspect > baseAspect) {
+          // Window is wider - fit to height
+          fitScale = availableHeight / DESKTOP_BASE_HEIGHT;
+        } else {
+          // Window is taller - fit to width
+          fitScale = availableWidth / DESKTOP_BASE_WIDTH;
+        }
+
+        // Clamp scale within configured bounds
+        fitScale = Math.max(
+          DESKTOP_MIN_SCALE,
+          Math.min(DESKTOP_MAX_SCALE, fitScale)
+        );
+
+        canvasWidth = Math.floor(DESKTOP_BASE_WIDTH * fitScale);
+        canvasHeight = Math.floor(DESKTOP_BASE_HEIGHT * fitScale);
+        globalScale = 1; // We're scaling the canvas itself, not the drawing
+        break;
+
+      case "fill":
+        // Fill available space, adjusting tile count to match
+        canvasWidth = Math.min(availableWidth, window.innerWidth * 0.95);
+        canvasHeight = Math.min(availableHeight, window.innerHeight * 0.85);
+        globalScale = 1;
+        break;
+
+      default:
+        // Fallback to fixed
+        canvasWidth = DESKTOP_BASE_WIDTH;
+        canvasHeight = DESKTOP_BASE_HEIGHT;
+        globalScale = 1;
     }
 
-    updateViewDimensions(DESKTOP_VIEW_W, DESKTOP_VIEW_H);
+    // Apply canvas size
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    if (container) {
+      container.style.width = `${canvasWidth}px`;
+      container.style.height = `${canvasHeight}px`;
+    }
+
+    // CRITICAL FIX: Calculate VIEW_W and VIEW_H dynamically from canvas size and TILE_SIZE
+    // This ensures the camera always works correctly regardless of tile size
+    const viewW = Math.floor(canvas.width / TILE_SIZE);
+    const viewH = Math.floor(canvas.height / TILE_SIZE);
+
+    updateViewDimensions(viewW, viewH);
+
+    console.log(
+      `[Display] Mode: ${DESKTOP_SCALE_MODE}, Canvas: ${canvas.width}x${canvas.height}, View: ${viewW}x${viewH} tiles, TileSize: ${TILE_SIZE}px`
+    );
   }
 }
 
@@ -715,6 +792,95 @@ function drawAmbientOcclusion(ctx, camX, camY, litTiles, dimViewRadius) {
   drawAOPass(TILE_SIZE * 0.35, "rgba(0, 0, 0, 0.45)", 1.2);
 }
 
+// --- MINIMAP ---
+function drawMinimap() {
+  if (!minimapCanvas || !minimapCtx) return;
+
+  // Set canvas size to match CSS size for crisp rendering
+  const displaySize = MINIMAP_SIZE;
+  if (
+    minimapCanvas.width !== displaySize ||
+    minimapCanvas.height !== displaySize
+  ) {
+    minimapCanvas.width = displaySize;
+    minimapCanvas.height = displaySize;
+  }
+
+  const mCtx = minimapCtx;
+  const tileSize = MINIMAP_TILE_SIZE;
+  const viewRadius = MINIMAP_VIEW_RADIUS;
+
+  // Clear minimap
+  mCtx.fillStyle = "rgba(0, 0, 0, 0.8)";
+  mCtx.fillRect(0, 0, displaySize, displaySize);
+
+  // Calculate visible tile range centered on player
+  const centerX = Math.floor(player.x);
+  const centerY = Math.floor(player.y);
+  const startX = centerX - viewRadius;
+  const startY = centerY - viewRadius;
+  const tilesAcross = viewRadius * 2 + 1;
+
+  // Calculate offset to center the minimap view
+  const offsetX = (displaySize - tilesAcross * tileSize) / 2;
+  const offsetY = (displaySize - tilesAcross * tileSize) / 2;
+
+  // Draw tiles
+  for (let dy = 0; dy < tilesAcross; dy++) {
+    for (let dx = 0; dx < tilesAcross; dx++) {
+      const mapX = startX + dx;
+      const mapY = startY + dy;
+
+      // Skip tiles outside map bounds
+      if (mapY < 0 || mapY >= map.length || mapX < 0 || mapX >= map[0].length) {
+        continue;
+      }
+
+      const tile = map[mapY][mapX];
+      const id = typeof tile === "object" ? tile.id : tile;
+      const block = BLOCK_DEFS[id] || DEFAULT_BLOCK;
+
+      // Color based on tile type - walls are 50% darker than floors
+      if (block.solid) {
+        mCtx.fillStyle = "#181818"; // Walls - 50% darker than floors
+      } else if (block.damage) {
+        mCtx.fillStyle = "#662222"; // Hazard - red tint
+      } else if (id === 2) {
+        mCtx.fillStyle = "#4a7c8a"; // Ice floor - blue tint
+      } else if (id === 12) {
+        mCtx.fillStyle = "#3d2e24"; // Mud - brown
+      } else {
+        mCtx.fillStyle = "#303030"; // Regular floor - base color
+      }
+
+      const drawX = offsetX + dx * tileSize;
+      const drawY = offsetY + dy * tileSize;
+      mCtx.fillRect(drawX, drawY, tileSize, tileSize);
+    }
+  }
+
+  // Draw player indicator (center of minimap)
+  const playerDrawX = offsetX + (player.x - startX) * tileSize;
+  const playerDrawY = offsetY + (player.y - startY) * tileSize;
+
+  // Outer glow
+  mCtx.fillStyle = "rgba(0, 255, 255, 0.3)";
+  mCtx.beginPath();
+  mCtx.arc(playerDrawX, playerDrawY, tileSize * 1.5, 0, Math.PI * 2);
+  mCtx.fill();
+
+  // Inner dot
+  mCtx.fillStyle = "#00ffff";
+  mCtx.beginPath();
+  mCtx.arc(playerDrawX, playerDrawY, tileSize * 0.8, 0, Math.PI * 2);
+  mCtx.fill();
+
+  // Draw minimap border (rounded corners effect)
+  mCtx.strokeStyle = "rgba(100, 180, 220, 0.6)";
+  mCtx.lineWidth = 2;
+  mCtx.strokeRect(1, 1, displaySize - 2, displaySize - 2);
+}
+
 // --- RENDER ENGINE ---
 function draw() {
   // 0. Calculate Stress Factors
@@ -856,10 +1022,35 @@ function draw() {
   // 4b. Draw Ambient Occlusion (edge shadows where floors meet walls)
   drawAmbientOcclusion(ctx, camX, camY, litTiles, currentDimViewRadius);
 
-  // 5. Draw Player (Layer 2)
-  player.draw(ctx, camX, camY, TILE_SIZE);
+  // 5. Collect all drawable entities for Y-sorting (depth ordering)
+  // Sort by BOTTOM of sprite (y + scaleH/2) so taller entities sort correctly
+  // Entities with higher bottom Y (lower on screen) should be drawn LAST to appear on top
+  const drawableEntities = [];
 
-  // 6. Draw Enemies - Only if in line of sight AND within range
+  // Helper to get entity's sort Y (bottom of sprite in tile coords)
+  const getEntityBottomY = (entity) => {
+    // Try to get current animation's scaleH
+    let scaleH = 1.0;
+    if (entity.animations && entity.anim) {
+      const animData = entity.animations[entity.anim];
+      if (animData && animData.scaleH !== undefined) {
+        scaleH = animData.scaleH;
+      }
+    }
+    // Bottom of sprite = center Y + half height
+    return entity.y + scaleH / 2;
+  };
+
+  // Add player to drawable list (player uses a different animation structure)
+  const playerAnimData = { scaleH: 1 * (92 / 64) }; // Player's scaleH from player.js
+  const playerBottomY = player.y + playerAnimData.scaleH / 2;
+  drawableEntities.push({
+    type: "player",
+    sortY: playerBottomY,
+    draw: () => player.draw(ctx, camX, camY, TILE_SIZE),
+  });
+
+  // Add visible enemies to drawable list
   enemies.forEach((enemy) => {
     const dist = Math.sqrt(
       (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2
@@ -868,9 +1059,19 @@ function draw() {
       dist <= currentDimViewRadius &&
       checkLineOfSight(player.x, player.y, enemy.x, enemy.y)
     ) {
-      enemy.draw(ctx, camX, camY);
+      drawableEntities.push({
+        type: "enemy",
+        sortY: getEntityBottomY(enemy),
+        draw: () => enemy.draw(ctx, camX, camY),
+      });
     }
   });
+
+  // Sort by bottom Y position (ascending) - lower bottom drawn first, higher bottom (in front) drawn last
+  drawableEntities.sort((a, b) => a.sortY - b.sortY);
+
+  // Draw all entities in sorted order
+  drawableEntities.forEach((entity) => entity.draw());
 
   // 6b. Draw Projectiles - Only if in line of sight
   projectiles.forEach((p) => {
@@ -968,6 +1169,9 @@ function draw() {
       triggerShake(0.3);
     }
   }
+
+  // Draw Minimap
+  drawMinimap();
 }
 
 // --- START / RESET GAME ---
